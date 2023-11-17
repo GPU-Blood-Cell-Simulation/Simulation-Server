@@ -6,10 +6,13 @@
 #include <iomanip>
 #include <iostream>
 #include <tuple>
+#include "../graphics/mesh.hpp"
+#include <algorithm>
+#include <functional>
 
 class VeinGenerator
 {
-	std::vector<glm::vec3> vertices;
+	std::vector<Vertex> vertices;
 	std::vector<unsigned int> indices;
 
 	const float radius, height;
@@ -31,10 +34,16 @@ public:
 			float h = i * triangleH /*- height / 2*/;
 			for (unsigned int j = 0; j < hLayers; ++j)
 			{
-				vertices.emplace_back(
-					glm::vec3(radius * cos(j * radianBatch),
-					h, radius * sin(j * radianBatch)) + basisOrigin
-				);
+				glm::vec3 position = glm::vec3(radius * cos(j * radianBatch),
+					h, radius * sin(j * radianBatch)) + basisOrigin;
+				Vertex v
+				{
+					position,
+					glm::vec3(glm::normalize(position - glm::vec3(basisOrigin.x, basisOrigin.y, basisOrigin.z + h))),
+					glm::vec2(0) // no textures
+				};
+				vertices.push_back(v);
+
 				if (i < vLayers - 1)
 				{
 					int nextj = (j + 1) % hLayers;
@@ -55,15 +64,19 @@ public:
 		exit(0);*/
 
 		springLengths = std::make_tuple(
-			length(vertices[0] - vertices[1]),
-			length(vertices[0] - vertices[hLayers]),
-			length(vertices[0] - vertices[hLayers + 1])
+			length(vertices[0].position - vertices[1].position),
+			length(vertices[0].position - vertices[hLayers].position),
+			length(vertices[0].position - vertices[hLayers + 1].position)
 		);
 	}
 
-	inline const std::vector<glm::vec3>& getVertices() const
+	inline const std::vector<glm::vec3> getVertices() const
 	{
-		return vertices;
+		std::vector<glm::vec3> positions(vertices.size());
+		std::transform(vertices.cbegin(), vertices.cend(), positions.begin(), [&](auto& v) {
+			return v.position;
+		});
+		return positions;
 	}
 
 	inline const std::vector<unsigned int>& getIndices() const
@@ -74,5 +87,11 @@ public:
 	inline std::tuple<float, float, float> getSpringLengths() const
 	{
 		return springLengths;
+	}
+
+	Mesh CreateMesh()
+	{
+		return Mesh(std::move(vertices), std::move(indices),
+			std::move(std::vector<Texture>(0)));
 	}
 };
