@@ -11,7 +11,7 @@ inline constexpr float depth = 300.0f;
 
 // ! this value should be determined experimentally !
 // one frame simulation time span
-inline constexpr float dt = 0.1f;
+inline constexpr float dt = 0.001f;
 
 // uniform grid cell count
 

@@ -4,13 +4,10 @@
 
 #include <glad/glad.h>
 #include <memory>
-
+#include <algorithm>
 
 Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<Texture>&& textures) :
-	vertices(vertices), indices(indices), textures(textures)
-{
-	setupMesh();
-}
+	vertices(vertices), indices(indices), textures(textures) {}
 
 void Mesh::setupMesh()
 {
@@ -40,21 +37,6 @@ void Mesh::setupMesh()
 	glBindVertexArray(0);
 }
 
-void Mesh::draw(const Shader* shader, bool instanced) const
-{
-	// draw mesh
-	glBindVertexArray(VAO);
-	if (instanced)
-	{
-		glDrawElementsInstanced(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0, particleCount);
-	}
-	else
-	{
-		glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
-	}
-	glBindVertexArray(0);
-}
-
 unsigned int Mesh::getVBO()
 {
 	return VBO;
@@ -75,4 +57,92 @@ void Mesh::setVertexOffsetAttribute()
 	glVertexAttribDivisor(3, 1);
 
 	glBindVertexArray(0);
+}
+
+SingleObjectMesh::SingleObjectMesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<Texture>&& textures)
+	: Mesh(std::move(vertices), std::move(indices), std::move(textures))
+{
+	setupMesh();
+}
+
+void Mesh::draw(const Shader* shader) const
+{
+	// draw mesh
+	auto obj = vertices;
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+}
+
+void SingleObjectMesh::drawInstanced(const Shader* shader, unsigned int instancesCount) const
+{
+	// draw mesh
+	glBindVertexArray(VAO);
+	glDrawElementsInstanced(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0, particleCount);
+	glBindVertexArray(0);
+}
+
+MultiObjectMesh::MultiObjectMesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<Texture>&& textures, std::vector<glm::vec3>& initialPositions, unsigned int objectCount)
+	: Mesh(std::move(vertices), std::move(indices), std::move(textures))
+{
+	this->objectCount = objectCount;
+	prepareMultipleObjects(initialPositions);
+	setupMesh();
+}
+
+void MultiObjectMesh::prepareMultipleObjects(std::vector<glm::vec3>& initialPositions)
+{
+	unsigned int indicesCount = indices.size() * initialPositions.size();
+	unsigned int initialVerticesCount = vertices.size();
+
+	std::vector<unsigned int> newIndices(indicesCount);
+	for (int i = 0; i < initialPositions.size(); ++i) {
+		std::transform(indices.cbegin(), indices.cend(), newIndices.begin() + i * indices.size(),
+			[&](unsigned int indice) {
+				return indice + i * initialVerticesCount;
+			});
+	}
+	indices = std::vector<unsigned int>(indicesCount);
+	std::move(newIndices.begin(), newIndices.end(), indices.begin());
+
+	unsigned int verticesCount = vertices.size() * initialPositions.size();
+	std::vector<Vertex> newVertices(verticesCount);
+	for (int i = 0; i < initialPositions.size(); ++i) {
+		std::transform(vertices.cbegin(), vertices.cend(),
+			(newVertices.begin() + i * vertices.size()),
+			[&](Vertex v) {
+
+				Vertex v2;
+				v2.normal = v.normal;
+				v2.texCoords = v.texCoords;
+				v2.position = v.position + initialPositions[i];
+				return v2;
+
+			});
+	}
+	vertices = std::vector<Vertex>(verticesCount);
+	std::move(newVertices.begin(), newVertices.end(), vertices.begin());
+
+}
+
+void MultiObjectMesh::DuplicateObjects(std::vector<glm::vec3>& initialPositions)
+{
+	for (int i = 0; i < initialPositions.size(); ++i) {
+		std::transform(vertices.cbegin(), vertices.cend(),
+			(!i ? vertices.begin() : vertices.end()),
+			[&](Vertex v) {
+				Vertex v2;
+				v2.normal = v.normal;
+				v2.texCoords = v.texCoords;
+				v2.position = v.position + initialPositions[i];
+				return v2;
+			});
+	}
+
+	for (int i = 1; i < initialPositions.size(); ++i) {
+		std::transform(indices.cbegin(), indices.cend(), indices.end(),
+			[&](unsigned int indice) {
+				return indice + i * objectCount;
+			});
+	}
 }

@@ -11,7 +11,7 @@ namespace graphics
 	{
 	public:
 		static void handleUserInput(GLFWwindow* window, int key, int scancode, int action, int mods);
-		void adjustParametersUsingInput(Camera& camera);
+		static void adjustParametersUsingInput(Camera& camera);
 	private:
 		struct PressedKeys
 		{
@@ -26,6 +26,7 @@ namespace graphics
 			bool DOWN = false;
 			bool LEFT = false;
 			bool RIGHT = false;
-		} pressedKeys;
+		};
+		static PressedKeys pressedKeys;
 	};
 }

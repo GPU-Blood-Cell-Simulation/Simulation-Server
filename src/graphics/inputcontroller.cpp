@@ -4,6 +4,8 @@
 
 namespace graphics
 {
+	InputController::PressedKeys InputController::pressedKeys = InputController::PressedKeys();
+
 	// GLFW keyboard callback function
 	void InputController::handleUserInput(GLFWwindow* window, int key, int scancode, int action, int mods)
 	{

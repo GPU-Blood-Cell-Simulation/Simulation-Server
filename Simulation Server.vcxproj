@@ -440,6 +440,7 @@
     <ClInclude Include="src\graphics\spring_lines.hpp" />
     <ClInclude Include="src\graphics\textures\stb_image.h" />
     <ClInclude Include="src\graphics\textures\texture_loading.hpp" />
+    <ClInclude Include="src\graphics\windowcontroller.hpp" />
     <ClInclude Include="src\grids\base_grid.cuh" />
     <ClInclude Include="src\grids\no_grid.cuh" />
     <ClInclude Include="src\grids\uniform_grid.cuh" />
@@ -634,6 +635,7 @@
     <ClCompile Include="src\graphics\shader.cpp" />
     <ClCompile Include="src\graphics\spring_lines.cpp" />
     <ClCompile Include="src\graphics\textures\texture_loading.cpp" />
+    <ClCompile Include="src\graphics\windowcontroller.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Libraries\lib\assimp-vc143-mt.lib" />

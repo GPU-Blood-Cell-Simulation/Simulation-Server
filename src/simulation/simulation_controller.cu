@@ -12,14 +12,17 @@
 #include <ctime>
 #include <curand.h>
 #include <curand_kernel.h>
-
+#include <algorithm>
 
 namespace sim
 {
 	__global__ void setupCurandStatesKernel(curandState* states, unsigned long seed);
 
-	__global__ void generateRandomPositionsKernel(curandState* states, Particles particles, glm::vec3 cylinderBaseCenter);
+	template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int bloodCellStart>
+	__global__ void setBloodCellsPositionsFromRandom(Particles particles, cudaVec3 bloodCellModelPosition, cudaVec3 initialPositions);
 
+	template<int totalBloodCellCount>
+	__global__ void generateRandomPositonskernel(curandState* states, glm::vec3 cylinderBaseCenter, cudaVec3 initialPositions);
 
 	SimulationController::SimulationController(BloodCells& bloodCells, VeinTriangles& triangles, Grid particleGrid, Grid triangleGrid) :
 		bloodCells(bloodCells), triangles(triangles), particleGrid(particleGrid), triangleGrid(triangleGrid),
@@ -54,13 +57,67 @@ namespace sim
 		HANDLE_ERROR(cudaMalloc(&devStates, particleCount * sizeof(curandState)));
 		srand(static_cast<unsigned int>(time(0)));
 		int seed = rand();
+
 		setupCurandStatesKernel << <bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, seed);
+		HANDLE_ERROR(cudaThreadSynchronize());
+
+		std::vector<cudaVec3> models;
+		cudaVec3 initialPositions(bloodCellCount);
+		generateRandomPositonskernel<bloodCellCount> << <  bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, cylinderBaseCenter, initialPositions);
+		HANDLE_ERROR(cudaThreadSynchronize());
+
+		float* xpos = new float[bloodCellCount];
+		float* ypos = new float[bloodCellCount];
+		float* zpos = new float[bloodCellCount];
+
+		HANDLE_ERROR(cudaMemcpy(xpos, initialPositions.x, bloodCellCount * sizeof(float), cudaMemcpyDeviceToHost));
+		HANDLE_ERROR(cudaMemcpy(ypos, initialPositions.y, bloodCellCount * sizeof(float), cudaMemcpyDeviceToHost));
+		HANDLE_ERROR(cudaMemcpy(zpos, initialPositions.z, bloodCellCount * sizeof(float), cudaMemcpyDeviceToHost));
+
+		for (int i = 0; i < bloodCellCount; ++i)
+			initialCellPositions.push_back(glm::vec3(xpos[i], ypos[i], zpos[i]));
+
+		delete[] xpos;
+		delete[] ypos;
+		delete[] zpos;
 
 		// Generate random positions and velocity vectors
+		using IndexList = mp_iota_c<bloodCellTypeCount>;
+		mp_for_each<IndexList>([&](auto i)
+			{
 
-		generateRandomPositionsKernel << <bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, bloodCells.particles, cylinderBaseCenter);
+				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
+				constexpr int modelSize = BloodCellDefinition::particlesInCell;
+				cudaVec3 g_model = cudaVec3(modelSize);
+				std::vector<float> xmodel;
+				std::vector<float> ymodel;
+				std::vector<float> zmodel;
+				using verticeIndexList = mp_iota_c<modelSize>;
+				using VerticeList = typename BloodCellDefinition::Vertices;
 
+				mp_for_each<verticeIndexList>([&](auto j)
+					{
+						xmodel.push_back(mp_at_c<VerticeList, j>::x);
+						ymodel.push_back(mp_at_c<VerticeList, j>::y);
+						zmodel.push_back(mp_at_c<VerticeList, j>::z);
+					});
+				HANDLE_ERROR(cudaThreadSynchronize());
+				HANDLE_ERROR(cudaMemcpy(g_model.x, xmodel.data(), modelSize * sizeof(float), cudaMemcpyHostToDevice));
+				HANDLE_ERROR(cudaMemcpy(g_model.y, ymodel.data(), modelSize * sizeof(float), cudaMemcpyHostToDevice));
+				HANDLE_ERROR(cudaMemcpy(g_model.z, zmodel.data(), modelSize * sizeof(float), cudaMemcpyHostToDevice));
+				models.push_back(g_model);
+			});
+		mp_for_each<IndexList>([&](auto i)
+			{
+				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
+				constexpr int particlesStart = particlesStarts[i];
+				constexpr int bloodCellTypeStart = bloodCellTypesStarts[i];
 
+				CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
+				setBloodCellsPositionsFromRandom<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellTypeStart>
+					<< <threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (bloodCells.particles, models[i], initialPositions);
+			});
+		HANDLE_ERROR(cudaDeviceSynchronize());
 		HANDLE_ERROR(cudaFree(devStates));
 	}
 
@@ -72,16 +129,33 @@ namespace sim
 		curand_init(seed, id, 0, &states[id]);
 	}
 
-	// Generate random positions and velocities at the beginning
-	__global__ void generateRandomPositionsKernel(curandState* states, Particles particles, glm::vec3 cylinderBaseCenter/*, float cylinderRadius, float cylinderHeight*/)
+
+	template<int totalBloodCellCount>
+	__global__ void generateRandomPositonskernel(curandState* states, glm::vec3 cylinderBaseCenter, cudaVec3 initialPositions)
 	{
 		int id = blockIdx.x * blockDim.x + threadIdx.x;
-		if (id >= particleCount)
+		if (id >= totalBloodCellCount)
 			return;
+		initialPositions.x[id] = cylinderBaseCenter.x - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius;
+		initialPositions.y[id] = cylinderBaseCenter.y - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius + cylinderHeight / 2;
+		initialPositions.z[id] = cylinderBaseCenter.z - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius;
 
-		particles.positions.x[id] = cylinderBaseCenter.x - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius;
-		particles.positions.y[id] = cylinderBaseCenter.y - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius + cylinderHeight/2;
-		particles.positions.z[id] = cylinderBaseCenter.z - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius;
+		printf("[%d] initialPos.x=%.5f, initialPos.y=%.5f, initialPos.z=%.5f\n", id, initialPositions.x[id], initialPositions.y[id], initialPositions.z[id]);
+	}
+
+	// Generate random positions and velocities at the beginning
+	template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int bloodCellTypeStart>
+	__global__ void setBloodCellsPositionsFromRandom(Particles particles, cudaVec3 bloodCellModelPosition, cudaVec3 initialPositions)
+	{
+		int relativeId = blockIdx.x * blockDim.x + threadIdx.x;
+		if (relativeId >= particlesInBloodCell * bloodCellCount)
+			return;
+		int id = particlesStart + relativeId;
+
+		particles.positions.x[id] = initialPositions.x[bloodCellTypeStart + relativeId / particlesInBloodCell] + bloodCellModelPosition.x[id % particlesInBloodCell];
+		particles.positions.y[id] = initialPositions.y[bloodCellTypeStart + relativeId / particlesInBloodCell] + bloodCellModelPosition.y[id % particlesInBloodCell];
+		particles.positions.z[id] = initialPositions.z[bloodCellTypeStart + relativeId / particlesInBloodCell] + bloodCellModelPosition.z[id % particlesInBloodCell];
+		printf("[%d][%d][%d][%d][%d] particle position: x = %.5f, y = %.5f, z = %.5f\n", id, relativeId, bloodCellTypeStart, particlesStart, particlesInBloodCell, particles.positions.x[id], particles.positions.y[id], particles.positions.z[id]);
 
 		particles.velocities.x[id] = 0;
 		particles.velocities.y[id] = -10;
@@ -110,30 +184,30 @@ namespace sim
 
 				bloodCells.gatherForcesFromNeighbors(streams);
 				HANDLE_ERROR(cudaPeekAtLastError());
-    
+
 				// 4. Detect vein collisions and propagate forces -> velocities, velocities -> positions for particles
 
 				detectVeinCollisionsAndPropagateParticles << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, triangles, *g2);
 				HANDLE_ERROR(cudaPeekAtLastError());
-    
+
 				// 5. Propagate triangle forces into neighbors
 
 				triangles.gatherForcesFromNeighbors(veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
-    
+
 				// 6. Propagate forces -> velocities, velocities -> positions for vein triangles
 				triangles.propagateForcesIntoPositions(veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
-    
+
 				// 7. Recalculate triangles centers
 				triangles.calculateCenters(veinTrianglesThreads.blocks, veinTrianglesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				if constexpr (useBloodFlow)
+				/*if constexpr (useBloodFlow)
 				{
 					HandleVeinEnd(bloodCells, streams);
 					HANDLE_ERROR(cudaPeekAtLastError());
-				}
+				}*/
 
 			}, particleGrid, triangleGrid);
 	}

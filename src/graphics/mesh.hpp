@@ -31,14 +31,36 @@ public:
     std::vector<unsigned int> indices;
     std::vector<Texture> textures;
 
-    Mesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<Texture>&& textures);
-    void draw(const Shader* shader, bool instanced = true) const;
+    void draw(const Shader* shader) const;
+
     unsigned int getVBO();
     unsigned int getEBO();
     void setVertexOffsetAttribute();
-private:
+protected:
+
+    Mesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<Texture>&& textures);
     //  render data
     unsigned int VAO, VBO, EBO;
 
     void setupMesh();
+};
+
+class SingleObjectMesh : public Mesh
+{
+public:
+    SingleObjectMesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<Texture>&& textures);
+    SingleObjectMesh() : Mesh(std::move(std::vector<Vertex>()), std::move(std::vector<unsigned int>()), std::move(std::vector<Texture>())) {}
+
+    void drawInstanced(const Shader* shader, unsigned int instancesCount) const;
+};
+
+class MultiObjectMesh : public Mesh
+{
+public:
+    MultiObjectMesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<Texture>&& textures, std::vector<glm::vec3>& initialPositions, unsigned int objectCount);
+    void DuplicateObjects(std::vector<glm::vec3>& initialPositions);
+
+protected:
+    void prepareMultipleObjects(std::vector<glm::vec3>& initialPositions);
+    unsigned int objectCount;
 };

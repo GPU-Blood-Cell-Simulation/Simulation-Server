@@ -10,59 +10,45 @@
 #include <vector>
 
 
+#pragma region Model
+
 Model::Model(const char* path)
 {
     loadModel(path);
 }
 
-Model::Model(Mesh mesh)
+Model::Model(Mesh* mesh)
 {
     meshes.push_back(mesh);
-
-    // Set up offset buffer for the model
-    glGenBuffers(1, &cudaOffsetBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, cudaOffsetBuffer);
-    glBufferData(GL_ARRAY_BUFFER, particleCount * sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
-
-    // Set up vertex attrubute
-    for (Mesh& mesh : meshes)
-    {
-        mesh.setVertexOffsetAttribute();
-    }
 }
 
-void Model::draw(const Shader* shader, bool instanced) const
+unsigned int Model::getVboBuffer(unsigned int index)
 {
-    for (const Mesh& mesh : meshes)
-        mesh.draw(shader, instanced);
+    if (index < meshes.size())
+        return meshes[index]->getVBO();
+    return 0;
 }
 
-unsigned int Model::getCudaOffsetBuffer()
+unsigned int Model::getEboBuffer(unsigned int index)
 {
-    return cudaOffsetBuffer;
-}
-
-unsigned int Model::getTopVboBuffer()
-{
-    return meshes[0].getVBO();
-}
-
-unsigned int Model::getTopEboBuffer()
-{
-    return meshes[0].getEBO();
+    if (index < meshes.size())
+        return meshes[index]->getEBO();
+    return 0;
 }
 
 
-Mesh Model::getTopMesh()
+Mesh* Model::getMesh(unsigned int index)
 {
-    return meshes[0];
+    if (index < meshes.size())
+        return meshes[index];
+    return nullptr;
 }
 
 
 void Model::loadModel(std::string path)
 {
     Assimp::Importer import;
-    const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene * scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -73,17 +59,6 @@ void Model::loadModel(std::string path)
 
     // Process assimp nodes to load all Meshes
     processNode(scene->mRootNode, scene);
-
-    // Set up offset buffer for the model
-    glGenBuffers(1, &cudaOffsetBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, cudaOffsetBuffer);
-    glBufferData(GL_ARRAY_BUFFER, particleCount * sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
-
-    // Set up vertex attrubute
-    for (Mesh& mesh : meshes)
-    {
-        mesh.setVertexOffsetAttribute();
-    }
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
@@ -101,7 +76,7 @@ void Model::processNode(aiNode* node, const aiScene* scene)
     }
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
+Mesh* Model::processMesh(aiMesh* mesh, const aiScene* scene)
 {
     // data to fill
     std::vector<Vertex> vertices;
@@ -167,7 +142,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
     // return a mesh object created from the extracted mesh data
-    return Mesh(std::move(vertices), std::move(indices), std::move(textures));
+    return new SingleObjectMesh(std::move(vertices), std::move(indices), std::move(textures));
+    //return this->createMesh(std::move(vertices), std::move(indices), std::move(textures));
 }
 
 std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
@@ -199,3 +175,95 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     }
     return textures;
 }
+#pragma endregion
+
+#pragma region Instanced model
+
+void InstancedModel::draw(const Shader* shader)
+{
+    for (Mesh* mesh : meshes)
+        ((SingleObjectMesh*)mesh)->drawInstanced(shader, this->instancesCount);
+}
+
+unsigned int InstancedModel::getCudaOffsetBuffer()
+{
+    return cudaOffsetBuffer;
+}
+
+InstancedModel::InstancedModel(const char* path, unsigned int instancesCount) : Model(path)
+{
+    createMesh = [&](auto vertices, auto indices, auto textures)->Mesh* {
+        return new SingleObjectMesh(std::move(vertices), std::move(indices), std::move(textures));
+        };
+
+    loadModel(path);
+
+    this->instancesCount = instancesCount;
+    glGenBuffers(1, &cudaOffsetBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, cudaOffsetBuffer);
+    glBufferData(GL_ARRAY_BUFFER, instancesCount * sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
+
+    // Set up vertex attrubute
+    for (Mesh* mesh : meshes)
+    {
+        mesh->setVertexOffsetAttribute();
+    }
+}
+
+InstancedModel::InstancedModel(Mesh* mesh, unsigned int instancesCount) : Model(mesh)
+{
+    createMesh = [&](auto vertices, auto indices, auto textures)->Mesh* {
+        return new SingleObjectMesh(std::move(vertices), std::move(indices), std::move(textures));
+        };
+
+    meshes.push_back(mesh);
+    this->instancesCount = instancesCount;
+    glGenBuffers(1, &cudaOffsetBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, cudaOffsetBuffer);
+    glBufferData(GL_ARRAY_BUFFER, instancesCount * sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
+
+    // Set up vertex attrubute
+    for (Mesh* mesh : meshes)
+    {
+        mesh->setVertexOffsetAttribute();
+    }
+}
+#pragma endregion
+
+#pragma region Multiple object model
+
+MultipleObjectModel::MultipleObjectModel(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<glm::vec3>& initialPositions, unsigned int objectCount)
+{
+    createMesh = [&](auto vertices, auto indices, auto textures)->Mesh* {
+        return mesh;
+        };
+
+    this->mesh = new MultiObjectMesh(std::move(vertices), std::move(indices), std::move(std::vector<Texture>()), initialPositions, objectCount);
+    meshes.push_back(mesh);
+
+    this->objectCount = objectCount;
+    this->modelVerticesCount = mesh->vertices.size();
+}
+
+void MultipleObjectModel::DuplicateObjects(std::vector<glm::vec3>& initialPositions)
+{
+    this->mesh->DuplicateObjects(initialPositions);
+}
+
+void MultipleObjectModel::draw(const Shader* shader)
+{
+    for (Mesh* mesh : meshes)
+        mesh->draw(shader);
+}
+
+#pragma endregion
+
+#pragma region Single object Model
+
+void SingleObjectModel::draw(const Shader* shader)
+{
+    for (Mesh* mesh : meshes)
+        mesh->draw(shader);
+}
+
+#pragma endregion

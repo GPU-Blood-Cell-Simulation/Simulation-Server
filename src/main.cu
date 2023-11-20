@@ -21,11 +21,8 @@
 
 #ifdef _WIN32 // win only headers
 
-#include <GLFW/glfw3.h>
-#include "graphics/inputcontroller.hpp"
-
+#include "graphics/windowcontroller.hpp"
 #define WINDOW_RENDER
-GLFWwindow* window;
 
 #else // server only (linux) headers
 #include <unistd.h>
@@ -50,22 +47,7 @@ int main()
     HANDLE_ERROR(cudaSetDevice(0));
 
 #ifdef WINDOW_RENDER
-    if (!glfwInit())
-        return -1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // Create a windowed mode window and its OpenGL context
-    window = glfwCreateWindow(windowWidth, windowHeight, "Blood Cell Simulation", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        return -1;
-    }
-
-    // Make the window's context current
-    glfwMakeContextCurrent(window);
+    WindowController::GetInstance()->ConfigureWindow();
 #endif
     // Load GL and set the viewport to match window size
     gladLoadGL();
@@ -100,7 +82,7 @@ void programLoop()
 
     // Create vein mesh
     VeinGenerator veinMeshDefinition(cylinderBaseCenter, cylinderHeight, cylinderRadius, cylinderVerticalLayers, cylinderHorizontalLayers);
-    Mesh veinMesh = veinMeshDefinition.CreateMesh();
+    SingleObjectMesh* veinMesh = veinMeshDefinition.CreateMesh();
 
     // Create vein mesh
     VeinGenerator veinGenerator(cylinderBaseCenter, cylinderHeight, cylinderRadius, cylinderVerticalLayers, cylinderHorizontalLayers);
@@ -120,15 +102,14 @@ void programLoop()
     sim::SimulationController simulationController(bloodCells, triangles, &particleGrid, &triangleCentersGrid);
     
     // Create a graphics controller
-    graphics::GLController glController(veinMesh);
+    graphics::GLController glController(veinMesh, simulationController.initialCellPositions);
+    graphics::Camera camera;
 
 #ifdef WINDOW_RENDER
     double lastTime = glfwGetTime();
+    WindowController* windowController = WindowController::GetInstance();
+    windowController->ConfigureInputAndCamera(&camera);
 
-    graphics::InputController inputController;
-    // Set up GLFW to work with inputController
-    glfwSetWindowUserPointer(window, &inputController);
-    glfwSetKeyCallback(window, graphics::InputController::handleUserInput);
 #endif
 
     // MAIN LOOP HERE - dictated by glfw
@@ -139,18 +120,17 @@ void programLoop()
         glClearColor(1.00f, 0.75f, 0.80f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // Calculate particle positions using CUDA
-        simulationController.calculateNextFrame();
+        //simulationController.calculateNextFrame();
 
         // Pass positions to OpenGL
-        glController.calculateOffsets(bloodCells.particles.positions);
         glController.calculateTriangles(triangles);
+        glController.calculatePositions(bloodCells.particles.positions);
 
-        glController.draw();
+        glController.draw(camera);
 
 #ifdef WINDOW_RENDER // graphical render
 
-
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(windowController->window);
 
         // Show FPS in the title bar
         double currentTime = glfwGetTime();
@@ -161,7 +141,7 @@ void programLoop()
             std::stringstream ss;
             ss << "Blood Cell Simulation" << " " << " [" << fps << " FPS]";
 
-            glfwSetWindowTitle(window, ss.str().c_str());
+            glfwSetWindowTitle(windowController->window, ss.str().c_str());
             lastTime = currentTime;
             frameCount = 0;
         }
@@ -170,7 +150,11 @@ void programLoop()
             frameCount++;
         }
 
-        shouldBeRunning = !glfwWindowShouldClose(window);
+        // Handle user input
+        glfwPollEvents();
+        windowController->handleInput();
+
+        shouldBeRunning = !glfwWindowShouldClose(windowController->window);
 #else // server calculations
 
         // Send data to client

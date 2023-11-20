@@ -21,18 +21,15 @@ namespace graphics
 	class GLController {
 	public:
 
-		GLController(Mesh veinMesh);
-		void calculateOffsets(cudaVec3 positions);
+		GLController(Mesh* veinMesh, std::vector<glm::vec3>& initialPositions);
+		~GLController();
+		void calculatePositions(cudaVec3 positions);
 		void calculateTriangles(VeinTriangles triangles);
-		void draw();
-		inline void handleInput()
-		{
-			inputController.adjustParametersUsingInput(camera);
-		}
+		void draw(Camera& camera);
 
-		Mesh getGridMesh()
+		Mesh* getGridMesh()
 		{
-			return veinModel.getTopMesh();
+			return veinModel.getMesh(0);
 		}
 
 	private:
@@ -42,19 +39,15 @@ namespace graphics
 		float particleSpecular = 0.6f;
 
 		// Uniform matrices
-		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 		glm::mat4 projection = glm::perspective(glm::radians<float>(45.0f), static_cast<float>(windowWidth) / windowHeight, 0.1f, depth * 10);
 
-		Model particleModel = Model("Models/Earth/low_poly_earth.fbx");
-
-		Model veinModel;
-
-		Camera camera;
-		InputController inputController;
+		MultipleObjectModel bloodCellmodel[bloodCellTypeCount];
+		SingleObjectModel veinModel;
 
 		DirLight directionalLight;
 
-		const SpringLines springLines;
+		SpringLines springLines;
 
 		std::unique_ptr<Shader> solidColorShader;
 		std::unique_ptr<Shader> geometryPassShader;
@@ -65,9 +58,10 @@ namespace graphics
 		
 		unsigned int gBuffer;
 
-		cudaGraphicsResource_t cudaOffsetResource;
+		cudaGraphicsResource_t cudaPositionsResource[bloodCellTypeCount];
 		cudaGraphicsResource_t cudaVeinVBOResource;
 		cudaGraphicsResource_t cudaVeinEBOResource;
 
+		cudaStream_t streams[bloodCellTypeCount];
 	};
 }
