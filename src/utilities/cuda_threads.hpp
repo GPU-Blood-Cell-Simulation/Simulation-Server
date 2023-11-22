@@ -7,7 +7,7 @@
 class CudaThreads
 {
 public:
-	static constexpr int maxThreadsInBlock = 1024;
+	static constexpr int maxThreadsInBlock = 720;//1024;
 	static constexpr int threadsInWarp = 32;
 
 	const int threadsPerBlock;

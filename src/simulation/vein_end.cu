@@ -131,7 +131,7 @@ void HandleVeinEnd(BloodCells& cells, const std::array<cudaStream_t, bloodCellTy
 	mp_for_each<IndexList>([&](auto i)
 		{
 			using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-			constexpr int particlesStart = particlesStarts[i];
+			constexpr int particlesStart = particlesStarts[i.value];
 
 			constexpr SynchronizationType syncType = SelectSynchronizationType(
 				BloodCellDefinition::count,
@@ -152,10 +152,10 @@ void HandleVeinEnd(BloodCells& cells, const std::array<cudaStream_t, bloodCellTy
 
 			if constexpr (syncType == warpSync)
 				handleVeinEndsWarpSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart>
-				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells);
+				<< <blocksCnt, threadsPerBlock, 0, streams[i.value] >> > (cells);
 			else if constexpr (syncType == blockSync)
 				handleVeinEndsBlockSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart>
-				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells);
+				<< <blocksCnt, threadsPerBlock, 0, streams[i.value] >> > (cells);
 			else
 				static_assert(false, "Unknown synchronization type");
 		});

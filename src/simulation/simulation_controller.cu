@@ -57,12 +57,13 @@ namespace sim
 		HANDLE_ERROR(cudaMalloc(&devStates, particleCount * sizeof(curandState)));
 		srand(static_cast<unsigned int>(time(0)));
 		int seed = rand();
-
+		printf("setupCurandStatesKernel\n");
 		setupCurandStatesKernel << <bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, seed);
 		HANDLE_ERROR(cudaThreadSynchronize());
 
 		std::vector<cudaVec3> models;
 		cudaVec3 initialPositions(bloodCellCount);
+		printf("generateRandomPositonskernel\n");
 		generateRandomPositonskernel<bloodCellCount> << <  bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, cylinderBaseCenter, initialPositions);
 		HANDLE_ERROR(cudaThreadSynchronize());
 
@@ -82,10 +83,11 @@ namespace sim
 		delete[] zpos;
 
 		// Generate random positions and velocity vectors
+		printf("Generate cuda models\n");
 		using IndexList = mp_iota_c<bloodCellTypeCount>;
 		mp_for_each<IndexList>([&](auto i)
 			{
-
+				printf("Wywolanie i = %d", i.value);
 				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
 				constexpr int modelSize = BloodCellDefinition::particlesInCell;
 				cudaVec3 g_model = cudaVec3(modelSize);
@@ -100,6 +102,7 @@ namespace sim
 						xmodel.push_back(mp_at_c<VerticeList, j>::x);
 						ymodel.push_back(mp_at_c<VerticeList, j>::y);
 						zmodel.push_back(mp_at_c<VerticeList, j>::z);
+						printf("[%d][%d] x=%.5f, y=%.5f, z=%.5f\n", i.value, j.value, *(xmodel.end() - 1), *(ymodel.end() - 1), *(zmodel.end() - 1));
 					});
 				HANDLE_ERROR(cudaThreadSynchronize());
 				HANDLE_ERROR(cudaMemcpy(g_model.x, xmodel.data(), modelSize * sizeof(float), cudaMemcpyHostToDevice));
@@ -107,15 +110,19 @@ namespace sim
 				HANDLE_ERROR(cudaMemcpy(g_model.z, zmodel.data(), modelSize * sizeof(float), cudaMemcpyHostToDevice));
 				models.push_back(g_model);
 			});
+
+		printf("setBloodCellsPositionsFromRandom\n");
 		mp_for_each<IndexList>([&](auto i)
 			{
 				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-				constexpr int particlesStart = particlesStarts[i];
-				constexpr int bloodCellTypeStart = bloodCellTypesStarts[i];
+				constexpr int particlesStart = particlesStarts[i.value];
+				constexpr int bloodCellTypeStart = bloodCellTypesStarts[i.value];
 
 				CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
+
+				printf("setBloodCellsPositionsFromRandom threads %d, blocks: %d\n", threads.threadsPerBlock, threads.blocks);
 				setBloodCellsPositionsFromRandom<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellTypeStart>
-					<< <threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (bloodCells.particles, models[i], initialPositions);
+					<< <threads.blocks, threads.threadsPerBlock, 0, streams[i.value] >> > (bloodCells.particles, models[i.value], initialPositions);
 			});
 		HANDLE_ERROR(cudaDeviceSynchronize());
 		HANDLE_ERROR(cudaFree(devStates));
@@ -137,7 +144,7 @@ namespace sim
 		if (id >= totalBloodCellCount)
 			return;
 		initialPositions.x[id] = cylinderBaseCenter.x - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius;
-		initialPositions.y[id] = cylinderBaseCenter.y - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius + cylinderHeight / 2;
+		initialPositions.y[id] = cylinderBaseCenter.y - cylinderRadius * 0.5f + curand_uniform(&states[id]) * 3*cylinderRadius + cylinderHeight / 2;
 		initialPositions.z[id] = cylinderBaseCenter.z - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius;
 
 		printf("[%d] initialPos.x=%.5f, initialPos.y=%.5f, initialPos.z=%.5f\n", id, initialPositions.x[id], initialPositions.y[id], initialPositions.z[id]);
@@ -203,11 +210,11 @@ namespace sim
 				triangles.calculateCenters(veinTrianglesThreads.blocks, veinTrianglesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				/*if constexpr (useBloodFlow)
+				if constexpr (useBloodFlow)
 				{
 					HandleVeinEnd(bloodCells, streams);
 					HANDLE_ERROR(cudaPeekAtLastError());
-				}*/
+				}
 
 			}, particleGrid, triangleGrid);
 	}

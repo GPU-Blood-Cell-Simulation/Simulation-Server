@@ -23,7 +23,7 @@ inline constexpr float collistionShearCoeff = 0.05f;
 
 // Initial velocity of particles
 inline constexpr float initVelocityX = 0.0f;
-inline constexpr float initVelocityY = -100.0f;
+inline constexpr float initVelocityY = -10000.0f;
 inline constexpr float initVelocityZ = 0.0f;
 
 // distance beetwen particle and vein on which an impact occurs

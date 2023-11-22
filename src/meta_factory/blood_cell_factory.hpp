@@ -141,7 +141,7 @@ namespace
 		mp_for_each<IndexList>([&](auto i)
 		{
 			using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-			arr[i] = state;
+			arr[i.value] = state;
 			state += BloodCellDefinition::count * BloodCellDefinition::particlesInCell;
 		});
 		return arr;
@@ -159,7 +159,7 @@ namespace
 			int state = 0;
 			mp_for_each<IndexList>([&](auto i) {
 				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-				arr[i] = state;
+				arr[i.value] = state;
 				state += BloodCellDefinition::count;
 				});
 			return arr;
@@ -179,7 +179,7 @@ namespace
 		mp_for_each<IndexList>([&](auto i)
 		{
 			using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-			arr[i] = state;
+			arr[i.value] = state;
 			state += BloodCellDefinition::particlesInCell * BloodCellDefinition::particlesInCell;
 		});
 		return arr;
@@ -202,7 +202,7 @@ namespace
 
 			using SpringList = typename BloodCellDefinition::List;
 			constexpr int springCount = mp_size<SpringList>::value;
-			constexpr int graphStart = accumulatedGraphSizes[i];
+			constexpr int graphStart = accumulatedGraphSizes[i.value];
 
 			// For every definition iterate over its particle count
 			using IndexListPerBloodCell = mp_iota_c<springCount>;

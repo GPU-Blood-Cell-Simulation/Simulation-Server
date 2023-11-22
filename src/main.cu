@@ -120,7 +120,7 @@ void programLoop()
         glClearColor(1.00f, 0.75f, 0.80f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // Calculate particle positions using CUDA
-        //simulationController.calculateNextFrame();
+        simulationController.calculateNextFrame();
 
         // Pass positions to OpenGL
         glController.calculateTriangles(triangles);

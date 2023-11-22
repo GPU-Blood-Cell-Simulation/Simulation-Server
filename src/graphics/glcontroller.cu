@@ -123,10 +123,10 @@ namespace graphics
 				{
 					indices.push_back(mp_at_c<IndiceList, i>::value);
 				});
-			bloodCellmodel[typeIndex] = MultipleObjectModel(std::move(vertices), std::move(indices), initialPositions, bloodCellCount);
+			bloodCellmodel[typeIndex.value] = MultipleObjectModel(std::move(vertices), std::move(indices), initialPositions, bloodCellCount);
 			
 			// Register OpenGL buffer in CUDA for blood cell
-			HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&(cudaPositionsResource[typeIndex]), bloodCellmodel[typeIndex].getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
+			HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&(cudaPositionsResource[typeIndex.value]), bloodCellmodel[typeIndex.value].getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
 			HANDLE_ERROR(cudaPeekAtLastError());
 		});
 		springLines.constructSprings(&bloodCellmodel);
@@ -189,11 +189,11 @@ namespace graphics
 		{
 			// get CUDA a pointer to openGL buffer
 			// jak cos to to do odkomentowania
-			float* devCudaPositionBuffer = (float*)mapResourceAndGetPointer(cudaPositionsResource[typeIndex]);
+			float* devCudaPositionBuffer = (float*)mapResourceAndGetPointer(cudaPositionsResource[typeIndex.value]);
 			using BloodCellDefinition = mp_at_c<BloodCellList, typeIndex>;
 
-			constexpr int particlesStart = particlesStarts[typeIndex];
-			constexpr int bloodCellTypeStart = bloodCellTypesStarts[typeIndex];
+			constexpr int particlesStart = particlesStarts[typeIndex.value];
+			constexpr int bloodCellTypeStart = bloodCellTypesStarts[typeIndex.value];
 
 			//int threadsPerBlock = particleCount > 1024 ? 1024 : particleCount;
 			//int blocks = (particleCount + threadsPerBlock - 1) / threadsPerBlock;
@@ -201,9 +201,9 @@ namespace graphics
 			CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
 			// translate our CUDA positions into Vertex offsets
 			calculatePositionsKernel<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellTypeStart>
-				<< <threads.blocks, threads.threadsPerBlock, 0, streams[typeIndex] >> > (devCudaPositionBuffer, positions);
+				<< <threads.blocks, threads.threadsPerBlock, 0, streams[typeIndex.value] >> > (devCudaPositionBuffer, positions);
 			HANDLE_ERROR(cudaPeekAtLastError());
-			HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaPositionsResource[typeIndex], 0));
+			HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaPositionsResource[typeIndex.value], 0));
 			HANDLE_ERROR(cudaPeekAtLastError());
 		});
 	}
@@ -228,40 +228,38 @@ namespace graphics
 
 		if constexpr (!useLighting) // solidcolor
 		{
-			solidColorShader->use();
-			solidColorShader->setMatrix("model", model);
-			solidColorShader->setMatrix("view", camera.getView());
-			solidColorShader->setMatrix("projection", projection);
-
 			using TypeList = mp_iota_c<bloodCellTypeCount>;
 			mp_for_each<TypeList>([&](auto typeIndex)
 				{
-					bloodCellmodel[typeIndex].draw(solidColorShader.get());
+					solidColorShader->use();
+					solidColorShader->setMatrix("model", model);
+					solidColorShader->setMatrix("view", camera.getView());
+					solidColorShader->setMatrix("projection", projection);
+
+					bloodCellmodel[typeIndex.value].draw(solidColorShader.get());
 				});
 		}
 		else
 		{
-			phongForwardShader->use();
-			phongForwardShader->setMatrix("model", model);
-			phongForwardShader->setMatrix("view", camera.getView());
-			phongForwardShader->setMatrix("projection", projection);
-
-			phongForwardShader->setVector("viewPos", camera.getPosition());
-			phongForwardShader->setVector("Diffuse", particleDiffuse);
-			phongForwardShader->setFloat("Specular", particleSpecular);
-			phongForwardShader->setFloat("Shininess", 32);
-
-			phongForwardShader->setLighting(directionalLight);
 			using TypeList = mp_iota_c<bloodCellTypeCount>;
 			mp_for_each<TypeList>([&](auto typeIndex)
 				{
-					bloodCellmodel[typeIndex].draw(solidColorShader.get());
+					phongForwardShader->use();
+					phongForwardShader->setMatrix("model", model);
+					phongForwardShader->setMatrix("view", camera.getView());
+					phongForwardShader->setMatrix("projection", projection);
+
+					phongForwardShader->setVector("viewPos", camera.getPosition());
+					phongForwardShader->setVector("Diffuse", particleDiffuse);
+					phongForwardShader->setFloat("Specular", particleSpecular);
+					phongForwardShader->setFloat("Shininess", 32);
+
+					phongForwardShader->setLighting(directionalLight);
+			
+					bloodCellmodel[typeIndex.value].draw(phongForwardShader.get());
 				});
 		}
 
-		// Draw lines
-		springShader->use();
-		springShader->setMatrix("projection_view_model", projection * camera.getView());
 
 
 		/*using TypeList = mp_iota_c<bloodCellTypeCount>;
@@ -269,7 +267,13 @@ namespace graphics
 			{
 				springLines.draw(springShader.get());
 			});*/
-		springLines.draw(springShader.get());
+		if (BLOOD_CELL_SPRINGS_RENDER)
+		{
+			// Draw lines
+			springShader->use();
+			springShader->setMatrix("projection_view_model", projection * camera.getView());
+			springLines.draw(springShader.get());
+		}
 
 		// Draw vein
 		cylinderSolidColorShader->use();
