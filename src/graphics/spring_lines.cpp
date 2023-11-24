@@ -21,8 +21,8 @@ void SpringLines::constructSprings(std::array<unsigned int, bloodCellTypeCount>&
 			mp_for_each<IndexListPerBloodCell>([&](auto j)
 				{
 					using SpringDefinition = mp_at_c<typename BloodCellDefinition::List, j>;
-					indexData[index.value].push_back(accumulatedParticles + SpringDefinition::start);
-					indexData[index.value].push_back(accumulatedParticles + SpringDefinition::end);
+					indexData[index].push_back(accumulatedParticles + SpringDefinition::start);
+					indexData[index].push_back(accumulatedParticles + SpringDefinition::end);
 				});
 
 			// Multiply the index data for other particles of the same type
@@ -31,14 +31,14 @@ void SpringLines::constructSprings(std::array<unsigned int, bloodCellTypeCount>&
 			{
 				for (int k = 0; k < indexDataSize; k++)
 				{
-					indexData[index.value].push_back(j * BloodCellDefinition::particlesInCell + indexData[index][k]);
+					indexData[index].push_back(j * BloodCellDefinition::particlesInCell + indexData[index][k]);
 				}
 			}
 			accumulatedParticles += BloodCellDefinition::count * BloodCellDefinition::particlesInCell;
 
 			// setup VAO and EBO (VBO is shared with cuda-mapped position buffer
-			glGenVertexArrays(1, &VAOs[index.value]);
-			glBindVertexArray(VAOs[index.value]);
+			glGenVertexArrays(1, &VAOs[index]);
+			glBindVertexArray(VAOs[index]);
 
 			glBindBuffer(GL_ARRAY_BUFFER, vbos[index]);
 
@@ -52,7 +52,7 @@ void SpringLines::constructSprings(std::array<unsigned int, bloodCellTypeCount>&
 			unsigned int EBO;
 			glGenBuffers(1, &EBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexData[index.value].size() * sizeof(unsigned int), indexData[index.value].data(), GL_DYNAMIC_DRAW);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexData[index].size() * sizeof(unsigned int), indexData[index].data(), GL_DYNAMIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
 
@@ -64,8 +64,8 @@ void SpringLines::draw(const Shader* shader) const
 	using IndexList = mp_iota_c<bloodCellTypeCount>;
 	mp_for_each<IndexList>([&](auto i)
 		{
-			glBindVertexArray(VAOs[i.value]);
-			glDrawElements(GL_LINES, static_cast<GLsizei>(indexData[i.value].size()), GL_UNSIGNED_INT, 0);
+			glBindVertexArray(VAOs[i]);
+			glDrawElements(GL_LINES, static_cast<GLsizei>(indexData[i].size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 		});
 }

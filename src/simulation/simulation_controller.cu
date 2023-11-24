@@ -109,13 +109,13 @@ namespace sim
 		mp_for_each<IndexList>([&](auto i)
 			{
 				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-				constexpr int particlesStart = particlesStarts[i.value];
-				constexpr int bloodCellTypeStart = bloodCellTypesStarts[i.value];
-				constexpr int bloodCellModelSizesStarts = bloodCellModelStarts[i.value];
+				constexpr int particlesStart = particlesStarts[i];
+				constexpr int bloodCellTypeStart = bloodCellTypesStarts[i];
+				constexpr int bloodCellModelSizesStarts = bloodCellModelStarts[i];
 
 				CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
 				setBloodCellsPositionsFromRandom<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellTypeStart, bloodCellModelSizesStarts>
-					<< <threads.blocks, threads.threadsPerBlock, 0, streams[i.value] >> > (bloodCells.particles, bloodCellModels, initialPositions);
+					<< <threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (bloodCells.particles, bloodCellModels, initialPositions);
 			});
 		HANDLE_ERROR(cudaDeviceSynchronize());
 		HANDLE_ERROR(cudaFree(devStates));

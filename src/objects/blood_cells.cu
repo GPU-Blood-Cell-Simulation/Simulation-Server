@@ -71,12 +71,12 @@ void BloodCells::gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodC
 	mp_for_each<IndexList>([&](auto i)
 		{
 			using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-			constexpr int particlesStart = particlesStarts[i.value];
-			constexpr int graphStart = accumulatedGraphSizes[i.value];
+			constexpr int particlesStart = particlesStarts[i];
+			constexpr int graphStart = accumulatedGraphSizes[i];
 
 			CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
 			gatherForcesKernel<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, graphStart>
-				<< <threads.blocks, threads.threadsPerBlock, 0, streams[i.value] >> > (*this);
+				<< <threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (*this);
 		});
 
 }
