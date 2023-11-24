@@ -115,7 +115,7 @@ namespace graphics
 				});
 
 			std::vector<glm::vec3> bloodCellInitials(BloodCellDefinition::count);
-			auto initialsIterStart = initialPositions.begin() + bloodCellModelStarts[typeIndex];
+			auto initialsIterStart = initialPositions.begin() + bloodCellTypesStarts[typeIndex];
 			std::copy(initialsIterStart, initialsIterStart + BloodCellDefinition::count, bloodCellInitials.begin());
 
 			bloodCellmodel[typeIndex] = MultipleObjectModel(std::move(vertices), std::move(indices), bloodCellInitials, BloodCellDefinition::count);
