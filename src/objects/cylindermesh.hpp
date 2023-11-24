@@ -39,8 +39,7 @@ public:
 				Vertex v
 				{
 					position,
-					glm::vec3(glm::normalize(position - glm::vec3(basisOrigin.x, basisOrigin.y, basisOrigin.z + h))),
-					glm::vec2(0) // no textures
+					glm::vec3(glm::normalize(position - glm::vec3(basisOrigin.x, basisOrigin.y, basisOrigin.z + h)))
 				};
 				vertices.push_back(v);
 
@@ -91,7 +90,6 @@ public:
 
 	SingleObjectMesh CreateMesh()
 	{
-		return SingleObjectMesh(std::move(vertices), std::move(indices),
-			std::move(std::vector<Texture>(0)));
+		return SingleObjectMesh(std::move(vertices), std::move(indices));
 	}
 };

@@ -1495,6 +1495,7 @@
     <ClInclude Include="src\graphics\textures\stb_image.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\windowcontroller.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lib">
@@ -1506,11 +1507,6 @@
     <Filter Include="include">
       <UniqueIdentifier>{2812d682-2a72-4665-a24e-197c6ed3f974}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="Libraries\lib\assimp-vc143-mt.lib">
-      <Filter>lib</Filter>
-    </Library>
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\objects\vein_triangles.cu">
@@ -1566,6 +1562,7 @@
     <ClCompile Include="src\graphics\camera.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\windowcontroller.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\spring.vert">

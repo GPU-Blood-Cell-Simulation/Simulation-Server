@@ -31,19 +31,14 @@ namespace graphics
 			return;
 		int id = particlesStart + relativeId;
 
-		devCudaPositionsBuffer[8 * relativeId] = positions.x[id];
-		devCudaPositionsBuffer[8 * relativeId + 1] = positions.y[id];
-		devCudaPositionsBuffer[8 * relativeId + 2] = positions.z[id];
+		devCudaPositionsBuffer[6 * relativeId] = positions.x[id];
+		devCudaPositionsBuffer[6 * relativeId + 1] = positions.y[id];
+		devCudaPositionsBuffer[6 * relativeId + 2] = positions.z[id];
 
-		// normals are not modified
-		/*devCudaPositionsBuffer[8 * id + 3] = 0;
-		devCudaPositionsBuffer[8 * id + 4] = 0;
-		devCudaPositionsBuffer[8 * id + 5] = 0;*/
-
-		// textures might been zero
-		devCudaPositionsBuffer[8 * relativeId + 6] = 0;
-		devCudaPositionsBuffer[8 * relativeId + 7] = 0;
-
+		// normals are not modified at the moment
+		//devCudaPositionsBuffer[6 * id + 3] = 0;
+		//devCudaPositionsBuffer[6 * id + 4] = 0;
+		//devCudaPositionsBuffer[6 * id + 5] = 0;
 	}
 
 	__global__ void calculateTriangleVerticesKernel(float* devVeinVBOBuffer, cudaVec3 positions, int vertexCount)
@@ -54,14 +49,12 @@ namespace graphics
 
 		// Insert any debug position changes here
 		float3 v = positions.get(id);
-		devVeinVBOBuffer[8 * id] = v.x;
-		devVeinVBOBuffer[8 * id + 1] = v.y;
-		devVeinVBOBuffer[8 * id + 2] = v.z;
-		devVeinVBOBuffer[8 * id + 3] = 0;
-		devVeinVBOBuffer[8 * id + 4] = 0;
-		devVeinVBOBuffer[8 * id + 5] = 0;
-		devVeinVBOBuffer[8 * id + 6] = 0;
-		devVeinVBOBuffer[8 * id + 7] = 0;
+		devVeinVBOBuffer[6 * id] = v.x;
+		devVeinVBOBuffer[6 * id + 1] = v.y;
+		devVeinVBOBuffer[6 * id + 2] = v.z;
+		devVeinVBOBuffer[6 * id + 3] = 0;
+		devVeinVBOBuffer[6 * id + 4] = 0;
+		devVeinVBOBuffer[6 * id + 5] = 0;
 	}
 
 	void* mapResourceAndGetPointer(cudaGraphicsResource_t resource)
@@ -76,9 +69,9 @@ namespace graphics
 	}
 
 
-	graphics::GLController::GLController( Mesh& veinMesh, std::vector<glm::vec3>& initialPositions) :
-		veinModel(&veinMesh)
+	graphics::GLController::GLController( Mesh& veinMesh, std::vector<glm::vec3>& initialPositions)
 	{
+		veinModel.addMesh(veinMesh);
 		// Register OpenGL buffer in CUDA for vein
 		HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaVeinVBOResource, veinModel.getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
 		//HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaVeinEBOResource, veinModel.getEboBuffer(0), cudaGraphicsRegisterFlagsNone));

@@ -637,9 +637,6 @@
     <ClCompile Include="src\graphics\textures\texture_loading.cpp" />
     <ClCompile Include="src\graphics\windowcontroller.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="Libraries\lib\assimp-vc143-mt.lib" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.8.targets" />

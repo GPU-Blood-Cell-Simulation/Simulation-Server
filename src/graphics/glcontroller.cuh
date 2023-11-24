@@ -38,7 +38,7 @@ namespace graphics
 		glm::mat4 projection = glm::perspective(glm::radians<float>(45.0f), static_cast<float>(windowWidth) / windowHeight, 0.1f, depth * 10);
 
 		MultipleObjectModel bloodCellmodel[bloodCellTypeCount];
-		SingleObjectModel veinModel;
+		Model veinModel;
 
 		DirLight directionalLight;
 
