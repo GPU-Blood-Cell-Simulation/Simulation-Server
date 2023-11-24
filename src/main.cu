@@ -47,7 +47,7 @@ int main()
     HANDLE_ERROR(cudaSetDevice(0));
 
 #ifdef WINDOW_RENDER
-    WindowController::GetInstance()->ConfigureWindow();
+    WindowController::GetInstance().ConfigureWindow();
 #endif
     // Load GL and set the viewport to match window size
     gladLoadGL();
@@ -82,7 +82,7 @@ void programLoop()
 
     // Create vein mesh
     VeinGenerator veinMeshDefinition(cylinderBaseCenter, cylinderHeight, cylinderRadius, cylinderVerticalLayers, cylinderHorizontalLayers);
-    SingleObjectMesh* veinMesh = veinMeshDefinition.CreateMesh();
+    SingleObjectMesh veinMesh = veinMeshDefinition.CreateMesh();
 
     // Create vein mesh
     VeinGenerator veinGenerator(cylinderBaseCenter, cylinderHeight, cylinderRadius, cylinderVerticalLayers, cylinderHorizontalLayers);
@@ -107,8 +107,8 @@ void programLoop()
 
 #ifdef WINDOW_RENDER
     double lastTime = glfwGetTime();
-    WindowController* windowController = WindowController::GetInstance();
-    windowController->ConfigureInputAndCamera(&camera);
+    WindowController windowController = WindowController::GetInstance();
+    windowController.ConfigureInputAndCamera(&camera);
 
 #endif
 
@@ -119,6 +119,7 @@ void programLoop()
         // Clear 
         glClearColor(1.00f, 0.75f, 0.80f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         // Calculate particle positions using CUDA
         simulationController.calculateNextFrame();
 
@@ -130,7 +131,7 @@ void programLoop()
 
 #ifdef WINDOW_RENDER // graphical render
 
-        glfwSwapBuffers(windowController->window);
+        glfwSwapBuffers(windowController.window);
 
         // Show FPS in the title bar
         double currentTime = glfwGetTime();
@@ -141,7 +142,7 @@ void programLoop()
             std::stringstream ss;
             ss << "Blood Cell Simulation" << " " << " [" << fps << " FPS]";
 
-            glfwSetWindowTitle(windowController->window, ss.str().c_str());
+            glfwSetWindowTitle(windowController.window, ss.str().c_str());
             lastTime = currentTime;
             frameCount = 0;
         }
@@ -152,9 +153,9 @@ void programLoop()
 
         // Handle user input
         glfwPollEvents();
-        windowController->handleInput();
+        windowController.handleInput();
 
-        shouldBeRunning = !glfwWindowShouldClose(windowController->window);
+        shouldBeRunning = !glfwWindowShouldClose(windowController.window);
 #else // server calculations
 
         // Send data to client

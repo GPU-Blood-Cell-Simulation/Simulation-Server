@@ -17,6 +17,10 @@ namespace
 	template<class State, class Def>
 	using Add = mp_int<State::value + Def::count * Def::particlesInCell>;
 
+	// Helper meta-function for adding particles of distinct cellTypes
+	template<class State, class Def>
+	using AddDistinct = mp_int<State::value + Def::particlesInCell>;
+
 	// Helper meta-function for adding blood Cells
 	template<class State, class Def>
 	using AddCells = mp_int<State::value + Def::count>;
@@ -121,6 +125,9 @@ namespace
 	// Particle count
 	inline constexpr int particleCount = mp_fold<BloodCellList, mp_int<0>, Add>::value;
 
+	// Particle count of distinct blood cell types
+	inline constexpr int particleDistinctCellsCount = mp_fold<BloodCellList, mp_int<0>, AddDistinct>::value;
+
 	// Blood cell count
 	inline constexpr int bloodCellCount = mp_fold<BloodCellList, mp_int<0>, AddCells>::value;
 
@@ -165,8 +172,25 @@ namespace
 			return arr;
 		};
 
-	// The same as particle starts but for whole blood Cells
+	// Array of accumulated sums of blood cells in particular type
 	inline constexpr auto bloodCellTypesStarts = bloodCellTypesStartsGenerator();
+
+	// Fill the array of blood cell models sizes in consecutive types;
+	inline constexpr auto bloodCellModelStartsGenerator = []()
+		{
+			std::array<int, bloodCellTypeCount> arr{};
+			using IndexList = mp_iota_c<bloodCellTypeCount>;
+			int state = 0;
+			mp_for_each<IndexList>([&](auto i) {
+				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
+				arr[i.value] = state;
+				state += BloodCellDefinition::particlesInCell;
+				});
+			return arr;
+		};
+
+	// Array of accumulated sums of blood cell models sizes in consecutive types;
+	inline constexpr auto bloodCellModelStarts = bloodCellModelStartsGenerator();
 
 	// Fill the accumulated graph sizes array
 	inline constexpr auto graphSizesGenerator = []()

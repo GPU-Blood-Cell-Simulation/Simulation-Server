@@ -11,7 +11,7 @@ class SpringLines
 {
 public:
 	SpringLines() {};
-	void constructSprings(MultipleObjectModel(*bloodCellModels)[bloodCellTypeCount]);
+	void constructSprings(std::array<unsigned int, bloodCellTypeCount>& vbos);
 	void draw(const Shader* shader) const;
 private:
 	std::array<unsigned int, bloodCellTypeCount> VAOs;

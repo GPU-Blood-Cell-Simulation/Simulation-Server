@@ -5,10 +5,7 @@
 
 class WindowController
 {
-	static WindowController* instance;
 	WindowController();
-
-protected:
 	graphics::InputController inputController;
 
 public:
@@ -16,7 +13,7 @@ public:
 	GLFWwindow* window = nullptr;
 	graphics::Camera* camera = nullptr;
 
-	static WindowController* GetInstance();
+	static WindowController& GetInstance();
 	void ConfigureWindow();
 	void ConfigureInputAndCamera(graphics::Camera*);
 

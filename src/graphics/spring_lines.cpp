@@ -7,12 +7,12 @@
 #include "mesh.hpp";
 
 
-void SpringLines::constructSprings(MultipleObjectModel (*bloodCellModels)[bloodCellTypeCount])
+void SpringLines::constructSprings(std::array<unsigned int, bloodCellTypeCount>& vbos)
 {
-	int accumulatedParticles = 0;
 	using IndexList = mp_iota_c<bloodCellTypeCount>;
 	mp_for_each<IndexList>([&](auto index)
 		{
+			int accumulatedParticles = 0;
 			using BloodCellDefinition = mp_at_c<BloodCellList, index>;
 			// Create index data template (EBO for a particle with given type)
 			constexpr int springCount = mp_size<typename BloodCellDefinition::List>::value;
@@ -40,7 +40,7 @@ void SpringLines::constructSprings(MultipleObjectModel (*bloodCellModels)[bloodC
 			glGenVertexArrays(1, &VAOs[index.value]);
 			glBindVertexArray(VAOs[index.value]);
 
-			glBindBuffer(GL_ARRAY_BUFFER, (*bloodCellModels)[index].getVboBuffer(0));
+			glBindBuffer(GL_ARRAY_BUFFER, vbos[index]);
 
 			// vertex positions
 			glEnableVertexAttribArray(0);

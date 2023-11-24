@@ -89,9 +89,9 @@ public:
 		return springLengths;
 	}
 
-	SingleObjectMesh* CreateMesh()
+	SingleObjectMesh CreateMesh()
 	{
-		return new SingleObjectMesh(std::move(vertices), std::move(indices),
+		return SingleObjectMesh(std::move(vertices), std::move(indices),
 			std::move(std::vector<Texture>(0)));
 	}
 };

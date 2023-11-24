@@ -31,12 +31,9 @@ namespace graphics
 			return;
 		int id = particlesStart + relativeId;
 
-		// Insert any debug position changes here
-		//printf("[%d] POSITIONS particle position: x = %.5f, y = %.5f, z = %.5f\n", id, positions.x[id], positions.y[id], positions.z[id]);
-
-		devCudaPositionsBuffer[8 * id] = positions.x[id];
-		devCudaPositionsBuffer[8 * id + 1] = positions.y[id];
-		devCudaPositionsBuffer[8 * id + 2] = positions.z[id];
+		devCudaPositionsBuffer[8 * relativeId] = positions.x[id];
+		devCudaPositionsBuffer[8 * relativeId + 1] = positions.y[id];
+		devCudaPositionsBuffer[8 * relativeId + 2] = positions.z[id];
 
 		// normals are not modified
 		/*devCudaPositionsBuffer[8 * id + 3] = 0;
@@ -44,8 +41,8 @@ namespace graphics
 		devCudaPositionsBuffer[8 * id + 5] = 0;*/
 
 		// textures might been zero
-		devCudaPositionsBuffer[8 * id + 6] = 0;
-		devCudaPositionsBuffer[8 * id + 7] = 0;
+		devCudaPositionsBuffer[8 * relativeId + 6] = 0;
+		devCudaPositionsBuffer[8 * relativeId + 7] = 0;
 
 	}
 
@@ -56,7 +53,6 @@ namespace graphics
 			return;
 
 		// Insert any debug position changes here
-
 		float3 v = positions.get(id);
 		devVeinVBOBuffer[8 * id] = v.x;
 		devVeinVBOBuffer[8 * id + 1] = v.y;
@@ -80,14 +76,15 @@ namespace graphics
 	}
 
 
-	graphics::GLController::GLController( Mesh* veinMesh, std::vector<glm::vec3>& initialPositions) :
-		veinModel(veinMesh)
+	graphics::GLController::GLController( Mesh& veinMesh, std::vector<glm::vec3>& initialPositions) :
+		veinModel(&veinMesh)
 	{
 		// Register OpenGL buffer in CUDA for vein
 		HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaVeinVBOResource, veinModel.getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
 		//HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaVeinEBOResource, veinModel.getEboBuffer(0), cudaGraphicsRegisterFlagsNone));
 
 		using TypeList = mp_iota_c<bloodCellTypeCount>;
+		std::array<unsigned int, bloodCellTypeCount> VBOs;
 		mp_for_each<TypeList>([&](auto typeIndex) 
 		{
 			std::vector<Vertex> vertices;
@@ -123,13 +120,18 @@ namespace graphics
 				{
 					indices.push_back(mp_at_c<IndiceList, i>::value);
 				});
-			bloodCellmodel[typeIndex.value] = MultipleObjectModel(std::move(vertices), std::move(indices), initialPositions, bloodCellCount);
-			
+
+			std::vector<glm::vec3> bloodCellInitials(BloodCellDefinition::count);
+			auto initialsIterStart = initialPositions.begin() + bloodCellModelStarts[typeIndex.value];
+			std::copy(initialsIterStart, initialsIterStart + BloodCellDefinition::count, bloodCellInitials.begin());
+
+			bloodCellmodel[typeIndex.value] = MultipleObjectModel(std::move(vertices), std::move(indices), bloodCellInitials, BloodCellDefinition::count);
+			VBOs[typeIndex] = bloodCellmodel[typeIndex.value].getVboBuffer(0);
 			// Register OpenGL buffer in CUDA for blood cell
 			HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&(cudaPositionsResource[typeIndex.value]), bloodCellmodel[typeIndex.value].getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
 			HANDLE_ERROR(cudaPeekAtLastError());
 		});
-		springLines.constructSprings(&bloodCellmodel);
+		springLines.constructSprings(VBOs);
 
 		// Create a directional light
 		directionalLight = DirLight
@@ -195,9 +197,6 @@ namespace graphics
 			constexpr int particlesStart = particlesStarts[typeIndex.value];
 			constexpr int bloodCellTypeStart = bloodCellTypesStarts[typeIndex.value];
 
-			//int threadsPerBlock = particleCount > 1024 ? 1024 : particleCount;
-			//int blocks = (particleCount + threadsPerBlock - 1) / threadsPerBlock;
-
 			CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
 			// translate our CUDA positions into Vertex offsets
 			calculatePositionsKernel<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellTypeStart>
@@ -225,48 +224,39 @@ namespace graphics
 	{
 
 		// Draw particles
-
 		if constexpr (!useLighting) // solidcolor
 		{
+			solidColorShader->use();
+			solidColorShader->setMatrix("model", model);
+			solidColorShader->setMatrix("view", camera.getView());
+			solidColorShader->setMatrix("projection", projection);
+
 			using TypeList = mp_iota_c<bloodCellTypeCount>;
 			mp_for_each<TypeList>([&](auto typeIndex)
 				{
-					solidColorShader->use();
-					solidColorShader->setMatrix("model", model);
-					solidColorShader->setMatrix("view", camera.getView());
-					solidColorShader->setMatrix("projection", projection);
-
 					bloodCellmodel[typeIndex.value].draw(solidColorShader.get());
 				});
 		}
 		else
 		{
+			phongForwardShader->use();
+			phongForwardShader->setMatrix("model", model);
+			phongForwardShader->setMatrix("view", camera.getView());
+			phongForwardShader->setMatrix("projection", projection);
+
+			phongForwardShader->setVector("viewPos", camera.getPosition());
+			phongForwardShader->setVector("Diffuse", particleDiffuse);
+			phongForwardShader->setFloat("Specular", particleSpecular);
+			phongForwardShader->setFloat("Shininess", 32);
+
+			phongForwardShader->setLighting(directionalLight);
 			using TypeList = mp_iota_c<bloodCellTypeCount>;
 			mp_for_each<TypeList>([&](auto typeIndex)
 				{
-					phongForwardShader->use();
-					phongForwardShader->setMatrix("model", model);
-					phongForwardShader->setMatrix("view", camera.getView());
-					phongForwardShader->setMatrix("projection", projection);
-
-					phongForwardShader->setVector("viewPos", camera.getPosition());
-					phongForwardShader->setVector("Diffuse", particleDiffuse);
-					phongForwardShader->setFloat("Specular", particleSpecular);
-					phongForwardShader->setFloat("Shininess", 32);
-
-					phongForwardShader->setLighting(directionalLight);
-			
 					bloodCellmodel[typeIndex.value].draw(phongForwardShader.get());
 				});
 		}
 
-
-
-		/*using TypeList = mp_iota_c<bloodCellTypeCount>;
-		mp_for_each<TypeList>([&](auto typeIndex)
-			{
-				springLines.draw(springShader.get());
-			});*/
 		if (BLOOD_CELL_SPRINGS_RENDER)
 		{
 			// Draw lines

@@ -47,6 +47,43 @@ namespace preset
 		Spring<3, 7, springLength, 1>
 		>;
 
+#pragma region Tetrahedron
+	using Tetrahedron =
+		mp_list <
+			Spring<0,1, springLength, 1>,
+			Spring<1,2, springLength, 1>,
+			Spring<2,0, springLength, 1>,
+			Spring<0,3, springLength, 1>,
+			Spring<1,3, springLength, 1>,
+			Spring<2,3, springLength, 1>
+		>;
+
+	using TetrahedronVertices =
+		mp_list <
+		mpFloat3<0, 0, 0, 1>,
+		mpFloat3<10,0,0,1>,
+		mpFloat3<50000, 86602, 0, 5>,
+		mpFloat3<50000, 28867, 81649, 5>
+		>;
+
+	using TetrahedronIndices =
+		mp_list<
+		mp_int<0>, mp_int<2>, mp_int<1>,
+		mp_int<0>, mp_int<1>, mp_int<3>,
+		mp_int<2>, mp_int<0>, mp_int<3>,
+		mp_int<1>, mp_int<2>, mp_int<3>
+		>;
+
+	using TetrahedronNormals =
+		mp_list<
+		mpFloat3<-7071,-7071,0,5>,
+		mpFloat3<7071,-7071,0,5>,
+		mpFloat3<0,1,0,1>,
+		mpFloat3<0,0,1,1>
+		>;
+#pragma endregion
+
+#pragma region Cube
 	using Cube =
 		mp_list <
 		Spring<0, 1, springLength, 1>,
@@ -94,23 +131,23 @@ namespace preset
 	using CubeIndices =
 		mp_list<
 
-		mp_int<0>, mp_int<2>, mp_int<3>,
-		mp_int<1>, mp_int<2>, mp_int<0>,
+		mp_int<0>, mp_int<3>, mp_int<2>,
+		mp_int<1>, mp_int<0>, mp_int<2>,
 
-		mp_int<4>, mp_int<0>, mp_int<3>,
-		mp_int<7>, mp_int<4>, mp_int<3>,
+		mp_int<4>, mp_int<3>, mp_int<0>,
+		mp_int<7>, mp_int<3>, mp_int<4>,
 
-		mp_int<7>, mp_int<3>, mp_int<2>,
-		mp_int<6>, mp_int<7>, mp_int<2>,
+		mp_int<7>, mp_int<2>, mp_int<3>,
+		mp_int<6>, mp_int<2>, mp_int<7>,
 
-		mp_int<6>, mp_int<2>, mp_int<1>,
-		mp_int<5>, mp_int<6>, mp_int<1>,
+		mp_int<6>, mp_int<1>, mp_int<2>,
+		mp_int<5>, mp_int<1>, mp_int<6>,
 
-		mp_int<4>, mp_int<1>, mp_int<0>,
-		mp_int<5>, mp_int<1>, mp_int<4>,
+		mp_int<4>, mp_int<0>, mp_int<1>,
+		mp_int<5>, mp_int<4>, mp_int<1>,
 
-		mp_int<5>, mp_int<4>, mp_int<7>,
-		mp_int<5>, mp_int<7>, mp_int<6>
+		mp_int<5>, mp_int<7>, mp_int<4>,
+		mp_int<5>, mp_int<6>, mp_int<7>
 		>;
 
 	using CubeNormals =
@@ -124,6 +161,8 @@ namespace preset
 		mpFloat3<57735, 57735, 57735, 5>, // 6
 		mpFloat3<-57735, 57735, 57735, 5> // 7
 		>;
+
+#pragma endregion 
 
 	/// <summary>
 	/// Blood cell model vertices

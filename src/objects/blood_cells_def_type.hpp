@@ -12,9 +12,9 @@ struct get_power<A, 0>
 	static const int value = 1;
 };
 
-inline constexpr int springLength = 30;
-inline constexpr int springLengthDiagonal = 1.7 * 30;
-inline constexpr int springLengthDiagonalSmall = 1.41 * 30;
+inline constexpr int springLength = 10;
+inline constexpr int springLengthDiagonal = 1.7 * springLength;
+inline constexpr int springLengthDiagonalSmall = 1.41 * springLength;
 
 template<int X, int Y, int Z>
 struct mpInt3

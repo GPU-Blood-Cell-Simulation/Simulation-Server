@@ -1,14 +1,11 @@
 #include "windowcontroller.hpp"
 #include "../config/graphics.hpp"
 
-WindowController* WindowController::instance = nullptr;
-
 WindowController::WindowController() {}
 
-WindowController* WindowController::GetInstance()
+WindowController& WindowController::GetInstance()
 {
-	if (instance == nullptr)
-		instance = new  WindowController();
+    static WindowController instance;
 	return instance;
 }
 
@@ -31,11 +28,7 @@ void WindowController::ConfigureWindow()
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
-
-
-
 }
-
 
 void WindowController::ConfigureInputAndCamera(graphics::Camera* _camera)
 {

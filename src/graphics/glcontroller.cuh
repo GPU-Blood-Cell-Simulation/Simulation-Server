@@ -21,16 +21,11 @@ namespace graphics
 	class GLController {
 	public:
 
-		GLController(Mesh* veinMesh, std::vector<glm::vec3>& initialPositions);
+		GLController(Mesh& veinMesh, std::vector<glm::vec3>& initialPositions);
 		~GLController();
 		void calculatePositions(cudaVec3 positions);
 		void calculateTriangles(VeinTriangles triangles);
 		void draw(Camera& camera);
-
-		Mesh* getGridMesh()
-		{
-			return veinModel.getMesh(0);
-		}
 
 	private:
 
