@@ -161,7 +161,7 @@ void programLoop()
         // Send data to client
             // TODO
 
-        shouldBeRunning = frameCount++ < maxFrames
+        shouldBeRunning = frameCount++ < maxFrames;
 #endif
     }
 }
