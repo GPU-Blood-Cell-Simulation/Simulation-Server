@@ -24,7 +24,7 @@ constexpr SynchronizationType SelectSynchronizationType(int bloodCellsCnt, int p
 	return blockSync;
 }
 
-constexpr int CalculateThreadsPerBlock(SynchronizationType syncType, int bloodCellsCnt, int particlesInBloodCell)
+constexpr __host__ __device__ int CalculateThreadsPerBlock(SynchronizationType syncType, int bloodCellsCnt, int particlesInBloodCell)
 {
 	switch (syncType)
 	{
@@ -40,7 +40,7 @@ constexpr int CalculateThreadsPerBlock(SynchronizationType syncType, int bloodCe
 		return (CudaThreads::maxThreadsInBlock / particlesInBloodCell) * particlesInBloodCell;
 
 	default:
-		throw std::domain_error("Unknown synchronization type");
+		return -1;
 	}
 }
 
