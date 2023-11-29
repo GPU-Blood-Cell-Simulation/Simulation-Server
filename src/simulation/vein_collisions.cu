@@ -90,19 +90,20 @@ namespace sim
 
 		float3 velocityDir = normalize(velocity);
 
-		// cubical bounds
-		if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
-			goto set_particle_values;
-		}
-
 		ray r(pos, velocityDir);
 		float3 reflectedVelociy = make_float3(0, 0, 0);
 
+		// TODO: fix this
 		bool collisionDetected = false;
 		unsigned int cellId = triangleGrid.calculateCellId(pos);
 		unsigned int xId = static_cast<unsigned int>(pos.x / triangleGrid.cellWidth);
 		unsigned int yId = static_cast<unsigned int>(pos.y / triangleGrid.cellHeight);
 		unsigned int zId = static_cast<unsigned int>(pos.z / triangleGrid.cellDepth);
+
+		// cubical bounds
+		if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
+			goto set_particle_values;
+		}
 
 		// Check all corner cases and call the appropriate function specialization
 		// Ugly but fast
@@ -306,16 +307,17 @@ namespace sim
 		velocity = velocity + dt * F;
 		float3 velocityDir = normalize(velocity);
 
+		ray r(pos, velocityDir);
+		float3 reflectedVelociy = make_float3(0, 0, 0);
+
+		bool collisionOccured = false;
 
 		// cubical bounds
 		if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
 			goto set_particle_values;
 		}
 
-		ray r(pos, velocityDir);
-		float3 reflectedVelociy = make_float3(0, 0, 0);
-
-		bool collisionOccured = false;
+		
 		for (int triangleId = 0; triangleId < triangles.triangleCount; ++triangleId)
 		{
 			constexpr float EPS = 1e-7f;

@@ -213,7 +213,7 @@ namespace
 	inline constexpr auto accumulatedGraphSizes = graphSizesGenerator();
 
 	// Fill the particle neighborhood graph
-	inline constexpr auto springGraphGenerator = [&]()
+	inline constexpr auto springGraphGenerator = []()
 	{
 		std::array<float, totalGraphSize> arr{};
 
