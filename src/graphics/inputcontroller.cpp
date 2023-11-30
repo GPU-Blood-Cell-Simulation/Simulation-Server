@@ -49,9 +49,9 @@ namespace graphics
 				controller->pressedKeys.RIGHT = true;
 				break;
 			// Change view mode
-			case GLFW_KEY_V:
-				glPolygonMode(GL_FRONT_AND_BACK, (VEIN_POLYGON_MODE = (VEIN_POLYGON_MODE == GL_LINE ? GL_FILL : GL_LINE)));
-				break;
+			// case GLFW_KEY_V:
+			// 	glPolygonMode(GL_FRONT_AND_BACK, (VEIN_POLYGON_MODE = (VEIN_POLYGON_MODE == GL_LINE ? GL_FILL : GL_LINE)));
+			// 	break;
 			case GLFW_KEY_B:
 				BLOOD_CELL_SPRINGS_RENDER = !BLOOD_CELL_SPRINGS_RENDER;
 				break;

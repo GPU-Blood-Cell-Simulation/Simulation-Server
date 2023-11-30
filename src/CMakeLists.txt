@@ -20,6 +20,7 @@ target_link_libraries(
     GLFW
     glm
     KHR
+    ${PROJECT_SOURCE_DIR}/Libraries/lib/libglfw3.a
 )
 
 # target_compile_features(Simulation_server PUBLIC cxx_std_17)
