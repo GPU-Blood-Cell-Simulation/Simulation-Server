@@ -1,7 +1,7 @@
 #pragma once
 
 inline int VEIN_POLYGON_MODE = 0;
-
+inline bool BLOOD_CELL_SPRINGS_RENDER = true;
 // Lighting
 inline constexpr bool useLighting = true;
 

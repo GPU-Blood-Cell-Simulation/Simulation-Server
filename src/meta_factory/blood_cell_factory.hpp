@@ -7,7 +7,7 @@
 #include <boost/mp11/algorithm.hpp>
 #include <boost/mp11/list.hpp>
 #include <boost/mp11/utility.hpp>
-
+#include <glm/vec3.hpp>
 
 namespace
 {
@@ -16,6 +16,14 @@ namespace
 	// Helper meta-function for adding particles
 	template<class State, class Def>
 	using Add = mp_int<State::value + Def::count * Def::particlesInCell>;
+
+	// Helper meta-function for adding particles of distinct cellTypes
+	template<class State, class Def>
+	using AddDistinct = mp_int<State::value + Def::particlesInCell>;
+
+	// Helper meta-function for adding blood Cells
+	template<class State, class Def>
+	using AddCells = mp_int<State::value + Def::count>;
 
 	// Helper meta-function for calculating the graph size
 	template<class State, class Def>
@@ -34,7 +42,11 @@ namespace
 		<
 		IsDuplicate<State, Def>::value ? State::count + Def::count : State::count,
 		State::particlesInCell,
-		typename State::List
+		State::indicesInCell,
+		typename State::List,
+		typename State::Vertices,
+		typename State::Indices,
+		typename State::Normals
 		>;
 
 	// In order to merge all definitions of the same type, we first fold the list for every definitions using
@@ -52,7 +64,11 @@ namespace
 					<
 					0,
 					mp_at_c<UserDefinedBloodCellList, i>::particlesInCell,
-					typename mp_at_c<UserDefinedBloodCellList, i>::List
+					mp_at_c<UserDefinedBloodCellList, i>::indicesInCell,
+					typename mp_at_c<UserDefinedBloodCellList, i>::List,
+					typename mp_at_c<UserDefinedBloodCellList, i>::Vertices,
+					typename mp_at_c<UserDefinedBloodCellList, i>::Indices,
+					typename mp_at_c<UserDefinedBloodCellList, i>::Normals
 					>,
 				AddDistinctTypes
 				>
@@ -109,6 +125,12 @@ namespace
 	// Particle count
 	inline constexpr int particleCount = mp_fold<BloodCellList, mp_int<0>, Add>::value;
 
+	// Particle count of distinct blood cell types
+	inline constexpr int particleDistinctCellsCount = mp_fold<BloodCellList, mp_int<0>, AddDistinct>::value;
+
+	// Blood cell count
+	inline constexpr int bloodCellCount = mp_fold<BloodCellList, mp_int<0>, AddCells>::value;
+
 	// Total particle graph size
 	inline constexpr int totalGraphSize = mp_fold<BloodCellList, mp_int<0>, AddSquared>::value;
 
@@ -135,6 +157,40 @@ namespace
 
 	// Determine where in the device array a particular stream should start its job (calculate accumulated particlesInCell sums)
 	inline constexpr auto particlesStarts = particlesStartsGenerator();
+
+	// Fill the blood cells start array
+	inline constexpr auto bloodCellTypesStartsGenerator = []()
+		{
+			std::array<int, bloodCellTypeCount> arr{};
+			using IndexList = mp_iota_c<bloodCellTypeCount>;
+			int state = 0;
+			mp_for_each<IndexList>([&](auto i) {
+				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
+				arr[i] = state;
+				state += BloodCellDefinition::count;
+				});
+			return arr;
+		};
+
+	// Array of accumulated sums of blood cells in particular type
+	inline constexpr auto bloodCellTypesStarts = bloodCellTypesStartsGenerator();
+
+	// Fill the array of blood cell models sizes in consecutive types;
+	inline constexpr auto bloodCellModelStartsGenerator = []()
+		{
+			std::array<int, bloodCellTypeCount> arr{};
+			using IndexList = mp_iota_c<bloodCellTypeCount>;
+			int state = 0;
+			mp_for_each<IndexList>([&](auto i) {
+				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
+				arr[i] = state;
+				state += BloodCellDefinition::particlesInCell;
+				});
+			return arr;
+		};
+
+	// Array of accumulated sums of blood cell models sizes in consecutive types;
+	inline constexpr auto bloodCellModelStarts = bloodCellModelStartsGenerator();
 
 	// Fill the accumulated graph sizes array
 	inline constexpr auto graphSizesGenerator = []()

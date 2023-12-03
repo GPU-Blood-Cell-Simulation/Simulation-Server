@@ -63,7 +63,8 @@ __host__ __device__ inline float3 normalize(float3 v) // versor
 	float3 vn = v / sqrtf(dot(v, v));
 	if (isnan(vn.x) || isnan(vn.y) || isnan(vn.z))
 	{
-		printf("NAN ");
+		printf("[NAN! vx=%.5f, vy=%.5f, vz=%.5f] ", v.x, v.y, v.z);
+		return make_float3(0, 0, 0);
 	}
 	return vn;
 }

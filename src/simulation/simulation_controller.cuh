@@ -1,6 +1,7 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
+#include "../meta_factory/blood_cell_factory.hpp"
 #include "../grids/no_grid.cuh"
 #include "../grids/uniform_grid.cuh"
 #include "../objects/blood_cells.cuh"
@@ -23,6 +24,8 @@ namespace sim
 		~SimulationController();
 
 		void calculateNextFrame();
+		std::vector<glm::vec3> initialCellPositions;
+
 	private:
 		BloodCells& bloodCells;
 		VeinTriangles& triangles;

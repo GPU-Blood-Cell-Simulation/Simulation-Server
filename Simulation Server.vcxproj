@@ -62,7 +62,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart_static.lib;glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
@@ -89,7 +89,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudart_static.lib;glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
@@ -430,6 +430,17 @@
     <ClInclude Include="src\config\physics.hpp" />
     <ClInclude Include="src\config\simulation.hpp" />
     <ClInclude Include="src\config\vein_definition.hpp" />
+    <ClInclude Include="src\graphics\camera.hpp" />
+    <ClInclude Include="src\graphics\glcontroller.cuh" />
+    <ClInclude Include="src\graphics\inputcontroller.hpp" />
+    <ClInclude Include="src\graphics\light.hpp" />
+    <ClInclude Include="src\graphics\mesh.hpp" />
+    <ClInclude Include="src\graphics\model.hpp" />
+    <ClInclude Include="src\graphics\shader.hpp" />
+    <ClInclude Include="src\graphics\spring_lines.hpp" />
+    <ClInclude Include="src\graphics\textures\stb_image.h" />
+    <ClInclude Include="src\graphics\textures\texture_loading.hpp" />
+    <ClInclude Include="src\graphics\windowcontroller.hpp" />
     <ClInclude Include="src\grids\base_grid.cuh" />
     <ClInclude Include="src\grids\no_grid.cuh" />
     <ClInclude Include="src\grids\uniform_grid.cuh" />
@@ -451,6 +462,7 @@
     <ClInclude Include="src\utilities\vertex_index_enum.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="src\graphics\glcontroller.cu" />
     <CudaCompile Include="src\grids\uniform_grid.cu" />
     <CudaCompile Include="src\main.cu" />
     <CudaCompile Include="src\objects\blood_cells.cu" />
@@ -600,9 +612,30 @@
     <None Include="Libraries\include\glm\gtx\vector_angle.inl" />
     <None Include="Libraries\include\glm\gtx\vector_query.inl" />
     <None Include="Libraries\include\glm\gtx\wrap.inl" />
+    <None Include="Shaders\cylindersolidcolor.frag" />
+    <None Include="Shaders\cylindersolidcolor.vert" />
+    <None Include="Shaders\geometry.frag" />
+    <None Include="Shaders\geometry.vert" />
+    <None Include="Shaders\phong_deferred.frag" />
+    <None Include="Shaders\phong_deferred.vert" />
+    <None Include="Shaders\phong_forward.frag" />
+    <None Include="Shaders\phong_forward.vert" />
+    <None Include="Shaders\solidcolor.frag" />
+    <None Include="Shaders\solidcolor.vert" />
+    <None Include="Shaders\spring.frag" />
+    <None Include="Shaders\spring.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Libraries\include\glm\detail\glm.cpp" />
+    <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\graphics\camera.cpp" />
+    <ClCompile Include="src\graphics\inputcontroller.cpp" />
+    <ClCompile Include="src\graphics\mesh.cpp" />
+    <ClCompile Include="src\graphics\model.cpp" />
+    <ClCompile Include="src\graphics\shader.cpp" />
+    <ClCompile Include="src\graphics\spring_lines.cpp" />
+    <ClCompile Include="src\graphics\textures\texture_loading.cpp" />
+    <ClCompile Include="src\graphics\windowcontroller.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
