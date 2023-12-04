@@ -60,7 +60,24 @@ namespace sim
 		return baricentric;
 	}
 
+	__device__ float3 springForceForParticles(float3 x, float3 v)
+	{
+		return particle_k_sniff * x - particle_d_fact * v;
+	}
 
+	__device__ void RungeKutta(float3& x, float3& v)
+	{
+		float3 k1_x = dt * v;
+		float3 k1_v = dt * springForceForParticles(x, v);
+		float3 k2_x = dt * (v + k1_v / 2);
+		float3 k2_v = dt * springForceForParticles(x + k1_x / 2, v + k1_v / 2);
+		float3 k3_x = dt * (v + k2_v / 2);
+		float3 k3_v = dt * springForceForParticles(x + k2_x / 2, v + k2_v / 2);
+		float3 k4_x = dt * (v + k3_v);
+		float3 k4_v = dt * springForceForParticles(x + k3_x, v + k3_v);
+		x = x + (k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6;
+		v = v + (k1_v + 2 * k2_v + 2 * k3_v + k4_v) / 6;
+	}
 	
 	// 1. Calculate collisions between particles and vein triangles
 	// 2. Propagate forces into velocities and velocities into positions. Reset forces to 0 afterwards
@@ -82,8 +99,12 @@ namespace sim
 		
 
 		// propagate particle forces into velocities
-		velocity = velocity + dt * F;
 		
+		//velocity = velocity + dt * F;
+
+		RungeKutta(pos, velocity);
+		bool changed = false;
+
 		// TODO: is there a faster way to calculate this?
 		/*if (velocity.x != 0 && velocity.y != 0 && velocity.z != 0)
 			goto set_particle_values;*/
@@ -280,12 +301,16 @@ namespace sim
 	set_particle_values:
 
 		bloodCells.particles.velocities.set(particleId, velocity);
-
+		if (changed) {
+			RungeKutta(velocity, pos);
+		}
 		// propagate velocities into positions
-		bloodCells.particles.positions.add(particleId, dt * velocity);
-		
+		bloodCells.particles.positions.set(particleId, /*dt * velocity*/ pos);
+
 		// zero forces
 		bloodCells.particles.forces.set(particleId, make_float3(0, 0, 0));
+
+		return;
 	}
 
 	// 1. Calculate collisions between particles and vein triangles

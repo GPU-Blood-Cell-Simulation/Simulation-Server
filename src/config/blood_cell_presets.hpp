@@ -172,7 +172,7 @@ namespace preset
 #pragma region BloodCell20Vertices
 
 
-	using BloodCellVertices =
+	/*using BloodCellVertices =
 		mp_list <
 		mpFloat3<184, -43671, 198, 5>,
 		mpFloat3<0, 0, 0, 5>,
@@ -194,6 +194,30 @@ namespace preset
 		mpFloat3<-53931, 132, 93413, 5>,
 		mpFloat3<-31938, 19279, 55091, 5>,
 		mpFloat3<-32246, -43135, 56365, 5>
+		> ;*/
+
+	using BloodCellVertices =
+		mp_list <
+		mpFloat3<96, -22827, 103, 5>,
+		mpFloat3<-26, 6287, -28, 5>,
+		mpFloat3<-71934, 5940, -26, 5>,
+		mpFloat3<-42556, 18883, -85, 5>,
+		mpFloat3<-43143, -22731, 103, 5>,
+		mpFloat3<-35980, 5808, -62302, 5>,
+		mpFloat3<-21318, 18805, -36871, 5>,
+		mpFloat3<-21524, -22810, -37342, 5>,
+		mpFloat3<35927, 6112, -62303, 5>,
+		mpFloat3<21157, 18984, -36872, 5>,
+		mpFloat3<21714, -22628, -37343, 5>,
+		mpFloat3<71882, 6547, -29, 5>,
+		mpFloat3<42395, 19241, -87, 5>,
+		mpFloat3<43333, -22366, 101, 5>,
+		mpFloat3<35927, 6678, 62245, 5>,
+		mpFloat3<21157, 19319, 36698, 5>,
+		mpFloat3<21714, -22287, 37547, 5>,
+		mpFloat3<-35980, 6375, 62246, 5>,
+		mpFloat3<-21318, 19139, 36699, 5>,
+		mpFloat3<-21524, -22470, 37548, 5>
 		> ;
 
 	using BloodCellIndices =
