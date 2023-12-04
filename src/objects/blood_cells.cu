@@ -43,6 +43,8 @@ __global__ static void gatherForcesKernel(BloodCells bloodCells)
 
 	float3 position = bloodCells.particles.positions.get(realIndex);
 	float3 velocity = bloodCells.particles.velocities.get(realIndex);
+	float3 initialForce = bloodCells.particles.forces.get(realIndex);
+
 	float3 force{ 0, 0, 0 };
 
 #pragma unroll
@@ -56,13 +58,16 @@ __global__ static void gatherForcesKernel(BloodCells bloodCells)
 
 			float3 neighbourPosition = bloodCells.particles.positions.get(neighbourIndex);
 			float3 neighbourVelocity = bloodCells.particles.velocities.get(neighbourIndex);
+			float3 neighboutInitialForce = bloodCells.particles.forces.get(neighbourIndex);
 
-			float springForce = bloodCells.calculateParticleSpringForce(position, neighbourPosition, velocity, neighbourVelocity, springLength);
+			float3 springForceHeunCoefficient = bloodCells.calculateParticleSpringForce(position, neighbourPosition, velocity + dt*initialForce, 
+				neighbourVelocity + dt*neighboutInitialForce, springLength) * normalize(neighbourPosition - position);
 
-			force = force + springForce * normalize(neighbourPosition - position);
+			force = force + springForceHeunCoefficient;
 		}
 	}
-	bloodCells.particles.forces.add(realIndex, force);
+	// total force is calculated from Heun's method
+	bloodCells.particles.forces.set(realIndex, (initialForce + force)/2);
 }
 
 void BloodCells::gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodCellTypeCount>& streams)
@@ -78,5 +83,4 @@ void BloodCells::gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodC
 			gatherForcesKernel<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, graphStart>
 				<< <threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (*this);
 		});
-
 }

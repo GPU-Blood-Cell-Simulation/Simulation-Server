@@ -43,7 +43,7 @@ namespace
 		preset::CubeNormals
 		>,*/
 
-		BloodCellDef<100, 20, 108,
+		BloodCellDef<200, 20, 108,
 		preset::BloodCellSprings,
 		preset::BloodCellVertices,
 		preset::BloodCellIndices,
