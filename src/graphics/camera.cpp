@@ -26,7 +26,10 @@ void graphics::Camera::moveRight()
 
 void graphics::Camera::moveForward()
 {
-	position += front * cameraMovementSpeed;
+	//position += front * cameraMovementSpeed;
+	position.x += front.x * cameraMovementSpeed;
+	position.y += front.y * cameraMovementSpeed;
+	position.z += front.z * cameraMovementSpeed;
 	calculateView();
 }
 

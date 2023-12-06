@@ -19,15 +19,15 @@
 #include "device_launch_parameters.h"
 #include "config/graphics.hpp"
 
-#ifdef _WIN32 // win only headers
+//#ifdef _WIN32 // win only headers
 
 #include "graphics/windowcontroller.hpp"
-#define WINDOW_RENDER
+//#define WINDOW_RENDER
 
-#else // server only (linux) headers
+//#else // server only (linux) headers
 #include <unistd.h>
 // ...
-#endif
+//#endif
 
 
 #define UNIFORM_TRIANGLES_GRID

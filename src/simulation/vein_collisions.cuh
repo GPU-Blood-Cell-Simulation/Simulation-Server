@@ -11,7 +11,6 @@
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include <device_functions.h>
 
 
 using Grid = std::variant<UniformGrid*, NoGrid*>;

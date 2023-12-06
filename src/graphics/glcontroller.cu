@@ -78,13 +78,13 @@ namespace graphics
 
 		using TypeList = mp_iota_c<bloodCellTypeCount>;
 		std::array<unsigned int, bloodCellTypeCount> VBOs;
+		std::cout << "Before mp11 loop\n";
 		mp_for_each<TypeList>([&](auto typeIndex) 
 		{
 			std::vector<Vertex> vertices;
 			std::vector<unsigned int> indices;
 			using BloodCellDefinition = mp_at_c<BloodCellList, typeIndex>;
 			constexpr int verticesCount = BloodCellDefinition::particlesInCell;
-			constexpr int indicesCount = BloodCellDefinition::indicesInCell;
 
 			using verticeIndexList = mp_iota_c<verticesCount>;
 
@@ -92,6 +92,7 @@ namespace graphics
 			using NormalList = typename BloodCellDefinition::Normals;
 			using IndiceList = typename BloodCellDefinition::Indices;
 
+			std::cout << "Before vertice index list\n";
 			mp_for_each<verticeIndexList>([&](auto i)
 				{
 					Vertex v = Vertex();
@@ -107,23 +108,33 @@ namespace graphics
 					);
 					vertices.push_back(v);
 				});
+			std::cout << "After vertice index list\n";
 
 			using indiceIndexList = mp_iota_c<mp_size<IndiceList>::value>;
 			mp_for_each<indiceIndexList>([&](auto i)
 				{
 					indices.push_back(mp_at_c<IndiceList, i>::value);
 				});
+			std::cout << "After index list loop\n";
 
 			std::vector<glm::vec3> bloodCellInitials(BloodCellDefinition::count);
 			auto initialsIterStart = initialPositions.begin() + bloodCellTypesStarts[typeIndex];
 			std::copy(initialsIterStart, initialsIterStart + BloodCellDefinition::count, bloodCellInitials.begin());
 
+			std::cout << "Middle\n";
+
 			bloodCellmodel[typeIndex] = MultipleObjectModel(std::move(vertices), std::move(indices), bloodCellInitials, BloodCellDefinition::count);
+			std::cout << "Multiple object made\n";
 			VBOs[typeIndex] = bloodCellmodel[typeIndex].getVboBuffer(0);
+			std::cout << "Get VBO\n";
 			// Register OpenGL buffer in CUDA for blood cell
 			HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&(cudaPositionsResource[typeIndex]), bloodCellmodel[typeIndex].getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
+			std::cout << "Buffer registered\n";
 			HANDLE_ERROR(cudaPeekAtLastError());
+
+			std::cout << "End\n";
 		});
+		std::cout << "After mp11 loop\n";
 		springLines.constructSprings(VBOs);
 
 		// Create a directional light
