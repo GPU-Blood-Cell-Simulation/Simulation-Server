@@ -14,6 +14,11 @@
 #include <glm/vec3.hpp>
 #include <memory>
 
+#ifdef _WIN32
+
+#include "../graphics/windowcontroller.hpp"
+#include <windows.h>
+#endif
 
 namespace graphics
 {
@@ -25,7 +30,7 @@ namespace graphics
 		~GLController();
 		void calculatePositions(cudaVec3 positions);
 		void calculateTriangles(VeinTriangles triangles);
-		void draw(Camera& camera);
+		void draw(WindowController& windowController);
 
 	private:
 

@@ -11,15 +11,14 @@ class WindowController
 public:
 
 	GLFWwindow* window = nullptr;
-	graphics::Camera* camera = nullptr;
-
+	graphics::Camera camera;
+	
 	static WindowController& GetInstance();
 	void ConfigureWindow();
-	void ConfigureInputAndCamera(graphics::Camera*);
+	void ConfigureInput();
 
 	inline void handleInput()
 	{
-		if(camera != nullptr)
-			inputController.adjustParametersUsingInput(*camera);
+		inputController.adjustParametersUsingInput(camera);
 	}
 };

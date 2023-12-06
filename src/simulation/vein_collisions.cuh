@@ -36,13 +36,13 @@ namespace sim
 
 	#pragma region Main Collision Template Kernels
 	template<typename T>
-	__global__ void detectVeinCollisionsAndPropagateParticles(BloodCells cells, VeinTriangles triangles, T triangleGrid) {}
+	__global__ void detectVeinCollisions(BloodCells cells, VeinTriangles triangles, T triangleGrid) {}
 
 	template<>
-	__global__ void detectVeinCollisionsAndPropagateParticles<NoGrid>(BloodCells cells, VeinTriangles triangles, NoGrid triangleGrid);
+	__global__ void detectVeinCollisions<NoGrid>(BloodCells cells, VeinTriangles triangles, NoGrid triangleGrid);
 
 	template<>
-	__global__ void detectVeinCollisionsAndPropagateParticles<UniformGrid>(BloodCells cells, VeinTriangles triangles, UniformGrid triangleGrid);
+	__global__ void detectVeinCollisions<UniformGrid>(BloodCells cells, VeinTriangles triangles, UniformGrid triangleGrid);
 	#pragma endregion
 
 	template<int xMin, int xMax, int yMin, int yMax, int zMin, int zMax>

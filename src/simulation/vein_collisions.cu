@@ -63,25 +63,21 @@ namespace sim
 	// 1. Calculate collisions between particles and vein triangles
 	// 2. Propagate forces into velocities and velocities into positions. Reset forces to 0 afterwards
 	template<>
-	__global__ void detectVeinCollisionsAndPropagateParticles<UniformGrid>(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid)
+	__global__ void detectVeinCollisions<UniformGrid>(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid)
 	{
 		int particleId = blockDim.x * blockIdx.x + threadIdx.x;
 
 		if (particleId >= particleCount)
 			return;
 
-		float3 F = bloodCells.particles.forces.get(particleId);
-		float3 initialVelocity = bloodCells.particles.velocities.get(particleId);
+		float3 velocity = bloodCells.particles.velocities.get(particleId);
+		float3 initialVelocity = velocity;
 		float3 pos = bloodCells.particles.positions.get(particleId);
 
 		// TEST
-		//velocity = velocity + float3{ 0, 0.1f , 0 };
+		//float3 velocity = velocity + float3{ 0, 0.1f , 0 };
 		//return;
-		
 
-		// propagate particle forces into velocities
-		
-		float3 velocity = initialVelocity + dt * F;
 
 		// TODO: is there a faster way to calculate this?
 		/*if (velocity.x != 0 && velocity.y != 0 && velocity.z != 0)
@@ -250,7 +246,10 @@ namespace sim
 			}
 		}
 
-		if (collisionDetected && length(pos - (pos + r.t * r.direction)) <= 5.0f)
+		float3 relativePosition = pos - (pos + r.t * r.direction);
+		float distanceSquared = length_squared(relativePosition);
+
+		if (collisionDetected && distanceSquared <= 5.0f)
 		{
 			float3 ds = 0.8f * velocityDir;
 			float speed = length(velocity);
@@ -274,26 +273,41 @@ namespace sim
 			triangles.forces.add(vertexIndex1, baricentric.y * ds);
 			triangles.forces.add(vertexIndex2, baricentric.z * ds);
 
+
+			//float3 relativeVelocity = velocity1 - bloodCells.particles.velocities.get(particleId2);
+			float3 relativeDirection = normalize(relativePosition);
+
+			float3 tangentialVelocity = velocity - dot(velocity, relativeDirection) * relativeDirection;
+
+			float3 springForce = -collisionSpringCoeff * (particleRadius * 2 - sqrtf(distanceSquared)) * relativeDirection;
+			float3 damplingForce = collisionDampingCoeff * velocity;
+			float3 shearForce = collistionShearCoeff * tangentialVelocity;
+
+			// Uncoalesced writes - area for optimization
+			bloodCells.particles.forces.add(particleId, springForce + damplingForce + shearForce);
+
 		}
 
 	set_particle_values:
 
+		float3 F = bloodCells.particles.forces.get(particleId);
+		// propagate particle forces into velocities
+		velocity = velocity + dt * F;
 		bloodCells.particles.velocities.set(particleId, velocity);
 
 		// propagate velocities into positions
 		// using Heun's method
-		bloodCells.particles.positions.add(particleId, 0.5f*dt * (velocity + initialVelocity));
+		bloodCells.particles.positions.add(particleId, 0.5f * dt * (velocity + initialVelocity));
 
 		// zero forces
 		//bloodCells.particles.forces.set(particleId, make_float3(0, 0, 0));
-
 		return;
 	}
 
 	// 1. Calculate collisions between particles and vein triangles
 	// 2. Propagate forces into velocities and velocities into positions. Reset forces to 0 afterwards
 	template<>
-	__global__ void detectVeinCollisionsAndPropagateParticles<NoGrid>(BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid)
+	__global__ void detectVeinCollisions<NoGrid>(BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid)
 	{
 		int particleId = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -351,8 +365,8 @@ namespace sim
 			// triangles move vector, 2 is experimentall constant
 			float3 ds = 0.8f * velocityDir;
 
-			float speed = length(velocity);
-			velocity = velocityCollisionDamping * speed * reflectedVelociy;
+			//float speed = length(velocity);
+			//velocity = velocityCollisionDamping * speed * reflectedVelociy;
 
 			unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
 			unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);

@@ -8,7 +8,7 @@ inline constexpr float velocityCollisionDamping = 0.8f;
 
 // ! this value should be determined experimentally !
 // Hooks law k factor from F = k*x
-inline constexpr float particle_k_sniff = 80.0f;
+inline constexpr float particle_k_sniff = 20.0f;
 inline constexpr float vein_k_sniff = 0.3f;
 
 // ! this value should be determined experimentally !

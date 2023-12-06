@@ -170,6 +170,27 @@ namespace sim
 		particles.forces.z[id] = 0;
 	}
 
+
+	/*template<typename T>
+	__global__ void propagateForcesForParticles(BloodCells cells, T triangleGrid) {}
+
+	template<>
+	__global__ void propagateForcesForParticles<NoGrid>(BloodCells cells, NoGrid triangleGrid)
+	{
+
+	}
+
+	template<>
+	__global__ void propagateForcesForParticles<UniformGrid>(BloodCells cells, UniformGrid triangleGrid)
+	{
+
+		int particleId = blockDim.x * blockIdx.x + threadIdx.x;
+
+		if (particleId >= particleCount)
+			return;
+
+	}*/
+
 	// Main simulation function, called every frame
 	void SimulationController::calculateNextFrame()
 	{
@@ -180,19 +201,21 @@ namespace sim
 				g1->calculateGrid(bloodCells.particles, particleCount);
 				g2->calculateGrid(triangles.centers.x, triangles.centers.y, triangles.centers.z, triangles.triangleCount);
 
+				// 3. Propagate particle forces into neighbors
+				bloodCells.gatherForcesFromNeighbors(streams);
+				HANDLE_ERROR(cudaPeekAtLastError());
+
 				// 2. Detect particle collisions
 				calculateParticleCollisions << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, *g1);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				// 3. Propagate particle forces into neighbors
-
-				bloodCells.gatherForcesFromNeighbors(streams);
+				// 4. Detect vein collisions
+				detectVeinCollisions << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, triangles, *g2);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				// 4. Detect vein collisions and propagate forces -> velocities, velocities -> positions for particles
-
-				detectVeinCollisionsAndPropagateParticles << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, triangles, *g2);
-				HANDLE_ERROR(cudaPeekAtLastError());
+				// 8. Propagate forces -> velocities, velocities -> positions for particles
+				//propagateForcesForParticles << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, *g2);
+				//HANDLE_ERROR(cudaPeekAtLastError());
 
 				// 5. Propagate triangle forces into neighbors
 
