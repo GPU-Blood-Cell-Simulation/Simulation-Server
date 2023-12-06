@@ -693,9 +693,6 @@ namespace glm
 	template<typename T, qualifier Q>
 	GLM_FUNC_QUALIFIER GLM_CONSTEXPR vec<3, T, Q> operator*(T scalar, vec<3, T, Q> const& v)
 	{
-		std::cout << "Vector multiplication\n" << std::flush;
-		std::cout << "vector mult: " << v.x << " " << v.y << " " << v.z << "\n";
-
 		return vec<3, T, Q>(
 			scalar * v.x,
 			scalar * v.y,

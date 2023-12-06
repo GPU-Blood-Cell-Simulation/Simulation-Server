@@ -47,7 +47,6 @@ namespace preset
 		Spring<3, 7, springLength, 1>
 		>;
 
-#pragma region Tetrahedron
 	using Tetrahedron =
 		mp_list <
 			Spring<0,1, springLength, 1>,
@@ -81,9 +80,7 @@ namespace preset
 		mpFloat3<0,1,0,1>,
 		mpFloat3<0,0,1,1>
 		>;
-#pragma endregion
 
-#pragma region Cube
 	using Cube =
 		mp_list <
 		Spring<0, 1, springLength, 1>,
@@ -162,12 +159,9 @@ namespace preset
 		mpFloat3<-57735, 57735, 57735, 5> // 7
 		>;
 
-#pragma endregion 
-
 	/// <summary>
 	/// Blood cell model vertices
 	/// </summary>
-#pragma region Predefined Blood Cell
 	using BloodCellSprings =
 		mp_list <
 		Spring<4, 14, 63055, 5>,
@@ -1094,5 +1088,4 @@ namespace preset
 		mpFloat3<9849, -99459, -3200, 5>,
 		mpFloat3<19099, -97960, -6210, 5>
 		> ;
-#pragma endregion
 }

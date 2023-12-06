@@ -80,13 +80,9 @@ void Mesh::draw(const Shader* shader) const
 MultiObjectMesh::MultiObjectMesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<glm::vec3>& initialPositions, unsigned int objectCount)
 	: Mesh(std::move(vertices), std::move(indices))
 {
-	std::cout << "Multimodel mesh constructor started\n";
-
 	this->objectCount = objectCount;
 	prepareMultipleObjects(initialPositions);
-	std::cout << "After prepare\n";
 	setupMesh();
-	std::cout << "Multimodel mesh constructor ended\n";
 }
 
 void MultiObjectMesh::draw(const Shader* shader) const
@@ -112,19 +108,12 @@ void MultiObjectMesh::prepareMultipleObjects(std::vector<glm::vec3>& initialPosi
 	unsigned int verticesCount = vertices.size() * initialPositions.size();
 	std::vector<Vertex> newVertices(verticesCount);
 
-	std::cout << "initial pos size: " << initialPositions.size() << "\n";
-	std::cout << "initial pos 0: " << initialPositions[0].x << "\n";
-
 	for (int i = 0; i < initialPositions.size(); ++i) {
 		
 
 		std::transform(vertices.cbegin(), vertices.cend(),
 			(newVertices.begin() + i * vertices.size()),
 			[&](Vertex v) {
-
-				std::cout << i << "\n";
-				std::cout << initialPositions[i].x << "\n";
-
 				Vertex v2;
 				v2.normal = v.normal;
 				// v2.position = v.position + initialPositions[i];
