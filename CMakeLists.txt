@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+set(CMAKE_CUDA_COMPILER "/usr/local/cuda-11.8/bin/nvcc")
+
 project(SimulationServer LANGUAGES C CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -21,10 +23,6 @@ endif()
 
 # Find required packages
 find_package(CUDA REQUIRED)
-find_package(GLM REQUIRED)
-message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
-find_package(GLFW3 REQUIRED)
-message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
@@ -36,16 +34,15 @@ find_package(OpenGL REQUIRED)
 add_definitions(${OPENGL_DEFINITIONS})
 find_package(X11 REQUIRED)
 # note that the order is important for setting the libs
-# use pkg-config --libs $(pkg-config --print-requires --print-requires-private glfw3) in a terminal to confirm
-set(LIBS ${GLFW3_LIBRARY} X11 Xrandr Xinerama Xi Xxf86vm Xcursor GL dl pthread freetype)
+
 set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 set (CMAKE_CUDA_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 
-
 add_library(GLAD Libraries/lib/glad.c)
-set(LIBS ${LIBS} GLAD)
+set(LIBS ${LIBS} GLAD glfw3)
 
 include_directories(${CMAKE_SOURCE_DIR}/Libraries/include/)
+link_directories(${CMAKE_SOURCE_DIR}/Libraries/lib/)
 
 file(GLOB_RECURSE CUDA_SOURCES "src/*.cu")
 file(GLOB_RECURSE CUDA_HEADERS "src/*.cuh")
@@ -57,15 +54,16 @@ add_definitions( -DWINDOW_RENDER)
 
 # Create an executable target
 add_executable(Simulation_server ${CUDA_SOURCES} ${CPP_SOURCES} ${CUDA_HEADERS} ${CPP_HEADERS})
+
+target_compile_options(Simulation_server PRIVATE -ggdb3 $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+
+set_target_properties(Simulation_server PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
 target_link_libraries(Simulation_server ${LIBS}
 ${CUDA_LIBRARIES}
 ${CUDA_CUDA_LIBRARY}
 ${CUDA_curand_LIBRARY}
 )
-
-target_compile_options(Simulation_server PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
-
-set_target_properties(Simulation_server PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 set(LINKER_FLAGS  "${LINKER_FLAGS} -lm")
 
