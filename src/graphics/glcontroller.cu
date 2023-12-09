@@ -93,7 +93,7 @@ namespace graphics
 
 			mp_for_each<verticeIndexList>([&](auto i)
 				{
-					Vertex v = Vertex();
+					Vertex v;
 					v.position = glm::vec3(
 						mp_at_c<VerticeList, i>::x,
 						mp_at_c<VerticeList, i>::y,
