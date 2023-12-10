@@ -72,7 +72,7 @@
 #define GLM_LANG_CXXMS			GLM_LANG_CXXMS_FLAG
 #define GLM_LANG_CXXGNU			GLM_LANG_CXXGNU_FLAG
 
-#if (defined(_MSC_EXTENSIONS))
+#if defined(_MSC_EXTENSIONS)
 #	define GLM_LANG_EXT GLM_LANG_CXXMS_FLAG
 #elif ((GLM_COMPILER & (GLM_COMPILER_CLANG | GLM_COMPILER_GCC)) && (GLM_ARCH & GLM_ARCH_SIMD_BIT))
 #	define GLM_LANG_EXT GLM_LANG_CXXMS_FLAG
@@ -212,16 +212,14 @@
 // N2346
 #if GLM_COMPILER & GLM_COMPILER_CLANG
 #	define GLM_HAS_DEFAULTED_FUNCTIONS __has_feature(cxx_defaulted_functions)
-#elif GLM_COMPILER & GLM_COMPILER_CUDA
-	// Do not use defaulted functions for CUDA compiler when function qualifiers are present
-#	define GLM_HAS_DEFAULTED_FUNCTIONS 0
 #elif GLM_LANG & GLM_LANG_CXX11_FLAG
 #	define GLM_HAS_DEFAULTED_FUNCTIONS 1
 #else
 #	define GLM_HAS_DEFAULTED_FUNCTIONS ((GLM_LANG & GLM_LANG_CXX0X_FLAG) && (\
 		((GLM_COMPILER & GLM_COMPILER_VC) && (GLM_COMPILER >= GLM_COMPILER_VC12)) || \
 		((GLM_COMPILER & GLM_COMPILER_INTEL)) || \
-		((GLM_COMPILER & GLM_COMPILER_HIP))))
+		(GLM_COMPILER & GLM_COMPILER_CUDA)) || \
+		((GLM_COMPILER & GLM_COMPILER_HIP)))
 #endif
 
 // N2118
@@ -481,6 +479,22 @@
 #define GLM_FUNC_DECL GLM_CUDA_FUNC_DECL
 #define GLM_FUNC_QUALIFIER GLM_CUDA_FUNC_DEF GLM_INLINE
 
+// Do not use CUDA function qualifiers on CUDA compiler when functions are made default
+#if GLM_HAS_DEFAULTED_FUNCTIONS
+#	define GLM_DEFAULTED_FUNC_DECL
+#	define GLM_DEFAULTED_FUNC_QUALIFIER GLM_INLINE
+#else
+#	define GLM_DEFAULTED_FUNC_DECL GLM_FUNC_DECL
+#	define GLM_DEFAULTED_FUNC_QUALIFIER GLM_FUNC_QUALIFIER
+#endif//GLM_HAS_DEFAULTED_FUNCTIONS
+#if !defined(GLM_FORCE_CTOR_INIT)
+#	define GLM_DEFAULTED_DEFAULT_CTOR_DECL GLM_DEFAULTED_FUNC_DECL
+#	define GLM_DEFAULTED_DEFAULT_CTOR_QUALIFIER GLM_DEFAULTED_FUNC_QUALIFIER
+#else
+#	define GLM_DEFAULTED_DEFAULT_CTOR_DECL GLM_FUNC_DECL
+#	define GLM_DEFAULTED_DEFAULT_CTOR_QUALIFIER GLM_FUNC_QUALIFIER
+#endif//GLM_FORCE_CTOR_INIT
+
 ///////////////////////////////////////////////////////////////////////////////////
 // Swizzle operators
 
@@ -568,48 +582,6 @@
 #else
 #	define GLM_EXPLICIT
 #endif
-
-///////////////////////////////////////////////////////////////////////////////////
-// SYCL
-
-#if GLM_COMPILER==GLM_COMPILER_SYCL
-
-#include <CL/sycl.hpp>
-#include <limits>
-
-namespace glm {
-namespace std {
-	// Import SYCL's functions into the namespace glm::std to force their usages.
-	// It's important to use the math built-in function (sin, exp, ...)
-	// of SYCL instead the std ones.
-	using namespace cl::sycl;
-
-	///////////////////////////////////////////////////////////////////////////////
-	// Import some "harmless" std's stuffs used by glm into
-	// the new glm::std namespace.
-	template<typename T>
-	using numeric_limits = ::std::numeric_limits<T>;
-
-	using ::std::size_t;
-
-	using ::std::uint8_t;
-	using ::std::uint16_t;
-	using ::std::uint32_t;
-	using ::std::uint64_t;
-
-	using ::std::int8_t;
-	using ::std::int16_t;
-	using ::std::int32_t;
-	using ::std::int64_t;
-
-	using ::std::make_unsigned;
-	///////////////////////////////////////////////////////////////////////////////
-} //namespace std
-} //namespace glm
-
-#endif
-
-///////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Length type: all length functions returns a length_t type.

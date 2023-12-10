@@ -407,7 +407,7 @@ namespace glm
 	GLM_FUNC_DECL int floatBitsToInt(float const& v);
 
 	/// Returns a signed integer value representing
-	/// the encoding of a floating-point value. The floatinparticlesoint
+	/// the encoding of a floating-point value. The floatingpoint
 	/// value's bit-level representation is preserved.
 	///
 	/// @tparam L Integer between 1 and 4 included that qualify the dimension of the vector
@@ -419,7 +419,7 @@ namespace glm
 	GLM_FUNC_DECL vec<L, int, Q> floatBitsToInt(vec<L, float, Q> const& v);
 
 	/// Returns a unsigned integer value representing
-	/// the encoding of a floating-point value. The floatinparticlesoint
+	/// the encoding of a floating-point value. The floatingpoint
 	/// value's bit-level representation is preserved.
 	///
 	/// @see <a href="http://www.opengl.org/sdk/docs/manglsl/xhtml/floatBitsToUint.xml">GLSL floatBitsToUint man page</a>
@@ -427,7 +427,7 @@ namespace glm
 	GLM_FUNC_DECL uint floatBitsToUint(float const& v);
 
 	/// Returns a unsigned integer value representing
-	/// the encoding of a floating-point value. The floatinparticlesoint
+	/// the encoding of a floating-point value. The floatingpoint
 	/// value's bit-level representation is preserved.
 	///
 	/// @tparam L Integer between 1 and 4 included that qualify the dimension of the vector
