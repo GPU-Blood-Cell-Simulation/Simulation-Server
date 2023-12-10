@@ -11,7 +11,6 @@ namespace
 	using namespace boost::mp11;
 	// BLOOD CELL PARAMETERS
 
-	inline constexpr float particleRadius = 5;
 	inline constexpr float springLengthCoefficient = 1.0f;
 
 	// Please always double check your commas!
@@ -43,7 +42,7 @@ namespace
 		preset::CubeNormals
 		>,*/
 
-		BloodCellDef<200, 20, 108,
+		BloodCellDef<3000, 20, 108,
 		preset::BloodCellSprings,
 		preset::BloodCellVertices,
 		preset::BloodCellIndices,

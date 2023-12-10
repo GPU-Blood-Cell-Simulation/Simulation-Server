@@ -247,4 +247,5 @@ namespace
 	};
 
 	inline constexpr auto springGraph = springGraphGenerator();
+
 }

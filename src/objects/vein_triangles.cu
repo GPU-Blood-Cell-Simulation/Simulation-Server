@@ -1,6 +1,6 @@
 #include "vein_triangles.cuh"
 
-#include "../config/simulation.hpp"
+#include "../config/physics.cuh"
 #include "../config/vein_definition.hpp"
 #include "../utilities/cuda_handle_error.cuh"
 #include "../utilities/math.cuh"
@@ -143,13 +143,13 @@ __global__ static void gatherForcesKernel(VeinTriangles triangles)
 
 	// Previous horizontally
 	neighborPosition = triangles.positions.get(vertexHorizontalPrev);
-	springForce = triangles.calculateVeinSpringForce(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexHorizontalPrev),
+	springForce = physics::calculateVeinSpringForceComponent(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexHorizontalPrev),
 		triangles.veinVertexHorizontalDistance);
 	vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
 
 	// Next horizontally
 	neighborPosition = triangles.positions.get(vertexHorizontalNext);
-	springForce = triangles.calculateVeinSpringForce(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexHorizontalNext),
+	springForce = physics::calculateVeinSpringForceComponent(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexHorizontalNext),
 		triangles.veinVertexHorizontalDistance);
 	vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
 
@@ -164,7 +164,7 @@ __global__ static void gatherForcesKernel(VeinTriangles triangles)
 		{
 			int vertexVerticalPrev = (i - 1) * cylinderHorizontalLayers + jSpan[jIndex];
 			neighborPosition = triangles.positions.get(vertexVerticalPrev);
-			springForce = triangles.calculateVeinSpringForce(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexVerticalPrev),
+			springForce = physics::calculateVeinSpringForceComponent(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexVerticalPrev),
 				triangles.veinVertexNonHorizontalDistances[jIndex]);
 			vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
 		}
@@ -180,7 +180,7 @@ __global__ static void gatherForcesKernel(VeinTriangles triangles)
 		{
 			int vertexVerticalNext = (i + 1) * cylinderHorizontalLayers + jSpan[jIndex];
 			neighborPosition = triangles.positions.get(vertexVerticalNext);
-			springForce = triangles.calculateVeinSpringForce(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexVerticalNext),
+			springForce = physics::calculateVeinSpringForceComponent(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexVerticalNext),
 				triangles.veinVertexNonHorizontalDistances[jIndex]);
 			vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
 		}

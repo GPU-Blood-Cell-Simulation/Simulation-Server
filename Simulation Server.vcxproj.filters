@@ -1432,7 +1432,7 @@
     <ClInclude Include="src\graphics\shader.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\config\physics.hpp">
+    <ClInclude Include="src\config\physics.cuh">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="src\objects\particles.cuh">

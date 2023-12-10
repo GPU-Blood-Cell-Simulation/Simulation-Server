@@ -81,11 +81,8 @@ void programLoop()
     BloodCells bloodCells;
 
     // Create vein mesh
-    VeinGenerator veinMeshDefinition(cylinderBaseCenter, cylinderHeight, cylinderRadius, cylinderVerticalLayers, cylinderHorizontalLayers);
-    SingleObjectMesh veinMesh = veinMeshDefinition.CreateMesh();
-
-    // Create vein mesh
     VeinGenerator veinGenerator(cylinderBaseCenter, cylinderHeight, cylinderRadius, cylinderVerticalLayers, cylinderHorizontalLayers);
+    SingleObjectMesh veinMesh = veinGenerator.CreateMesh();
 
     // Create vein triangles
     VeinTriangles triangles(veinGenerator.getVertices(), veinGenerator.getIndices(), veinGenerator.getSpringLengths());
