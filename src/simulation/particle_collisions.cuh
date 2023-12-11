@@ -15,7 +15,6 @@ namespace sim
 	__device__ inline void detectCollision(BloodCells& bloodCells, float3 position1, float3 velocity1, int particleId1, int particleId2, float radius)
 	{
 		float3 position2 = bloodCells.particles.positions.get(particleId2);
-		//[bloodCellmodelStart + relativeId % particlesInBloodCell]
 		float3 relativePosition = position1 - position2;
 		float distanceSquared = length_squared(relativePosition);
 

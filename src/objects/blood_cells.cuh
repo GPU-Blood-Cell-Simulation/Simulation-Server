@@ -5,8 +5,6 @@
 #include "particles.cuh"
 #include "../utilities/math.cuh"
 
-//#define DEBUG_SPRING_FORCE
-
 /// <summary>
 /// Contains all the particles and the springs graph
 /// </summary>

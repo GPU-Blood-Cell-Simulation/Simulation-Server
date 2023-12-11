@@ -27,4 +27,4 @@ inline constexpr int cellCountZ = static_cast<int>(depth / cellDepth);
 
 // represents ratio of radius of maximal and actual bounding sphere
 // for particles in cells
-inline constexpr int boundingSpheresCoeff = 6;
+inline constexpr int boundingSpheresCoeff = 5;
