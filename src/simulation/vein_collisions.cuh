@@ -138,16 +138,16 @@ namespace sim
 			float3 relativePosition = pos - (pos + r.t * r.direction);
 			float distanceSquared = length_squared(relativePosition);
 			
-			if (collisionOccured && distanceSquared <= physics::veinImpactDistance * physics::veinImpactDistance)
+			if (collisionOccured && distanceSquared <= veinImpactDistance * veinImpactDistance)
 			{
 				// handle particle on collision
-				if (distanceSquared > physics::veinImpactMinimalForceDistance * physics::veinImpactMinimalForceDistance)
+				if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
 				{
 					physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared, particleId,
-						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], bloodCells.particles.forces);
+						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces);
 				}
 				float speed = length(velocity);
-				velocity = physics::velocityCollisionDamping * speed * reflectedVelociy;
+				velocity = velocityCollisionDamping * speed * reflectedVelociy;
 				bloodCells.particles.velocities.set(particleId, velocity);
 
 				// handle vein on collision
@@ -364,17 +364,17 @@ namespace sim
 		float3 relativePosition = pos - (pos + r.t * r.direction);
 		float distanceSquared = length_squared(relativePosition);
 
-		if (collisionDetected && distanceSquared <= physics::veinImpactDistance * physics::veinImpactDistance)
+		if (collisionDetected && distanceSquared <= veinImpactDistance * veinImpactDistance)
 		{
 			// handle particle on collision
-			if (distanceSquared > physics::veinImpactMinimalForceDistance * physics::veinImpactMinimalForceDistance)
+			if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
 			{
 				physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared,
-					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, bloodCells.particles.forces);
+					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces);
 			}
 
 			float speed = length(velocity);
-			velocity = physics::velocityCollisionDamping * speed * reflectedVelociy;
+			velocity = velocityCollisionDamping * speed * reflectedVelociy;
 			bloodCells.particles.velocities.set(particleId, velocity);
 
 			// handle vein on collision

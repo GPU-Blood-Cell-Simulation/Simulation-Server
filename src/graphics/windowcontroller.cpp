@@ -1,7 +1,13 @@
 #include "windowcontroller.hpp"
 #include "../config/graphics.hpp"
 
-WindowController::WindowController(): camera(graphics::Camera()) { }
+WindowController::WindowController() { }
+
+WindowController::~WindowController()
+{
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
 
 WindowController& WindowController::GetInstance()
 {
@@ -30,8 +36,9 @@ void WindowController::ConfigureWindow()
     glfwMakeContextCurrent(window);
 }
 
-void WindowController::ConfigureInput()
+void WindowController::ConfigureInputAndCamera(graphics::Camera* _camera)
 {
+    this->camera = _camera;
     // Set up GLFW to work with inputController
     glfwSetWindowUserPointer(window, &inputController);
     glfwSetKeyCallback(window, inputController.handleUserInput);

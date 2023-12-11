@@ -210,7 +210,7 @@ namespace graphics
 		HANDLE_ERROR(cudaPeekAtLastError());
 	}
 
-	void graphics::GLController::draw(WindowController& windowController)
+	void graphics::GLController::draw(Camera& camera)
 	{
 
 		// Draw particles
@@ -218,7 +218,7 @@ namespace graphics
 		{
 			solidColorShader->use();
 			solidColorShader->setMatrix("model", model);
-			solidColorShader->setMatrix("view", windowController.camera.getView());
+			solidColorShader->setMatrix("view", camera.getView());
 			solidColorShader->setMatrix("projection", projection);
 
 			using TypeList = mp_iota_c<bloodCellTypeCount>;
@@ -231,10 +231,10 @@ namespace graphics
 		{
 			phongForwardShader->use();
 			phongForwardShader->setMatrix("model", model);
-			phongForwardShader->setMatrix("view", windowController.camera.getView());
+			phongForwardShader->setMatrix("view", camera.getView());
 			phongForwardShader->setMatrix("projection", projection);
 
-			phongForwardShader->setVector("viewPos", windowController.camera.getPosition());
+			phongForwardShader->setVector("viewPos", camera.getPosition());
 			phongForwardShader->setVector("Diffuse", particleDiffuse);
 			phongForwardShader->setFloat("Specular", particleSpecular);
 			phongForwardShader->setFloat("Shininess", 32);
@@ -251,13 +251,13 @@ namespace graphics
 		{
 			// Draw lines
 			springShader->use();
-			springShader->setMatrix("projection_view_model", projection * windowController.camera.getView());
+			springShader->setMatrix("projection_view_model", projection * camera.getView());
 			springLines.draw(springShader.get());
 		}
 
 		// Draw vein
 		cylinderSolidColorShader->use();
-		cylinderSolidColorShader->setMatrix("view", windowController.camera.getView());
+		cylinderSolidColorShader->setMatrix("view", camera.getView());
 		cylinderSolidColorShader->setMatrix("projection", projection);
 
 		glCullFace(GL_FRONT);

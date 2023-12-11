@@ -427,7 +427,7 @@
     <ClInclude Include="src\config\blood_cells_definition.hpp" />
     <ClInclude Include="src\config\blood_cell_presets.hpp" />
     <ClInclude Include="src\config\graphics.hpp" />
-    <ClInclude Include="src\config\physics.cuh" />
+    <ClInclude Include="src\config\physics.hpp" />
     <ClInclude Include="src\config\simulation.hpp" />
     <ClInclude Include="src\config\vein_definition.hpp" />
     <ClInclude Include="src\graphics\camera.hpp" />
@@ -452,6 +452,7 @@
     <ClInclude Include="src\objects\particles.cuh" />
     <ClInclude Include="src\objects\vein_triangles.cuh" />
     <ClInclude Include="src\simulation\particle_collisions.cuh" />
+    <ClInclude Include="src\simulation\physics.cuh" />
     <ClInclude Include="src\simulation\simulation_controller.cuh" />
     <ClInclude Include="src\simulation\vein_collisions.cuh" />
     <ClInclude Include="src\simulation\vein_end.cuh" />

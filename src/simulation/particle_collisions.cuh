@@ -21,16 +21,7 @@ namespace sim
 		if (distanceSquared <= radius * radius && distanceSquared >= 0.0000000005f)
 		{
 			float3 relativeVelocity = velocity1 - bloodCells.particles.velocities.get(particleId2);
-			float3 relativeDirection = normalize(relativePosition);
-
-			float3 tangentialVelocity = relativeVelocity - dot(relativeVelocity, relativeDirection) * relativeDirection;
-
-			float3 springForce = -physics::collisionSpringCoeff * (radius * 2 - sqrtf(distanceSquared)) * relativeDirection;
-			float3 damplingForce = physics::collisionDampingCoeff * relativeVelocity;
-			float3 shearForce = physics::collistionShearCoeff * tangentialVelocity;
-
-			// Uncoalesced writes - area for optimization
-			bloodCells.particles.forces.add(particleId1, springForce + damplingForce + shearForce);
+			physics::addResilientForceOnCollision(relativePosition, relativeVelocity, distanceSquared, radius, particleId1, 1.0f, bloodCells.particles.forces);
 		}
 	}
 

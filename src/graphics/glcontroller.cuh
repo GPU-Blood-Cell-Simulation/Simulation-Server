@@ -30,7 +30,7 @@ namespace graphics
 		~GLController();
 		void calculatePositions(cudaVec3 positions);
 		void calculateTriangles(VeinTriangles triangles);
-		void draw(WindowController& windowController);
+		void draw(Camera& camera);
 
 	private:
 

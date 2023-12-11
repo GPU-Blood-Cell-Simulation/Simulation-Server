@@ -1,6 +1,7 @@
 #pragma once
 #include "../utilities/math.cuh"
-#include "simulation.hpp"
+#include "../config/simulation.hpp"
+#include "../config/physics.hpp"
 #include "../utilities/cuda_vec3.cuh"
 #include "../objects/blood_cells.cuh"
 
@@ -12,42 +13,6 @@
 
 namespace physics
 {
-
-	// factor to slow down particles after collision
-	inline constexpr float velocityCollisionDamping = 0.8f;
-
-	// ! this value should be determined experimentally !
-	// Hooks law k factor from F = k*x
-	inline constexpr float particle_k_sniff = 20.0f;
-	inline constexpr float vein_k_sniff = 0.3f;
-
-	// ! this value should be determined experimentally !
-	// Damping factor 
-	inline constexpr float particle_d_fact = 20.0f;
-	inline constexpr float vein_d_fact = 0.0f;
-
-	inline constexpr float viscous_damping = 0.1f;
-
-	// Particle-particle collision coefficients
-	inline constexpr float collisionSpringCoeff = 6.0f;
-	inline constexpr float collisionDampingCoeff = 6.0f;
-	inline constexpr float collistionShearCoeff = 4.0f;
-
-	// Initial velocity of particles
-	inline constexpr float initVelocityX = 0.0f;
-	inline constexpr float initVelocityY = -80.0f;
-	inline constexpr float initVelocityZ = 0.0f;
-	inline constexpr float randomVelocityModifier = 0.894f;
-
-
-	// distance beetwen particle and vein on which an impact occurs
-	inline constexpr float veinImpactDistance = 3.0f;
-	inline constexpr float veinImpactMinimalForceDistance = 0.0001f;
-
-	// gravity power
-	inline constexpr float Gx = 0.0f;
-	inline constexpr float Gy = -10.0f;
-	inline constexpr float Gz = 0.0f;
 
 	/// <summary>
 	/// Computes force of spring mass model with damping
@@ -64,7 +29,7 @@ namespace physics
 
 	__device__ inline float springMassForceWithDampingForVein(float3 p1, float3 p2, float3 v1, float3 v2, float springLength)
 	{
-		return (length(p1 - p2) - springLength) * physics::vein_k_sniff + dot(normalize(p1 - p2), (v1 - v2)) * physics::vein_d_fact;
+		return (length(p1 - p2) - springLength) * vein_k_sniff + dot(normalize(p1 - p2), (v1 - v2)) * vein_d_fact;
 	}
 
 	/// <summary>
@@ -119,19 +84,19 @@ namespace physics
 	/// <returns></returns>
 	__device__ inline float3 accumulateEnvironmentForcesForParticles(float3 v)
 	{
-		return make_float3(physics::Gx, physics::Gy, physics::Gz) - physics::viscous_damping * v;
+		return make_float3(Gx, Gy, Gz) - viscous_damping * v;
 	}
 
 
-	__device__ inline void addResilientForceOnCollision(float3 relativePosition, float3 velocity, float distanceSquared, float radius, unsigned int particleId, cudaVec3& forces)
+	__device__ inline void addResilientForceOnCollision(float3 relativePosition, float3 relativeVelocity, float distanceSquared, float radius, unsigned int particleId, float intensityCoefficient, cudaVec3& forces)
 	{
 		float3 relativeDirection = normalize(relativePosition);
 
-		float3 tangentialVelocity = velocity - dot(velocity, relativeDirection) * relativeDirection;
+		float3 tangentialVelocity = relativeVelocity - dot(relativeVelocity, relativeDirection) * relativeDirection;
 
-		float3 springForce = -physics::collisionSpringCoeff * (radius * 2 - sqrtf(distanceSquared)) * relativeDirection;
-		float3 damplingForce = physics::collisionDampingCoeff * velocity;
-		float3 shearForce = physics::collistionShearCoeff * tangentialVelocity;
+		float3 springForce = -collisionSpringCoeff * (radius * 2 - sqrtf(distanceSquared)) * relativeDirection;
+		float3 damplingForce = collisionDampingCoeff * relativeVelocity;
+		float3 shearForce = collistionShearCoeff * tangentialVelocity;
 
 		// Uncoalesced writes - area for optimization
 		forces.add(particleId, 0.5f * (springForce + damplingForce + shearForce));

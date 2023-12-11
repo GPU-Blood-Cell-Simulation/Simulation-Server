@@ -1432,9 +1432,6 @@
     <ClInclude Include="src\graphics\shader.hpp">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\config\physics.cuh">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\objects\particles.cuh">
       <Filter>src</Filter>
     </ClInclude>
@@ -1496,6 +1493,12 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\windowcontroller.hpp" />
+    <ClInclude Include="src\simulation\physics.cuh">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\config\physics.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lib">

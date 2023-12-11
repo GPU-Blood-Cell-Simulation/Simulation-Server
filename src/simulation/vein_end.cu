@@ -1,6 +1,6 @@
 #include "vein_end.cuh"
 
-#include "../config/physics.cuh"
+#include "../simulation/physics.cuh"
 #include "../config/simulation.hpp"
 #include "../meta_factory/blood_cell_factory.hpp"
 #include "../utilities/math.cuh"
@@ -87,7 +87,7 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells)
 		// TODO: add some randomnes to velocity and change positivon to one which is always inside the vein
 		//bloodCells.particles.positions.y[realIndex] += targetTeleportHeight - lowerBoundTreshold - 10;
 		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight;
-		bloodCells.particles.velocities.set(realIndex, make_float3(physics::initVelocityX, physics::initVelocityY, physics::initVelocityZ));
+		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
 }
 
@@ -121,7 +121,7 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells)
 		// TODO: add some randomnes to velocity and change positivon to one which is always inside the vein
 		//bloodCells.particles.positions.y[realIndex] += targetTeleportHeight - lowerBoundTreshold - 10;
 		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight;
-		bloodCells.particles.velocities.set(realIndex, make_float3(physics::initVelocityX, physics::initVelocityY, physics::initVelocityZ));
+		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
 }
 

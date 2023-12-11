@@ -1,6 +1,6 @@
 #include "vein_triangles.cuh"
 
-#include "../config/physics.cuh"
+#include "../simulation/physics.cuh"
 #include "../config/vein_definition.hpp"
 #include "../utilities/cuda_handle_error.cuh"
 #include "../utilities/math.cuh"

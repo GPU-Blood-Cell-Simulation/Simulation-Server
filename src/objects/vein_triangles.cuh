@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../config/physics.cuh"
+#include "../simulation/physics.cuh"
 #include "../meta_factory/vein_factory.hpp"
 #include "../utilities/cuda_vec3.cuh"
 #include "../utilities/math.cuh"

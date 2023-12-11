@@ -1,6 +1,6 @@
 #include "blood_cells.cuh"
 
-#include "../config/physics.cuh"
+#include "../simulation/physics.cuh"
 #include "../meta_factory/blood_cell_factory.hpp"
 #include "../utilities/cuda_handle_error.cuh"
 #include "../utilities/math.cuh"

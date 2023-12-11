@@ -100,11 +100,11 @@ void programLoop()
     
     // Create a graphics controller
     graphics::GLController glController(veinMesh, simulationController.initialCellPositions);
-
+    graphics::Camera camera;
 #ifdef WINDOW_RENDER
     double lastTime = glfwGetTime();
-    WindowController windowController = WindowController::GetInstance();
-    windowController.ConfigureInput();
+    WindowController& windowController = WindowController::GetInstance();
+    windowController.ConfigureInputAndCamera(&camera);
 
 #endif
 
@@ -123,7 +123,7 @@ void programLoop()
         glController.calculateTriangles(triangles);
         glController.calculatePositions(bloodCells.particles.positions);
 
-        glController.draw(windowController);
+        glController.draw(camera);
 
 #ifdef WINDOW_RENDER // graphical render
 

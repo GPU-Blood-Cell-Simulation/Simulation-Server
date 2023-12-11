@@ -166,16 +166,16 @@ namespace sim
 		initialPositions.z[id] = cylinderBaseCenter.z - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius;
 
 #ifdef INITIAL_VELOCITY_RANDOM
-		float verticalVelocity = physics::randomVelocityModifier * physics::initVelocityY;
+		float verticalVelocity = randomVelocityModifier * initVelocityY;
 		float complementarVelocity = abs(0.5f * verticalVelocity);
 		initialVelocities.x[id] = curand_uniform(&states[id]) * 2*complementarVelocity - complementarVelocity;
 		initialVelocities.y[id] = verticalVelocity;
 		// simple random sign xd
 		initialVelocities.z[id] = (-1*id%2)*pow(pow(complementarVelocity, 2) - pow(initialVelocities.x[id], 2), 0.5f);
 #else
-		initialVelocities.x[id] = physics::initVelocityX;
-		initialVelocities.y[id] = physics::initVelocityY;
-		initialVelocities.z[id] = physics::initVelocityZ;
+		initialVelocities.x[id] = initVelocityX;
+		initialVelocities.y[id] = initVelocityY;
+		initialVelocities.z[id] = initVelocityZ;
 #endif
 
 	}
