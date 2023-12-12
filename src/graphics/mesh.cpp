@@ -96,7 +96,7 @@ void MultiObjectMesh::prepareMultipleObjects(std::vector<glm::vec3>& initialPosi
 	unsigned int initialVerticesCount = vertices.size();
 
 	std::vector<unsigned int> newIndices(indicesCount);
-	for (int i = 0; i < initialPositions.size(); ++i) {
+	for (unsigned int i = 0; i < initialPositions.size(); ++i) {
 		std::transform(indices.cbegin(), indices.cend(), newIndices.begin() + i * indices.size(),
 			[&](unsigned int indice) {
 				return indice + i * initialVerticesCount;
@@ -108,7 +108,7 @@ void MultiObjectMesh::prepareMultipleObjects(std::vector<glm::vec3>& initialPosi
 	unsigned int verticesCount = vertices.size() * initialPositions.size();
 	std::vector<Vertex> newVertices(verticesCount);
 
-	for (int i = 0; i < initialPositions.size(); ++i) {
+	for (unsigned int i = 0; i < initialPositions.size(); ++i) {
 		
 
 		std::transform(vertices.cbegin(), vertices.cend(),
@@ -131,7 +131,7 @@ void MultiObjectMesh::prepareMultipleObjects(std::vector<glm::vec3>& initialPosi
 
 void MultiObjectMesh::DuplicateObjects(std::vector<glm::vec3>& initialPositions)
 {
-	for (int i = 0; i < initialPositions.size(); ++i) {
+	for (unsigned int i = 0; i < initialPositions.size(); ++i) {
 		std::transform(vertices.cbegin(), vertices.cend(),
 			(!i ? vertices.begin() : vertices.end()),
 			[&](Vertex v) {
@@ -142,7 +142,7 @@ void MultiObjectMesh::DuplicateObjects(std::vector<glm::vec3>& initialPositions)
 			});
 	}
 
-	for (int i = 1; i < initialPositions.size(); ++i) {
+	for (unsigned int i = 1; i < initialPositions.size(); ++i) {
 		std::transform(indices.cbegin(), indices.cend(), indices.end(),
 			[&](unsigned int indice) {
 				return indice + i * objectCount;
