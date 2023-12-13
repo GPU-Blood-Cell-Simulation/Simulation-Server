@@ -5,11 +5,32 @@
 #include <iostream>
 
 
+static void bus_error_handler(GstBus *bus, GstMessage *msg, gpointer data)
+{
+	GError *err;
+	gchar *debugTmp;
+	std::string errorSrc(GST_OBJECT_NAME(msg->src));
+	
+	gst_message_parse_error (msg, &err, &debugTmp);
+
+	std::string debugInfo(debugTmp);
+	std::string errorMsg(err->message);
+
+	g_error_free (err);
+	g_free (debugTmp);
+
+	throw std::runtime_error(
+		"Streaming pipeline error."
+		" Source: " + errorSrc +
+		" Error message: " + errorSrc + 
+		" Debug info: " + debugInfo
+	);
+}
+
+
 StremmingController::StremmingController(const std::string& host, int port):
 	host(host), port(port), pixels(windowHeight * windowWidth * 4), timestamp(0)
 {
-	GstStateChangeReturn ret;
-
 	/* init GStreamer */
 	gst_init (NULL, NULL);
 
@@ -19,12 +40,22 @@ StremmingController::StremmingController(const std::string& host, int port):
 	rtph264pay = gst_element_factory_make("rtph264pay", "payload");
 	udpsink = gst_element_factory_make("udpsink", "sink");
 	convert = gst_element_factory_make("videoconvert", "converter");
+	queue = gst_element_factory_make("queue", "video_queue");
 
 	pipeline = gst_pipeline_new ("pipeline");
 
-	if (!pipeline || !appsrc || !x264enc || !rtph264pay || !udpsink || !convert) {
+	if (!pipeline || !appsrc || !x264enc || !rtph264pay || !udpsink || !convert || !queue) {
 		throw std::runtime_error("Error while creating pipeline elements");
 	}
+
+	bus = gst_element_get_bus(pipeline);
+	if (!bus) {
+		gst_object_unref(pipeline);
+		throw std::runtime_error("Cannot get a pipeline bus");
+	}
+
+	gst_bus_add_signal_watch(bus);
+  	g_signal_connect(bus, "message::error", G_CALLBACK(bus_error_handler), NULL);
 
 	/* setup */
   	g_object_set(G_OBJECT(appsrc), "caps",
@@ -40,9 +71,11 @@ StremmingController::StremmingController(const std::string& host, int port):
 		"port", port,
 		NULL);
 
-	gst_bin_add_many (GST_BIN (pipeline), appsrc, convert, x264enc, rtph264pay, udpsink, NULL);
+	gst_bin_add_many(GST_BIN (pipeline),
+		appsrc, convert, x264enc, rtph264pay, udpsink, queue, NULL);
 
-	if (gst_element_link_many (appsrc, convert, x264enc, rtph264pay, udpsink, NULL) != TRUE) {
+	if (gst_element_link_many (appsrc, queue, convert, x264enc, rtph264pay, udpsink, NULL) != TRUE) {
+		gst_object_unref(bus);
 		gst_object_unref(pipeline);
 		throw std::runtime_error("Cannot link objects to pipeline");
 	}
@@ -54,9 +87,22 @@ StremmingController::StremmingController(const std::string& host, int port):
 		"is-live", TRUE,
 		"block", TRUE,
 		NULL);
+}
 
-	/* play */
-	ret = gst_element_set_state(pipeline, GST_STATE_PLAYING);
+
+StremmingController::~StremmingController()
+{
+	gst_object_unref(bus);
+	gst_element_set_state (pipeline, GST_STATE_NULL);
+	gst_object_unref (GST_OBJECT (pipeline));
+	gst_deinit();
+}
+
+
+void StremmingController::StartStreaming()
+{
+	GstStateChangeReturn ret = gst_element_set_state(pipeline, GST_STATE_PLAYING);
+
 	if (ret == GST_STATE_CHANGE_FAILURE) {
         gst_object_unref(pipeline);
         throw std::runtime_error("Cannot set pipeline to playing state");
@@ -64,10 +110,14 @@ StremmingController::StremmingController(const std::string& host, int port):
 }
 
 
-StremmingController::~StremmingController()
+void StremmingController::StopStreaming()
 {
-	gst_element_set_state (pipeline, GST_STATE_NULL);
-	gst_object_unref (GST_OBJECT (pipeline));
+	GstStateChangeReturn ret = gst_element_set_state(pipeline, GST_STATE_PAUSED);
+
+	if (ret == GST_STATE_CHANGE_FAILURE) {
+        gst_object_unref(pipeline);
+        throw std::runtime_error("Cannot set pipeline to playing state");
+    }
 }
 
 
@@ -87,4 +137,6 @@ void StremmingController::SendFrame()
 	if (gst_app_src_push_buffer((GstAppSrc*)appsrc, buffer) != GST_FLOW_OK) {
 		throw std::runtime_error("Error while pushing data to buffer");
 	}
+
+	g_main_context_iteration(g_main_context_default(),FALSE);
 }

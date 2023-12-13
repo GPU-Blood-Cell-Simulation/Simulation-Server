@@ -58,6 +58,7 @@ int main()
 #else
     OffscreeenController offscreenController;
     StremmingController streamingController("127.0.0.1", 4321);
+    streamingController.StartStreaming();
 #endif
 
     // Load GL and set the viewport to match window size
