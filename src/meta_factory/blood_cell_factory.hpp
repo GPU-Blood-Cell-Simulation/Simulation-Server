@@ -212,6 +212,9 @@ namespace
 	// Graph sizes for each type
 	inline constexpr auto accumulatedGraphSizes = graphSizesGenerator();
 
+	// for initial spring length calculations
+	inline constexpr float springLengthCoefficient = 1.0f;
+
 	// Fill the particle neighborhood graph
 	inline constexpr auto springGraphGenerator = [&]()
 	{

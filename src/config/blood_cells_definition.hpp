@@ -11,8 +11,6 @@ namespace
 	using namespace boost::mp11;
 	// BLOOD CELL PARAMETERS
 
-	inline constexpr float springLengthCoefficient = 1.0f;
-
 	// Please always double check your commas!
 	using UserDefinedBloodCellList = mp_list <
 
