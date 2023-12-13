@@ -57,7 +57,7 @@ int main()
     WindowController windowController;
 #else
     OffscreeenController offscreenController;
-    StremmingController streamingController;
+    StremmingController streamingController("127.0.0.1", 4321);
 #endif
 
     // Load GL and set the viewport to match window size

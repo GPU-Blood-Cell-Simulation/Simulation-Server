@@ -5,17 +5,20 @@
 
 #include <vector>
 #include <glad/glad.h>
+#include <string>
 
 
 class StremmingController
 {
 public:
-    StremmingController();
+    StremmingController(const std::string& host, int port);
     ~StremmingController();
 
     void SendFrame();
 private:
-    GstElement *pipeline, *appsrc, *conv, *videosink;
+    const std::string host;
+    const int port;
+    GstElement *pipeline, *appsrc, *x264enc, *rtph264pay, *udpsink, *convert;
 
     std::vector<GLubyte> pixels;
     GstClockTime timestamp;
