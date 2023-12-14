@@ -1,6 +1,8 @@
 #include "uniform_grid.cuh"
 
 #include "../config/simulation.hpp"
+#include "../meta_factory/vein_factory.hpp"
+#include "../objects/particles.cuh"
 #include "../utilities/cuda_handle_error.cuh"
 
 #include <cstdio>
@@ -14,22 +16,24 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-
 #define max(a,b) ( a > b ? a : b)
 #define min(a,b) ( a > b ? b : a)
 
 
 __device__ int calculateIdForCell(float x, float y, float z, int cellWidth, int cellHeight, int cellDepth)
 {
-	if (x < 0 || x > width || y < 0 || y > height || z < 0 || z > depth) {
+	if (x < minX || x > maxX || y < minY || y > maxY || z < minZ || z > maxZ)
+	{
 		printf("Position out of grid bounds: (%f, %f, %f)\n", x, y, z);
+		printf("min (%f, %f, %f)\n", minX, minY, minZ);
+		printf("max (%f, %f, %f)\n", maxX, maxY, maxZ);
 	}
-	 
+
 	// should we clamp x,y,z if out of bounds?
 	return
-		static_cast<int>(min(width,max(0,z / cellDepth))) * static_cast<int>(width / cellWidth) * static_cast<int>(height / cellHeight) +
-		static_cast<int>(min(height,max(0,y / cellHeight))) * static_cast<int>(width / cellWidth) +
-		static_cast<int>(min(depth,max(0,x / cellWidth)));
+		static_cast<int>(min(maxZ - minZ, max(0, (z - minZ) / cellDepth))) * static_cast<int>(width / cellWidth) * static_cast<int>(height / cellHeight) +
+		static_cast<int>(min(maxY - minY, max(0, (y - minY) / cellHeight))) * static_cast<int>(width / cellWidth) +
+		static_cast<int>(min(maxX - minX, max(0, (x - minX) / cellWidth)));
 }
 
 __global__ void calculateCellIdKernel(const float* positionX, const float* positionY, const float* positionZ,
@@ -77,27 +81,22 @@ __global__ void calculateStartAndEndOfCellKernel(const float* positionX, const f
 }
 
 // Allocate GPU buffers for the index buffers
-UniformGrid::UniformGrid(int objectCount, int cellWidth, int cellHeight, int cellDepth)
+UniformGrid::UniformGrid(const int objectCount, int cellWidth, int cellHeight, int cellDepth) :
+	objectCount(objectCount), cellWidth(cellWidth), cellHeight(cellHeight), cellDepth(cellDepth),
+	cellCountX(static_cast<int>(std::ceil(width / cellWidth) + 0.5f)),
+	cellCountY(static_cast<int>(std::ceil(height / cellHeight) + 0.5f)),
+	cellCountZ(static_cast<int>(std::ceil(depth / cellDepth) + 0.5f)),
+	cellCount(cellCountX * cellCountY * cellCountZ)
 {
-	this->cellWidth = cellWidth;
-	this->cellHeight= cellHeight;
-	this->cellDepth = cellDepth;
-	this->objectCount = objectCount;
-	cellCountX = static_cast<int>(width / cellWidth);
-	cellCountY = static_cast<int>(height / cellHeight);
-	cellCountZ = static_cast<int>(depth / cellDepth);
-
-	cellAmount = width / cellWidth * height / cellHeight * depth / cellDepth;
-	HANDLE_ERROR(cudaMalloc((void**)&gridCellIds, objectCount* sizeof(int)));
+	HANDLE_ERROR(cudaMalloc((void**)&gridCellIds, objectCount * sizeof(int)));
 	HANDLE_ERROR(cudaMalloc((void**)&particleIds, objectCount * sizeof(int)));
 
-	HANDLE_ERROR(cudaMalloc((void**)&gridCellStarts, cellAmount * sizeof(int)));
-	HANDLE_ERROR(cudaMalloc((void**)&gridCellEnds, cellAmount * sizeof(int)));
+	HANDLE_ERROR(cudaMalloc((void**)&gridCellStarts, cellCount * sizeof(int)));
+	HANDLE_ERROR(cudaMalloc((void**)&gridCellEnds, cellCount * sizeof(int)));
 }
 
 UniformGrid::UniformGrid(const UniformGrid& other) : isCopy(true), gridCellIds(other.gridCellIds), particleIds(other.particleIds),
-	gridCellStarts(other.gridCellStarts), gridCellEnds(other.gridCellEnds), cellCountX(other.cellCountX), cellCountY(other.cellCountY), cellCountZ(other.cellCountZ),
-	cellWidth(other.cellWidth), cellHeight(other.cellHeight), cellDepth(other.cellDepth), objectCount(other.objectCount), cellAmount(other.cellAmount)
+gridCellStarts(other.gridCellStarts), gridCellEnds(other.gridCellEnds)
 {}
 
 UniformGrid::~UniformGrid()

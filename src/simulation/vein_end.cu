@@ -3,14 +3,15 @@
 #include "../config/physics.hpp"
 #include "../config/simulation.hpp"
 #include "../meta_factory/blood_cell_factory.hpp"
+#include "../meta_factory/vein_factory.hpp"
 #include "../utilities/math.cuh"
 
 #include "cuda_runtime.h"
 
 
-constexpr float upperBoundTreshold = 0.95f * height;
-constexpr float lowerBoundTreshold = 0.2f * height;
-constexpr float targetTeleportHeight = 0.85f * height;
+constexpr float upperBoundTreshold = 0.95f * maxX;
+constexpr float lowerBoundTreshold = 0.8f * minX;
+constexpr float targetTeleportHeight = 0.85f * maxX;
 
 enum SynchronizationType { warpSync, blockSync };
 

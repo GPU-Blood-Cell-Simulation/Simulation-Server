@@ -96,9 +96,9 @@ namespace sim
 		// TODO: fix this
 		bool collisionDetected = false;
 		unsigned int cellId = triangleGrid.calculateCellId(pos);
-		unsigned int xId = static_cast<unsigned int>(pos.x / triangleGrid.cellWidth);
-		unsigned int yId = static_cast<unsigned int>(pos.y / triangleGrid.cellHeight);
-		unsigned int zId = static_cast<unsigned int>(pos.z / triangleGrid.cellDepth);
+		unsigned int xId = static_cast<unsigned int>((pos.x - minX) / triangleGrid.cellWidth);
+		unsigned int yId = static_cast<unsigned int>((pos.y - minY) / triangleGrid.cellHeight);
+		unsigned int zId = static_cast<unsigned int>((pos.z - minZ) / triangleGrid.cellDepth);
 
 		// cubical bounds
 		if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
