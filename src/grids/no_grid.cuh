@@ -3,6 +3,7 @@
 #include "base_grid.cuh"
 #include "../objects/particles.cuh"
 
+
 class NoGrid : public BaseGrid<NoGrid>
 {
 public:

@@ -18,21 +18,21 @@
 class VeinTriangles
 {
 public:
-	const unsigned int triangleCount;
-	const unsigned int vertexCount;
+	const int triangleCount = veinIndexCount / 3;
+	const int vertexCount = veinPositionCount;
 
-	cudaVec3 positions;
-	cudaVec3 velocities;
-	cudaVec3 forces;
+	cudaVec3 positions{ vertexCount };
+	cudaVec3 velocities{ vertexCount };
+	cudaVec3 forces{ vertexCount };
 
 	unsigned int* indices;
-	cudaVec3 centers;
+	cudaVec3 centers{ triangleCount };
 
 	// TODO: move these out of the class
 	const float veinVertexHorizontalDistance;
 	const float veinVertexNonHorizontalDistances[3];
 
-	VeinTriangles(const std::vector<glm::vec3>& positions, const std::vector<unsigned int> &indices, const std::tuple<float, float, float>& springLengths);
+	VeinTriangles(const std::tuple<float, float, float>& springLengths);
 	VeinTriangles(const VeinTriangles& other);
 	~VeinTriangles();
 

@@ -41,9 +41,9 @@ namespace
 		preset::CubeVertices,
 		preset::CubeIndices,
 		preset::CubeNormals
-		>,
+		>
 
-		BloodCellDef<5, 92, 540,
+		/*BloodCellDef<5, 92, 540,
 		preset::BloodCellSprings,
 		preset::BloodCellVertices,
 		preset::BloodCellIndices,
@@ -54,6 +54,6 @@ namespace
 		preset::TetrahedronVertices,
 		preset::TetrahedronIndices,
 		preset::TetrahedronNormals
-		>
+		>*/
 	> ;
 }

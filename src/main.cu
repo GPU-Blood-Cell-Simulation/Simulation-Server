@@ -94,14 +94,12 @@ programLoopFunction
     BloodCells bloodCells;
 
     // Create vein mesh
-    VeinGenerator veinMeshDefinition(cylinderBaseCenter, cylinderHeight, cylinderRadius, cylinderVerticalLayers, cylinderHorizontalLayers);
-    SingleObjectMesh veinMesh = veinMeshDefinition.CreateMesh();
-
-    // Create vein mesh
-    VeinGenerator veinGenerator(cylinderBaseCenter, cylinderHeight, cylinderRadius, cylinderVerticalLayers, cylinderHorizontalLayers);
+    // TODO: this will be unnecessary
+    VeinGenerator veinGenerator;
 
     // Create vein triangles
-    VeinTriangles triangles(veinGenerator.getVertices(), veinGenerator.getIndices(), veinGenerator.getSpringLengths());
+    VeinTriangles triangles(veinGenerator.getSpringLengths());
+    SingleObjectMesh veinMesh = veinGenerator.CreateMesh();
 
     // Create grids
     UniformGrid particleGrid(particleCount, 20, 20, 20);
@@ -133,7 +131,6 @@ programLoopFunction
 
         // Calculate particle positions using CUDA
         simulationController.calculateNextFrame();
-
         // Pass positions to OpenGL
         glController.calculateTriangles(triangles);
         glController.calculatePositions(bloodCells.particles.positions);

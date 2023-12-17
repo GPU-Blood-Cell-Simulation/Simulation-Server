@@ -19,7 +19,7 @@ public:
 	int cellCountX;
 	int cellCountY;
 	int cellCountZ;
-	int cellAmount;
+	int cellCount;
 	int objectCount;
 
 	int* gridCellIds = 0;
