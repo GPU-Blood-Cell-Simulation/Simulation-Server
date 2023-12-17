@@ -203,10 +203,6 @@ namespace graphics
 	{
 		// map vertices
 		float* vboPtr = (float*)mapResourceAndGetPointer(cudaVeinVBOResource);
-		std::cout << triangles.vertexCount << "\n";
-		std::cout << triangles.triangleCount << "\n";
-		// HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaVeinVBOResource, 0));
-		// return;
 		int threadsPerBlock = triangles.vertexCount > 1024 ? 1024 : triangles.vertexCount;
 		int blocks = (triangles.vertexCount + threadsPerBlock - 1) / threadsPerBlock;
 		calculateTriangleVerticesKernel << <blocks, threadsPerBlock >> > (vboPtr, triangles.positions, triangles.vertexCount);

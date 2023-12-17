@@ -96,7 +96,12 @@ UniformGrid::UniformGrid(const int objectCount, int cellWidth, int cellHeight, i
 }
 
 UniformGrid::UniformGrid(const UniformGrid& other) : isCopy(true), gridCellIds(other.gridCellIds), particleIds(other.particleIds),
-gridCellStarts(other.gridCellStarts), gridCellEnds(other.gridCellEnds)
+	gridCellStarts(other.gridCellStarts), gridCellEnds(other.gridCellEnds),
+	objectCount(other.objectCount), cellWidth(other.cellWidth), cellHeight(other.cellHeight), cellDepth(other.cellDepth),
+	cellCountX(other.cellCountX),
+	cellCountY(other.cellCountY),
+	cellCountZ(other.cellCountZ),
+	cellCount(other.cellCount)
 {}
 
 UniformGrid::~UniformGrid()

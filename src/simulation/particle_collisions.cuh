@@ -80,15 +80,15 @@ namespace sim
 			return;
 
 		int particleId = grid.particleIds[id];
+
 		float3 p1 = bloodCells.particles.positions.get(particleId);
 		float3 v1 = bloodCells.particles.velocities.get(particleId);
+
 		int cellId = grid.gridCellIds[id];
-		//DEBUG
-		printf("cellId: %d\n", cellId);
 		int xId = static_cast<int>((bloodCells.particles.positions.x[particleId] - minX) / grid.cellWidth);
 		int yId = static_cast<int>((bloodCells.particles.positions.y[particleId] - minY) / grid.cellHeight);
 		int zId = static_cast<int>((bloodCells.particles.positions.z[particleId] - minZ) / grid.cellDepth);
-
+		
 		// Check all corner cases and call the appropriate function specialization
 		// Ugly but fast
 		if (xId < 1)

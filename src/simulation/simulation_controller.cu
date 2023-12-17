@@ -138,7 +138,7 @@ namespace sim
 		if (id >= totalBloodCellCount)
 			return;
 		initialPositions.x[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
-		initialPositions.y[id] = (minY + maxY) / 2;
+		initialPositions.y[id] = -100; // TODO: don't hardcode it
 		initialPositions.z[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
 	}
 
@@ -176,22 +176,20 @@ namespace sim
 
 				// TODO: ERROR HERE
 				// 2. Detect particle collisions
-				// calculateParticleCollisions << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, *g1);
-				// HANDLE_ERROR(cudaPeekAtLastError());
+				calculateParticleCollisions << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, *g1);
+				HANDLE_ERROR(cudaPeekAtLastError());
 
 				// // 3. Propagate particle forces into neighbors
 
 				bloodCells.gatherForcesFromNeighbors(streams);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				// // 4. Detect vein collisions and propagate forces -> velocities, velocities -> positions for particles
+				// 4. Detect vein collisions and propagate forces -> velocities, velocities -> positions for particles
 
 				detectVeinCollisionsAndPropagateParticles << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, triangles, *g2);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				// // 5. Propagate triangle forces into neighbors
-bloodCells.gatherForcesFromNeighbors(streams);
-				HANDLE_ERROR(cudaPeekAtLastError());
+				// 5. Propagate triangle forces into neighbors
 				triangles.gatherForcesFromNeighbors(veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
@@ -199,7 +197,7 @@ bloodCells.gatherForcesFromNeighbors(streams);
 				triangles.propagateForcesIntoPositions(veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				// // 7. Recalculate triangles centers
+				// 7. Recalculate triangles centers
 				triangles.calculateCenters(veinTrianglesThreads.blocks, veinTrianglesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
