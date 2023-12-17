@@ -24,7 +24,7 @@ namespace sim
 	__global__ void setBloodCellsPositionsFromRandom(curandState* states, Particles particles, cudaVec3 bloodCellModelPosition, cudaVec3 initialPositions, cudaVec3 initialVelocities);
 
 	template<int totalBloodCellCount>
-	__global__ void generateRandomPositonsAndVelocitieskernel(curandState* states, glm::vec3 cylinderBaseCenter, cudaVec3 initialPositions, cudaVec3 initialVelocities);
+	__global__ void generateRandomPositonsAndVelocitieskernel(curandState* states, cudaVec3 initialPositions, cudaVec3 initialVelocities);
 
 	SimulationController::SimulationController(BloodCells& bloodCells, VeinTriangles& triangles, Grid particleGrid, Grid triangleGrid) :
 		bloodCells(bloodCells), triangles(triangles), particleGrid(particleGrid), triangleGrid(triangleGrid),
@@ -68,7 +68,7 @@ namespace sim
 		cudaVec3 initialVelocities(bloodCellCount);
 
 		// Generate random positions and velocity vectors
-		generateRandomPositonsAndVelocitieskernel<bloodCellCount> << <  bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, cylinderBaseCenter, initialPositions, initialVelocities);
+		generateRandomPositonsAndVelocitieskernel<bloodCellCount> << <  bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, initialPositions, initialVelocities);
 		HANDLE_ERROR(cudaThreadSynchronize());
 
 		// TODO: ugly code - use std::array
@@ -157,14 +157,14 @@ namespace sim
 
 	// generate initial positions for blood cells
 	template<int totalBloodCellCount>
-	__global__ void generateRandomPositonsAndVelocitieskernel(curandState* states, glm::vec3 cylinderBaseCenter, cudaVec3 initialPositions, cudaVec3 initialVelocities)
+	__global__ void generateRandomPositonsAndVelocitieskernel(curandState* states, cudaVec3 initialPositions, cudaVec3 initialVelocities)
 	{
 		int id = blockIdx.x * blockDim.x + threadIdx.x;
 		if (id >= totalBloodCellCount)
 			return;
-		initialPositions.x[id] = cylinderBaseCenter.x - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius;
-		initialPositions.y[id] = cylinderBaseCenter.y - cylinderRadius * 0.5f + curand_uniform(&states[id]) * 3 * cylinderRadius + cylinderHeight / 2;
-		initialPositions.z[id] = cylinderBaseCenter.z - cylinderRadius * 0.5f + curand_uniform(&states[id]) * cylinderRadius;
+		initialPositions.x[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
+		initialPositions.y[id] = minSpawnY;
+		initialPositions.z[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
 
 #ifdef INITIAL_VELOCITY_RANDOM
 		float verticalVelocity = randomVelocityModifier * initVelocityY;
@@ -212,16 +212,11 @@ namespace sim
 				g1->calculateGrid(bloodCells.particles, particleCount);
 				g2->calculateGrid(triangles.centers.x, triangles.centers.y, triangles.centers.z, triangles.triangleCount);
 
-				// TODO: ERROR HERE
-				// 2. Detect particle collisions
-				calculateParticleCollisions << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, *g1);
-				HANDLE_ERROR(cudaPeekAtLastError());
-
-				// // 3. Propagate particle forces into neighbors
+				// // 2. Propagate particle forces into neighbors
 				bloodCells.gatherForcesFromNeighbors(streams);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				// 2. Detect particle collisions
+				// 3. Detect particle collisions
 				using IndexList = mp_iota_c<bloodCellTypeCount>;
 				mp_for_each<IndexList>([&](auto i)
 					{
