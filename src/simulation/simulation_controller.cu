@@ -61,7 +61,7 @@ namespace sim
 		int seed = rand();
 
 		setupCurandStatesKernel << <bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, seed);
-		HANDLE_ERROR(cudaThreadSynchronize());
+		HANDLE_ERROR(cudaDeviceSynchronize());
 
 		std::vector<cudaVec3> models;
 		cudaVec3 initialPositions(bloodCellCount);
@@ -71,6 +71,7 @@ namespace sim
 		generateRandomPositonsAndVelocitieskernel<bloodCellCount> << <  bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, cylinderBaseCenter, initialPositions, initialVelocities);
 		HANDLE_ERROR(cudaThreadSynchronize());
 
+		// TODO: ugly code - use std::array
 		float* xpos = new float[bloodCellCount];
 		float* ypos = new float[bloodCellCount];
 		float* zpos = new float[bloodCellCount];
@@ -177,7 +178,6 @@ namespace sim
 		initialVelocities.y[id] = initVelocityY;
 		initialVelocities.z[id] = initVelocityZ;
 #endif
-
 	}
 
 	// Generate random positions and velocities at the beginning
@@ -212,7 +212,12 @@ namespace sim
 				g1->calculateGrid(bloodCells.particles, particleCount);
 				g2->calculateGrid(triangles.centers.x, triangles.centers.y, triangles.centers.z, triangles.triangleCount);
 
-				// 3. Propagate particle forces into neighbors
+				// TODO: ERROR HERE
+				// 2. Detect particle collisions
+				calculateParticleCollisions << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, *g1);
+				HANDLE_ERROR(cudaPeekAtLastError());
+
+				// // 3. Propagate particle forces into neighbors
 				bloodCells.gatherForcesFromNeighbors(streams);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
@@ -247,11 +252,10 @@ namespace sim
 				HANDLE_ERROR(cudaPeekAtLastError());
 
 				// 5. Propagate triangle forces into neighbors
-
 				triangles.gatherForcesFromNeighbors(veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				// 6. Propagate forces -> velocities, velocities -> positions for vein triangles
+				// // 6. Propagate forces -> velocities, velocities -> positions for vein triangles
 				triangles.propagateForcesIntoPositions(veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
 

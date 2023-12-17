@@ -31,11 +31,8 @@ void VeinTriangles::calculateCenters(int blocks, int threadsPerBlock)
 	calculateCentersKernel << <blocks, threadsPerBlock >> > (positions, indices, centers, triangleCount);
 }
 
-VeinTriangles::VeinTriangles(const std::vector<glm::vec3>& vertices, const std::vector<unsigned int>& indexData, const std::tuple<float, float, float>& springLengths) :
-	triangleCount(indexData.size() / 3), vertexCount(vertices.size()),
-	centers(triangleCount), positions(vertexCount), velocities(vertexCount), forces(vertexCount),
-	veinVertexHorizontalDistance(std::get<0>(springLengths)),
-	veinVertexNonHorizontalDistances{ std::get<2>(springLengths), std::get<1>(springLengths), std::get<2>(springLengths) }
+VeinTriangles::VeinTriangles(const std::tuple<float, float, float>& springLengths) : veinVertexHorizontalDistance(std::get<0>(springLengths)),
+veinVertexNonHorizontalDistances{ std::get<2>(springLengths), std::get<1>(springLengths), std::get<2>(springLengths) }
 {
 	// allocate
 	HANDLE_ERROR(cudaMalloc((void**)&indices, 3 * triangleCount * sizeof(int)));
@@ -45,7 +42,7 @@ VeinTriangles::VeinTriangles(const std::vector<glm::vec3>& vertices, const std::
 	std::vector<float> vz(vertexCount);
 
 	int iter = 0;
-	std::for_each(vertices.begin(), vertices.end(), [&](auto& v)
+	std::for_each(veinPositions.begin(), veinPositions.end(), [&](auto& v)
 		{
 			vx[iter] = v.x;
 			vy[iter] = v.y;
@@ -53,7 +50,7 @@ VeinTriangles::VeinTriangles(const std::vector<glm::vec3>& vertices, const std::
 		});
 
 	// copy
-	HANDLE_ERROR(cudaMemcpy(indices, indexData.data(), 3 * triangleCount * sizeof(int), cudaMemcpyHostToDevice));
+	HANDLE_ERROR(cudaMemcpy(indices, veinIndices.data(), 3 * triangleCount * sizeof(int), cudaMemcpyHostToDevice));
 	HANDLE_ERROR(cudaMemcpy(positions.x, vx.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
 	HANDLE_ERROR(cudaMemcpy(positions.y, vy.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
 	HANDLE_ERROR(cudaMemcpy(positions.z, vz.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
@@ -112,82 +109,84 @@ void VeinTriangles::propagateForcesIntoPositions(int blocks, int threadsPerBlock
 /// <returns></returns>
 __global__ static void gatherForcesKernel(VeinTriangles triangles)
 {
-	int vertex = blockDim.x * blockIdx.x + threadIdx.x;
-	if (vertex >= triangles.vertexCount)
-		return;
-
-	float springForce;
-	float3 neighborPosition;
-
-	float3 vertexPosition = triangles.positions.get(vertex);
-	float3 vertexVelocity = triangles.velocities.get(vertex);
-	float3 vertexForce = { 0,0,0 };
-
-	// Calculate our own spatial indices
-	int i = vertex / cylinderHorizontalLayers;
-	int j = vertex - i * cylinderHorizontalLayers;
-
-	// vertically adjacent vertices
-
-	int jSpan[] =
-	{
-		j != 0 ? j - 1 : cylinderHorizontalLayers - 1,
-		j,
-		(j + 1) % cylinderHorizontalLayers
-	};
-
-
-	int vertexHorizontalPrev = i * cylinderHorizontalLayers + jSpan[0];
-	int vertexHorizontalNext = i * cylinderHorizontalLayers + jSpan[2];
-
-
-	// Previous horizontally
-	neighborPosition = triangles.positions.get(vertexHorizontalPrev);
-	springForce = physics::calculateVeinSpringForceComponent(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexHorizontalPrev),
-		triangles.veinVertexHorizontalDistance);
-	vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
-
-	// Next horizontally
-	neighborPosition = triangles.positions.get(vertexHorizontalNext);
-	springForce = physics::calculateVeinSpringForceComponent(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexHorizontalNext),
-		triangles.veinVertexHorizontalDistance);
-	vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
-
-
-
-	// not the lower end of the vein
-	if (i != 0)
-	{
-		// Lower vertical neighbors
-#pragma unroll
-		for (int jIndex = 0; jIndex < 3; jIndex++)
-		{
-			int vertexVerticalPrev = (i - 1) * cylinderHorizontalLayers + jSpan[jIndex];
-			neighborPosition = triangles.positions.get(vertexVerticalPrev);
-			springForce = physics::calculateVeinSpringForceComponent(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexVerticalPrev),
-				triangles.veinVertexNonHorizontalDistances[jIndex]);
-			vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
-		}
-
-	}
-
-	//// not the upper end of the vein
-	if (i != cylinderVerticalLayers - 1)
-	{
-		// Upper vertical neighbors
-#pragma unroll
-		for (int jIndex = 0; jIndex < 3; jIndex++)
-		{
-			int vertexVerticalNext = (i + 1) * cylinderHorizontalLayers + jSpan[jIndex];
-			neighborPosition = triangles.positions.get(vertexVerticalNext);
-			springForce = physics::calculateVeinSpringForceComponent(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexVerticalNext),
-				triangles.veinVertexNonHorizontalDistances[jIndex]);
-			vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
-		}
-
-	}
-
-	triangles.forces.add(vertex, vertexForce);
+	// TODO
+	return;
+//	int vertex = blockDim.x * blockIdx.x + threadIdx.x;
+//	if (vertex >= triangles.vertexCount)
+//		return;
+//
+//	float springForce;
+//	float3 neighborPosition;
+//
+//	float3 vertexPosition = triangles.positions.get(vertex);
+//	float3 vertexVelocity = triangles.velocities.get(vertex);
+//	float3 vertexForce = { 0,0,0 };
+//
+//	// Calculate our own spatial indices
+//	int i = vertex / cylinderHorizontalLayers;
+//	int j = vertex - i * cylinderHorizontalLayers;
+//
+//	// vertically adjacent vertices
+//
+//	int jSpan[] =
+//	{
+//		j != 0 ? j - 1 : cylinderHorizontalLayers - 1,
+//		j,
+//		(j + 1) % cylinderHorizontalLayers
+//	};
+//
+//
+//	int vertexHorizontalPrev = i * cylinderHorizontalLayers + jSpan[0];
+//	int vertexHorizontalNext = i * cylinderHorizontalLayers + jSpan[2];
+//
+//
+//	// Previous horizontally
+//	neighborPosition = triangles.positions.get(vertexHorizontalPrev);
+//	springForce = triangles.calculateVeinSpringForce(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexHorizontalPrev),
+//		triangles.veinVertexHorizontalDistance);
+//	vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
+//
+//	// Next horizontally
+//	neighborPosition = triangles.positions.get(vertexHorizontalNext);
+//	springForce = triangles.calculateVeinSpringForce(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexHorizontalNext),
+//		triangles.veinVertexHorizontalDistance);
+//	vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
+//
+//
+//
+//	// not the lower end of the vein
+//	if (i != 0)
+//	{
+//		// Lower vertical neighbors
+//#pragma unroll
+//		for (int jIndex = 0; jIndex < 3; jIndex++)
+//		{
+//			int vertexVerticalPrev = (i - 1) * cylinderHorizontalLayers + jSpan[jIndex];
+//			neighborPosition = triangles.positions.get(vertexVerticalPrev);
+//			springForce = triangles.calculateVeinSpringForce(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexVerticalPrev),
+//				triangles.veinVertexNonHorizontalDistances[jIndex]);
+//			vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
+//		}
+//
+//	}
+//
+//	//// not the upper end of the vein
+//	if (i != cylinderVerticalLayers - 1)
+//	{
+//		// Upper vertical neighbors
+//#pragma unroll
+//		for (int jIndex = 0; jIndex < 3; jIndex++)
+//		{
+//			int vertexVerticalNext = (i + 1) * cylinderHorizontalLayers + jSpan[jIndex];
+//			neighborPosition = triangles.positions.get(vertexVerticalNext);
+//			springForce = triangles.calculateVeinSpringForce(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(vertexVerticalNext),
+//				triangles.veinVertexNonHorizontalDistances[jIndex]);
+//			vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
+//		}
+//
+//	}
+//
+//	triangles.forces.add(vertex, vertexForce);
 }
 
 /// <summary>

@@ -1,7 +1,7 @@
 #include "windowcontroller.hpp"
 #include "../config/graphics.hpp"
 
-WindowController::WindowController() 
+WindowController::WindowController()
 {
     if (!glfwInit())
         exit(-1);
@@ -28,9 +28,9 @@ WindowController::~WindowController()
     glfwTerminate();
 }
 
-void WindowController::ConfigureInputAndCamera(graphics::Camera* _camera)
+void WindowController::ConfigureInputAndCamera(graphics::Camera* camera)
 {
-    this->camera = _camera;
+    this->camera = camera;
     // Set up GLFW to work with inputController
     glfwSetWindowUserPointer(window, &inputController);
     glfwSetKeyCallback(window, inputController.handleUserInput);

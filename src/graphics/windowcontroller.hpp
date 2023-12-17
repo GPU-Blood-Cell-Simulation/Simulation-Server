@@ -7,7 +7,10 @@
 class WindowController
 {
 	graphics::InputController inputController;
+
 public:
+	WindowController();
+	~WindowController();
 
 	GLFWwindow* window = nullptr;
 	graphics::Camera* camera;
@@ -22,4 +25,11 @@ public:
 		if(camera != nullptr)
 			inputController.adjustParametersUsingInput(*camera);
 	}
+
+	GLFWwindow* window = nullptr;
+	graphics::Camera* camera = nullptr;
+
+private:
+	graphics::InputController inputController;
+
 };

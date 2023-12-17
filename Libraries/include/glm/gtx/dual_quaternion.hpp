@@ -56,8 +56,8 @@ namespace glm
 
 		// -- Implicit basic constructors --
 
-		GLM_FUNC_DECL GLM_CONSTEXPR tdualquat() GLM_DEFAULT;
-		GLM_FUNC_DECL GLM_CONSTEXPR tdualquat(tdualquat<T, Q> const& d) GLM_DEFAULT;
+		GLM_DEFAULTED_FUNC_DECL GLM_CONSTEXPR tdualquat() GLM_DEFAULT;
+		GLM_DEFAULTED_FUNC_DECL GLM_CONSTEXPR tdualquat(tdualquat<T, Q> const& d) GLM_DEFAULT;
 		template<qualifier P>
 		GLM_FUNC_DECL GLM_CONSTEXPR tdualquat(tdualquat<T, P> const& d);
 
@@ -77,7 +77,7 @@ namespace glm
 
 		// -- Unary arithmetic operators --
 
-		GLM_FUNC_DECL tdualquat<T, Q> & operator=(tdualquat<T, Q> const& m) GLM_DEFAULT;
+		GLM_DEFAULTED_FUNC_DECL tdualquat<T, Q> & operator=(tdualquat<T, Q> const& m) GLM_DEFAULT;
 
 		template<typename U>
 		GLM_FUNC_DECL tdualquat<T, Q> & operator=(tdualquat<U, Q> const& m);
@@ -109,11 +109,11 @@ namespace glm
 	template<typename T, qualifier Q>
 	GLM_FUNC_DECL vec<3, T, Q> operator*(vec<3, T, Q> const& v, tdualquat<T, Q> const& q);
 
-	template<typename T, qualifier Q>
-	GLM_FUNC_DECL vec<4, T, Q> operator*(tdualquat<T, Q> const& q, vec<4, T, Q> const& v);
+	template<typename T, qualifier Q, qualifier Q2>
+	GLM_FUNC_DECL vec<4, T, Q2> operator*(tdualquat<T, Q> const& q, vec<4, T, Q2> const& v);
 
-	template<typename T, qualifier Q>
-	GLM_FUNC_DECL vec<4, T, Q> operator*(vec<4, T, Q> const& v, tdualquat<T, Q> const& q);
+	template<typename T, qualifier Q, qualifier Q2>
+	GLM_FUNC_DECL vec<4, T, Q2> operator*(vec<4, T, Q2> const& v, tdualquat<T, Q> const& q);
 
 	template<typename T, qualifier Q>
 	GLM_FUNC_DECL tdualquat<T, Q> operator*(tdualquat<T, Q> const& q, T const& s);

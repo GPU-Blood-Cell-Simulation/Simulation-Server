@@ -49,9 +49,9 @@ namespace graphics
 		devVeinVBOBuffer[6 * id] = v.x;
 		devVeinVBOBuffer[6 * id + 1] = v.y;
 		devVeinVBOBuffer[6 * id + 2] = v.z;
-		devVeinVBOBuffer[6 * id + 3] = 0;
-		devVeinVBOBuffer[6 * id + 4] = 0;
-		devVeinVBOBuffer[6 * id + 5] = 0;
+		// devVeinVBOBuffer[6 * id + 3] = 0;
+		// devVeinVBOBuffer[6 * id + 4] = 0;
+		// devVeinVBOBuffer[6 * id + 5] = 0;
 	}
 
 	void* mapResourceAndGetPointer(cudaGraphicsResource_t resource)
@@ -81,7 +81,6 @@ namespace graphics
 			std::vector<unsigned int> indices;
 			using BloodCellDefinition = mp_at_c<BloodCellList, typeIndex>;
 			constexpr int verticesCount = BloodCellDefinition::particlesInCell;
-			constexpr int indicesCount = BloodCellDefinition::indicesInCell;
 
 			using verticeIndexList = mp_iota_c<verticesCount>;
 
@@ -91,7 +90,7 @@ namespace graphics
 
 			mp_for_each<verticeIndexList>([&](auto i)
 				{
-					Vertex v = Vertex();
+					Vertex v;
 					v.position = glm::vec3(
 						mp_at_c<VerticeList, i>::x,
 						mp_at_c<VerticeList, i>::y,
@@ -260,8 +259,10 @@ namespace graphics
 		cylinderSolidColorShader->setMatrix("view", camera.getView());
 		cylinderSolidColorShader->setMatrix("projection", projection);
 
-		glCullFace(GL_FRONT);
+		glDisable(GL_CULL_FACE);
+		//glCullFace(GL_FRONT);
 		veinModel.draw(cylinderSolidColorShader.get());
-		glCullFace(GL_BACK);
+		//glCullFace(GL_BACK);
+		glEnable(GL_CULL_FACE);
 	}
 }

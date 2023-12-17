@@ -20,7 +20,7 @@ public:
 	BloodCells(const BloodCells& other);
 	~BloodCells();
 
-	void BloodCells::gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodCellTypeCount>& streams);
+	void gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodCellTypeCount>& streams);
 };
 
 #endif

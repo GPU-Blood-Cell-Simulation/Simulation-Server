@@ -216,7 +216,7 @@ namespace
 	inline constexpr float springLengthCoefficient = 1.0f;
 
 	// Fill the particle neighborhood graph
-	inline constexpr auto springGraphGenerator = [&]()
+	inline constexpr auto springGraphGenerator = []()
 	{
 		std::array<float, totalGraphSize> arr{};
 

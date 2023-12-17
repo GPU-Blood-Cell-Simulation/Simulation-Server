@@ -8,8 +8,6 @@
 #include <vector>
 
 
-#pragma region Model
-
 void Model::draw(const Shader* shader) const
 {
     for (Mesh mesh : meshes) {
@@ -31,9 +29,6 @@ void Model::addMesh(Mesh& mesh)
     meshes.push_back(mesh);
 }
 
-#pragma endregion
-
-#pragma region Instanced model
 
 unsigned int InstancedModel::getCudaOffsetBuffer()
 {
@@ -54,9 +49,7 @@ InstancedModel::InstancedModel(Mesh& mesh, unsigned int instancesCount)
         mesh.setVertexOffsetAttribute();
     }
 }
-#pragma endregion
 
-#pragma region Multiple object model
 
 MultipleObjectModel::MultipleObjectModel(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<glm::vec3>& initialPositions, unsigned int objectCount)
 {
@@ -65,5 +58,3 @@ MultipleObjectModel::MultipleObjectModel(std::vector<Vertex>&& vertices, std::ve
     this->objectCount = objectCount;
     this->verticesInitialCount = mesh.vertices.size();
 }
-
-#pragma endregion

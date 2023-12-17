@@ -19,16 +19,17 @@
 #include "device_launch_parameters.h"
 #include "config/graphics.hpp"
 
-#ifdef _WIN32 // win only headers
+#ifdef WINDOW_RENDER
+#   include "graphics/windowcontroller.hpp"
+#else
 
-#include "graphics/windowcontroller.hpp"
-#define WINDOW_RENDER
+#   include "graphics/offscreencontroller.hpp"
 
-#else // server only (linux) headers
-#include <unistd.h>
-// ...
+#   undef __noinline__
+#   include "graphics/streamingcontroller.hpp"
+#   define __noinline__ __attribute__((noinline))
+
 #endif
-
 
 #define UNIFORM_TRIANGLES_GRID
 
@@ -40,11 +41,13 @@
 //}
 
 #ifdef WINDOW_RENDER
-void programLoop(WindowController& windowController);
+#define programLoopFunction void programLoop(WindowController& windowController)
 #else
-void programLoop();
+#define programLoopFunction void programLoop(StremmingController& streamingController)
 #endif
 
+programLoopFunction;
+//>>>>>>> 5c62d729fbf5c882eab033e4fb6c51d34e201251
 
 int main()
 {
@@ -53,6 +56,10 @@ int main()
 
 #ifdef WINDOW_RENDER
     WindowController windowController;
+#else
+    OffscreeenController offscreenController;
+    StremmingController streamingController("127.0.0.1", 4321);
+    streamingController.StartStreaming();
 #endif
 
     // Load GL and set the viewport to match window size
@@ -70,24 +77,18 @@ int main()
 #ifdef WINDOW_RENDER
     programLoop(windowController);
 #else
-    programLoop();
+    programLoop(streamingController);
 #endif
 
     // Cleanup
-#ifdef WINDOW_RENDER
-    glfwTerminate();
-#endif
     HANDLE_ERROR(cudaDeviceReset());
 
     return 0;
 }
 
 // Main simulation loop - upon returning from this function all memory-freeing destructors are called
-#ifdef WINDOW_RENDER
-void programLoop(WindowController& windowController)
-#else
-void programLoop()
-#endif
+
+programLoopFunction
 {
 
     int frameCount = 0;
@@ -96,11 +97,12 @@ void programLoop()
     BloodCells bloodCells;
 
     // Create vein mesh
-    VeinGenerator veinGenerator(cylinderBaseCenter, cylinderHeight, cylinderRadius, cylinderVerticalLayers, cylinderHorizontalLayers);
-    SingleObjectMesh veinMesh = veinGenerator.CreateMesh();
+    // TODO: this will be unnecessary
+    VeinGenerator veinGenerator;
 
     // Create vein triangles
-    VeinTriangles triangles(veinGenerator.getVertices(), veinGenerator.getIndices(), veinGenerator.getSpringLengths());
+    VeinTriangles triangles(veinGenerator.getSpringLengths());
+    SingleObjectMesh veinMesh = veinGenerator.CreateMesh();
 
     // Create grids
     UniformGrid particleGrid(particleCount, 20, 20, 20);
@@ -131,7 +133,6 @@ void programLoop()
 
         // Calculate particle positions using CUDA
         simulationController.calculateNextFrame();
-
         // Pass positions to OpenGL
         glController.calculateTriangles(triangles);
         glController.calculatePositions(bloodCells.particles.positions);
@@ -169,6 +170,7 @@ void programLoop()
 
         // Send data to client
             // TODO
+        streamingController.SendFrame();
 
         shouldBeRunning = frameCount++ < maxFrames;
 #endif
