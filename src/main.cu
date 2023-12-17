@@ -19,16 +19,17 @@
 #include "device_launch_parameters.h"
 #include "config/graphics.hpp"
 
-//#ifdef _WIN32 // win only headers
+#ifdef WINDOW_RENDER
+#   include "graphics/windowcontroller.hpp"
+#else
 
-#include "graphics/windowcontroller.hpp"
-//#define WINDOW_RENDER
+#   include "graphics/offscreencontroller.hpp"
 
-//#else // server only (linux) headers
-//#include <unistd.h>
-// ...
-//#endif
+#   undef __noinline__
+#   include "graphics/streamingcontroller.hpp"
+#   define __noinline__ __attribute__((noinline))
 
+#endif
 
 #define UNIFORM_TRIANGLES_GRID
 
@@ -42,7 +43,7 @@
 #ifdef WINDOW_RENDER
 #define programLoopFunction void programLoop(WindowController& windowController)
 #else
-#define programLoopFunction void programLoop()
+#define programLoopFunction void programLoop(StremmingController& streamingController)
 #endif
 
 programLoopFunction;
@@ -54,7 +55,12 @@ int main()
 
 #ifdef WINDOW_RENDER
     WindowController windowController;
+#else
+    OffscreeenController offscreenController;
+    StremmingController streamingController("127.0.0.1", 4321);
+    streamingController.StartStreaming();
 #endif
+
     // Load GL and set the viewport to match window size
     gladLoadGL();
     glViewport(0, 0, windowWidth, windowHeight);
@@ -70,7 +76,7 @@ int main()
 #ifdef WINDOW_RENDER
     programLoop(windowController);
 #else
-    programLoop();
+    programLoop(streamingController);
 #endif
 
     // Cleanup
@@ -165,6 +171,7 @@ programLoopFunction
 
         // Send data to client
             // TODO
+        streamingController.SendFrame();
 
         shouldBeRunning = frameCount++ < maxFrames;
 #endif

@@ -1,7 +1,7 @@
 #pragma once
 
 // Frames to render
-inline constexpr int maxFrames = 500;
+inline constexpr int maxFrames = 20000; //500;
 
 inline constexpr int maxCudaStreams = 16;
 
