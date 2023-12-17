@@ -138,7 +138,7 @@ namespace sim
 		if (id >= totalBloodCellCount)
 			return;
 		initialPositions.x[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
-		initialPositions.y[id] = -100; // TODO: don't hardcode it
+		initialPositions.y[id] = minSpawnY;
 		initialPositions.z[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
 	}
 
@@ -201,11 +201,11 @@ namespace sim
 				triangles.calculateCenters(veinTrianglesThreads.blocks, veinTrianglesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				// if constexpr (useBloodFlow)
-				// {
-				// 	HandleVeinEnd(bloodCells, streams);
-				// 	HANDLE_ERROR(cudaPeekAtLastError());
-				// }
+				if constexpr (useBloodFlow)
+				{
+					HandleVeinEnd(bloodCells, streams);
+					HANDLE_ERROR(cudaPeekAtLastError());
+				}
 
 			}, particleGrid, triangleGrid);
 	}

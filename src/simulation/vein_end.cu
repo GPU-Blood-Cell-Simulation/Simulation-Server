@@ -9,9 +9,13 @@
 #include "cuda_runtime.h"
 
 
-constexpr float upperBoundTreshold = 0.95f * maxX;
-constexpr float lowerBoundTreshold = 0.8f * minX;
-constexpr float targetTeleportHeight = 0.85f * maxX;
+constexpr float upperBoundTreshold = maxY - gridYMargin;
+constexpr float lowerBoundTreshold = minY + gridYMargin;
+constexpr float rightBoundTreshold = maxX - gridXZMargin;
+constexpr float leftBoundTreshold = minX + gridXZMargin;
+constexpr float frontBoundTreshold = maxZ - gridXZMargin;
+constexpr float backBoundTreshold = minZ + gridXZMargin;
+constexpr float targetTeleportHeight = minSpawnY;
 
 enum SynchronizationType { warpSync, blockSync };
 
@@ -61,7 +65,9 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells)
 		return;
 
 	int realIndex = particlesStart + indexInType;
+	float posX = bloodCells.particles.positions.x[realIndex];
 	float posY = bloodCells.particles.positions.y[realIndex]; 
+	float posZ = bloodCells.particles.positions.z[realIndex]; 
 
 	if (posY >= upperBoundTreshold) {
 		// Bounce particle off upper bound
@@ -69,7 +75,7 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells)
 	}
 
 	// Check lower bound
-	bool teleport = (posY <= lowerBoundTreshold);
+	bool teleport = posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold;
 	belowVein[threadIdx.x] = teleport;
 
 	__syncthreads();
@@ -105,7 +111,9 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells)
 	int threadInWarpID = threadIdx.x % CudaThreads::threadsInWarp;
 
 	int realIndex = particlesStart + indexInType;
-	float posY = bloodCells.particles.positions.y[realIndex];
+	float posX = bloodCells.particles.positions.x[realIndex];
+	float posY = bloodCells.particles.positions.y[realIndex]; 
+	float posZ = bloodCells.particles.positions.z[realIndex]; 
 
 	if (posY >= upperBoundTreshold) {
 		// Bounce particle off upper bound
@@ -116,7 +124,7 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells)
 	int syncBitMask = initSyncBitMask << static_cast<int>(std::floor(static_cast<float>(threadInWarpID)/particlesInBloodCell)) * particlesInBloodCell;
 
 	// Bit mask of particles, which are below treshold
-	int particlesBelowTreshold = __any_sync(syncBitMask, posY <= lowerBoundTreshold);
+	int particlesBelowTreshold = __any_sync(syncBitMask, posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold);
 
 	if (particlesBelowTreshold != 0) {
 		// TODO: add some randomnes to velocity and change positivon to one which is always inside the vein

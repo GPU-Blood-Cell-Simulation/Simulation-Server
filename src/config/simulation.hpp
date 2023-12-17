@@ -12,3 +12,5 @@ inline constexpr float dt = 0.002f;
 inline constexpr float gridYMargin = 10.0f;
 
 inline constexpr float gridXZMargin = 20.0f;
+
+inline constexpr float minSpawnY = -20;
