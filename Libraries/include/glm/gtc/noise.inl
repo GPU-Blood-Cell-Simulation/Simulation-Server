@@ -344,8 +344,8 @@ namespace gtc
 	template<typename T, qualifier Q>
 	GLM_FUNC_QUALIFIER T perlin(vec<2, T, Q> const& Position, vec<2, T, Q> const& rep)
 	{
-		vec<4, T, Q> Pi = floor(vec<4, T, Q>(Positions.x, Positions.y, Positions.x, Positions.y)) + vec<4, T, Q>(0.0, 0.0, 1.0, 1.0);
-		vec<4, T, Q> Pf = fract(vec<4, T, Q>(Positions.x, Positions.y, Positions.x, Positions.y)) - vec<4, T, Q>(0.0, 0.0, 1.0, 1.0);
+		vec<4, T, Q> Pi = floor(vec<4, T, Q>(Position.x, Position.y, Position.x, Position.y)) + vec<4, T, Q>(0.0, 0.0, 1.0, 1.0);
+		vec<4, T, Q> Pf = fract(vec<4, T, Q>(Position.x, Position.y, Position.x, Position.y)) - vec<4, T, Q>(0.0, 0.0, 1.0, 1.0);
 		Pi = mod(Pi, vec<4, T, Q>(rep.x, rep.y, rep.x, rep.y)); // To create noise with explicit period
 		Pi = mod(Pi, vec<4, T, Q>(289)); // To avoid truncation effects in permutation
 		vec<4, T, Q> ix(Pi.x, Pi.z, Pi.x, Pi.z);

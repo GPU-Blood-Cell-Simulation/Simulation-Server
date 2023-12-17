@@ -27,7 +27,7 @@ public:
 		return (length(p1 - p2) - springLength) * particle_k_sniff + dot(normalize(p1 - p2), (v1 - v2)) * particle_d_fact;
 	}
 
-	void BloodCells::gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodCellTypeCount>& streams);
+	void gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodCellTypeCount>& streams);
 };
 
 #endif

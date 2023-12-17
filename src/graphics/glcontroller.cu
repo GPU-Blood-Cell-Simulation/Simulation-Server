@@ -84,7 +84,6 @@ namespace graphics
 			std::vector<unsigned int> indices;
 			using BloodCellDefinition = mp_at_c<BloodCellList, typeIndex>;
 			constexpr int verticesCount = BloodCellDefinition::particlesInCell;
-			constexpr int indicesCount = BloodCellDefinition::indicesInCell;
 
 			using verticeIndexList = mp_iota_c<verticesCount>;
 
@@ -94,7 +93,7 @@ namespace graphics
 
 			mp_for_each<verticeIndexList>([&](auto i)
 				{
-					Vertex v = Vertex();
+					Vertex v;
 					v.position = glm::vec3(
 						mp_at_c<VerticeList, i>::x,
 						mp_at_c<VerticeList, i>::y,

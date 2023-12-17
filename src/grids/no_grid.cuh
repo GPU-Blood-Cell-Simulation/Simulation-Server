@@ -12,5 +12,5 @@ public:
 
 	inline void calculateGrid(const float* positionX, const float* positionY, const float* positionZ, int objectCount) {}
 
-	inline int calculateCellId(float3 position) {}
+	inline int calculateCellId(float3 position) { return 0; }
 };

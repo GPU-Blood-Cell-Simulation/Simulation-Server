@@ -19,15 +19,15 @@
 #include "device_launch_parameters.h"
 #include "config/graphics.hpp"
 
-#ifdef _WIN32 // win only headers
+//#ifdef _WIN32 // win only headers
 
 #include "graphics/windowcontroller.hpp"
-#define WINDOW_RENDER
+//#define WINDOW_RENDER
 
-#else // server only (linux) headers
-#include <unistd.h>
+//#else // server only (linux) headers
+//#include <unistd.h>
 // ...
-#endif
+//#endif
 
 
 #define UNIFORM_TRIANGLES_GRID
@@ -39,7 +39,13 @@
 //    __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 //}
 
-void programLoop();
+#ifdef WINDOW_RENDER
+#define programLoopFunction void programLoop(WindowController& windowController)
+#else
+#define programLoopFunction void programLoop()
+#endif
+
+programLoopFunction;
 
 int main()
 {
@@ -47,7 +53,7 @@ int main()
     HANDLE_ERROR(cudaSetDevice(0));
 
 #ifdef WINDOW_RENDER
-    WindowController::GetInstance().ConfigureWindow();
+    WindowController windowController;
 #endif
     // Load GL and set the viewport to match window size
     gladLoadGL();
@@ -61,19 +67,20 @@ int main()
     glEnable(GL_DEBUG_OUTPUT);
 
     // Main simulation loop
+#ifdef WINDOW_RENDER
+    programLoop(windowController);
+#else
     programLoop();
+#endif
 
     // Cleanup
-#ifdef WINDOW_RENDER
-    glfwTerminate();
-#endif
     HANDLE_ERROR(cudaDeviceReset());
 
     return 0;
 }
 
 // Main simulation loop - upon returning from this function all memory-freeing destructors are called
-void programLoop()
+programLoopFunction
 {
     int frameCount = 0;
 
@@ -107,9 +114,7 @@ void programLoop()
 
 #ifdef WINDOW_RENDER
     double lastTime = glfwGetTime();
-    WindowController windowController = WindowController::GetInstance();
     windowController.ConfigureInputAndCamera(&camera);
-
 #endif
 
     // MAIN LOOP HERE - dictated by glfw

@@ -14,7 +14,6 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-#pragma region Helper kernels
 
 #define max(a,b) ( a > b ? a : b)
 #define min(a,b) ( a > b ? b : a)
@@ -76,8 +75,6 @@ __global__ void calculateStartAndEndOfCellKernel(const float* positionX, const f
 		cellStarts[cellIds[particleCount - 1]] = particleCount - 1;
 	}
 }
-
-#pragma endregion
 
 // Allocate GPU buffers for the index buffers
 UniformGrid::UniformGrid(int objectCount, int cellWidth, int cellHeight, int cellDepth)

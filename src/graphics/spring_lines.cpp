@@ -4,7 +4,7 @@
 
 #include <boost/mp11/algorithm.hpp>
 #include <glad/glad.h>
-#include "mesh.hpp";
+#include "mesh.hpp"
 
 
 void SpringLines::constructSprings(std::array<unsigned int, bloodCellTypeCount>& vbos)

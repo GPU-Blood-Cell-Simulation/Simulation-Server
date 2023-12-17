@@ -24,7 +24,7 @@ constexpr SynchronizationType SelectSynchronizationType(int bloodCellsCnt, int p
 	return blockSync;
 }
 
-constexpr int CalculateThreadsPerBlock(SynchronizationType syncType, int bloodCellsCnt, int particlesInBloodCell)
+constexpr __host__ __device__ int CalculateThreadsPerBlock(SynchronizationType syncType, int bloodCellsCnt, int particlesInBloodCell)
 {
 	switch (syncType)
 	{
@@ -40,7 +40,7 @@ constexpr int CalculateThreadsPerBlock(SynchronizationType syncType, int bloodCe
 		return (CudaThreads::maxThreadsInBlock / particlesInBloodCell) * particlesInBloodCell;
 
 	default:
-		throw std::domain_error("Unknown synchronization type");
+		return -1;
 	}
 }
 
@@ -156,7 +156,7 @@ void HandleVeinEnd(BloodCells& cells, const std::array<cudaStream_t, bloodCellTy
 			else if constexpr (syncType == blockSync)
 				handleVeinEndsBlockSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart>
 				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells);
-			else
-				static_assert(false, "Unknown synchronization type");
+			// else
+			// 	static_assert(false, "Unknown synchronization type");
 		});
 }

@@ -59,14 +59,14 @@ namespace sim
 		int seed = rand();
 
 		setupCurandStatesKernel << <bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, seed);
-		HANDLE_ERROR(cudaThreadSynchronize());
+		HANDLE_ERROR(cudaDeviceSynchronize());
 
 		std::vector<cudaVec3> models;
 		cudaVec3 initialPositions(bloodCellCount);
 
 		// Generate random positions and velocity vectors
 		generateRandomPositonskernel<bloodCellCount> << <  bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, cylinderBaseCenter, initialPositions);
-		HANDLE_ERROR(cudaThreadSynchronize());
+		HANDLE_ERROR(cudaDeviceSynchronize());
 
 		float* xpos = new float[bloodCellCount];
 		float* ypos = new float[bloodCellCount];

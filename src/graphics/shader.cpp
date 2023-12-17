@@ -25,7 +25,7 @@ std::string getShaderCode(const char* filePath)
         // convert stream into string
         shaderCode = vShaderStream.str();
     }
-    catch (std::ifstream::failure e)
+    catch (std::ifstream::failure const& e)
     {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ, path: " << filePath << std::endl;
         exit(1);
@@ -121,10 +121,10 @@ void Shader::setLighting(DirLight dirLight) const
     setVector("dirLight.specular", dirLight.specular);
 }
 
-SolidColorShader::SolidColorShader() : Shader("Shaders\\solidcolor.vert", "Shaders\\solidcolor.frag")
+SolidColorShader::SolidColorShader() : Shader("Shaders/solidcolor.vert", "Shaders/solidcolor.frag")
 {}
 
-GeometryPassShader::GeometryPassShader(unsigned int gBuffer) : Shader("Shaders\\geometry.vert", "Shaders\\geometry.frag"),
+GeometryPassShader::GeometryPassShader(unsigned int gBuffer) : Shader("Shaders/geometry.vert", "Shaders/geometry.frag"),
 gBuffer(gBuffer)
 {}
 
@@ -135,7 +135,7 @@ void GeometryPassShader::use()
     Shader::use();
 }
 
-PhongDeferredShader::PhongDeferredShader(unsigned int gPosition, unsigned int gNormal) : Shader("Shaders\\phong_deferred.vert", "Shaders\\phong_deferred.frag"),
+PhongDeferredShader::PhongDeferredShader(unsigned int gPosition, unsigned int gNormal) : Shader("Shaders/phong_deferred.vert", "Shaders/phong_deferred.frag"),
 gPosition(gPosition), gNormal(gNormal)
 {}
 
@@ -152,11 +152,11 @@ void PhongDeferredShader::use()
     glBindTexture(GL_TEXTURE_2D, gNormal);
 }
 
-PhongForwardShader::PhongForwardShader() : Shader("Shaders\\phong_forward.vert", "Shaders\\phong_forward.frag")
+PhongForwardShader::PhongForwardShader() : Shader("Shaders/phong_forward.vert", "Shaders/phong_forward.frag")
 {}
 
-CylinderSolidColorShader::CylinderSolidColorShader() : Shader("Shaders\\cylindersolidcolor.vert", "Shaders\\cylindersolidcolor.frag")
+CylinderSolidColorShader::CylinderSolidColorShader() : Shader("Shaders/cylindersolidcolor.vert", "Shaders/cylindersolidcolor.frag")
 {}
 
-SpringShader::SpringShader() : Shader("Shaders\\spring.vert", "Shaders\\spring.frag")
+SpringShader::SpringShader() : Shader("Shaders/spring.vert", "Shaders/spring.frag")
 {}
