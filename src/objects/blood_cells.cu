@@ -58,7 +58,7 @@ __global__ static void gatherForcesKernel(BloodCells bloodCells)
 			float3 neighbourPosition = bloodCells.particles.positions.get(neighbourIndex);
 			float3 neighbourVelocity = bloodCells.particles.velocities.get(neighbourIndex);
 			float3 neighbourInitialForce = bloodCells.particles.forces.get(neighbourIndex);
-			float3 p, v;
+			float3 p{ 0,0,0 }, v{ 0,0,0 };
 			float3 springForceComponent = physics::calculateParticlesSpringForceComponent(position - neighbourPosition,
 				velocity - neighbourVelocity, initialForce, neighbourInitialForce, springLength, p, v);
 

@@ -14,12 +14,6 @@
 #include <glm/vec3.hpp>
 #include <memory>
 
-#ifdef _WIN32
-
-#include "../graphics/windowcontroller.hpp"
-#include <windows.h>
-#endif
-
 namespace graphics
 {
 	// Controls rendering of the particles

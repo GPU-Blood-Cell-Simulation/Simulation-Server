@@ -47,7 +47,6 @@
 #endif
 
 programLoopFunction;
-//>>>>>>> 5c62d729fbf5c882eab033e4fb6c51d34e201251
 
 int main()
 {
