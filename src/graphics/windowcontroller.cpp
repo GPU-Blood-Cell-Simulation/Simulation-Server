@@ -1,21 +1,7 @@
 #include "windowcontroller.hpp"
 #include "../config/graphics.hpp"
 
-WindowController::WindowController() { }
-
-WindowController::~WindowController()
-{
-    glfwDestroyWindow(window);
-    glfwTerminate();
-}
-
-WindowController& WindowController::GetInstance()
-{
-    static WindowController instance;
-	return instance;
-}
-
-void WindowController::ConfigureWindow()
+WindowController::WindowController() 
 {
     if (!glfwInit())
         exit(-1);
@@ -34,6 +20,12 @@ void WindowController::ConfigureWindow()
 
     // Make the window's context current
     glfwMakeContextCurrent(window);
+}
+
+WindowController::~WindowController()
+{
+    glfwDestroyWindow(window);
+    glfwTerminate();
 }
 
 void WindowController::ConfigureInputAndCamera(graphics::Camera* _camera)

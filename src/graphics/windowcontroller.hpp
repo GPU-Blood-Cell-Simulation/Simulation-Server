@@ -6,16 +6,15 @@
 
 class WindowController
 {
-	WindowController();
 	graphics::InputController inputController;
-	~WindowController();
 public:
 
 	GLFWwindow* window = nullptr;
 	graphics::Camera* camera;
 
-	static WindowController& GetInstance();
-	void ConfigureWindow();
+	WindowController();
+	~WindowController();
+
 	void ConfigureInputAndCamera(graphics::Camera* camera);
 
 	inline void handleInput()

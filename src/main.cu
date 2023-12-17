@@ -39,7 +39,12 @@
 //    __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 //}
 
+#ifdef WINDOW_RENDER
+void programLoop(WindowController& windowController);
+#else
 void programLoop();
+#endif
+
 
 int main()
 {
@@ -47,8 +52,9 @@ int main()
     HANDLE_ERROR(cudaSetDevice(0));
 
 #ifdef WINDOW_RENDER
-    WindowController::GetInstance().ConfigureWindow();
+    WindowController windowController;
 #endif
+
     // Load GL and set the viewport to match window size
     gladLoadGL();
     glViewport(0, 0, windowWidth, windowHeight);
@@ -61,7 +67,11 @@ int main()
     glEnable(GL_DEBUG_OUTPUT);
 
     // Main simulation loop
+#ifdef WINDOW_RENDER
+    programLoop(windowController);
+#else
     programLoop();
+#endif
 
     // Cleanup
 #ifdef WINDOW_RENDER
@@ -73,8 +83,13 @@ int main()
 }
 
 // Main simulation loop - upon returning from this function all memory-freeing destructors are called
+#ifdef WINDOW_RENDER
+void programLoop(WindowController& windowController)
+#else
 void programLoop()
+#endif
 {
+
     int frameCount = 0;
 
     // Create blood cells
@@ -103,9 +118,7 @@ void programLoop()
     graphics::Camera camera;
 #ifdef WINDOW_RENDER
     double lastTime = glfwGetTime();
-    WindowController& windowController = WindowController::GetInstance();
     windowController.ConfigureInputAndCamera(&camera);
-
 #endif
 
     // MAIN LOOP HERE - dictated by glfw
