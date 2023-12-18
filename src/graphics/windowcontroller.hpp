@@ -15,9 +15,6 @@ public:
 	GLFWwindow* window = nullptr;
 	graphics::Camera* camera;
 
-	WindowController();
-	~WindowController();
-
 	void ConfigureInputAndCamera(graphics::Camera* camera);
 
 	inline void handleInput()
@@ -25,8 +22,4 @@ public:
 		if(camera != nullptr)
 			inputController.adjustParametersUsingInput(*camera);
 	}
-
-private:
-	graphics::InputController inputController;
-
 };

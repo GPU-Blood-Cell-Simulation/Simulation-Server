@@ -100,75 +100,75 @@ namespace sim
 		if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
 			goto set_particle_values;
 		}
-
-		ray r(pos, velocityDir);
-		float3 reflectedVelociy = make_float3(0, 0, 0);
-
-		bool collisionOccured = false;
-		for (int triangleId = 0; triangleId < triangles.triangleCount; ++triangleId)
 		{
-			constexpr float EPS = 1e-7f;
-			// triangle vectices and edges
-			float3 v0 = triangles.positions.get(triangles.getIndex(triangleId, vertex0));
-			float3 v1 = triangles.positions.get(triangles.getIndex(triangleId, vertex1));
-			float3 v2 = triangles.positions.get(triangles.getIndex(triangleId, vertex2));
-			const float3 edge1 = v1 - v0;
-			const float3 edge2 = v2 - v0;
+			ray r(pos, velocityDir);
+			float3 reflectedVelociy = make_float3(0, 0, 0);
 
-			const float3 h = cross(r.direction, edge2);
-			const float a = dot(edge1, h);
-			if (a > -EPS && a < EPS)
-				continue; // ray parallel to triangle
-
-			const float f = 1 / a;
-			const float3 s = r.origin - v0;
-			const float u = f * dot(s, h);
-			if (u < 0 || u > 1)
-				continue;
-			if (!realCollisionDetection(v0, v1, v2, r, reflectedVelociy))
-				continue;
-
-			r.objectIndex = triangleId;
-			collisionOccured = true;
-			break;
-		}
-
-		float3 relativePosition = pos - (pos + r.t * r.direction);
-		float distanceSquared = length_squared(relativePosition);
-
-		if (collisionOccured && distanceSquared <= veinImpactDistance * veinImpactDistance)
-		{
-			// handle particle on collision
-			if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
+			bool collisionOccured = false;
+			for (int triangleId = 0; triangleId < triangles.triangleCount; ++triangleId)
 			{
-				physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared, particleId,
-					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces);
+				constexpr float EPS = 1e-7f;
+				// triangle vectices and edges
+				float3 v0 = triangles.positions.get(triangles.getIndex(triangleId, vertex0));
+				float3 v1 = triangles.positions.get(triangles.getIndex(triangleId, vertex1));
+				float3 v2 = triangles.positions.get(triangles.getIndex(triangleId, vertex2));
+				const float3 edge1 = v1 - v0;
+				const float3 edge2 = v2 - v0;
+
+				const float3 h = cross(r.direction, edge2);
+				const float a = dot(edge1, h);
+				if (a > -EPS && a < EPS)
+					continue; // ray parallel to triangle
+
+				const float f = 1 / a;
+				const float3 s = r.origin - v0;
+				const float u = f * dot(s, h);
+				if (u < 0 || u > 1)
+					continue;
+				if (!realCollisionDetection(v0, v1, v2, r, reflectedVelociy))
+					continue;
+
+				r.objectIndex = triangleId;
+				collisionOccured = true;
+				break;
 			}
-			float speed = length(velocity);
-			velocity = velocityCollisionDamping * speed * reflectedVelociy;
-			bloodCells.particles.velocities.set(particleId, velocity);
 
-			// handle vein on collision
-			float3 ds = 0.8f * velocityDir;
-			unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
-			unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
-			unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
+			float3 relativePosition = pos - (pos + r.t * r.direction);
+			float distanceSquared = length_squared(relativePosition);
 
-			float3 v0 = triangles.positions.get(vertexIndex0);
-			float3 v1 = triangles.positions.get(vertexIndex1);
-			float3 v2 = triangles.positions.get(vertexIndex2);
+			if (collisionOccured && distanceSquared <= veinImpactDistance * veinImpactDistance)
+			{
+				// handle particle on collision
+				if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
+				{
+					physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared, particleId,
+						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces);
+				}
+				float speed = length(velocity);
+				velocity = velocityCollisionDamping * speed * reflectedVelociy;
+				bloodCells.particles.velocities.set(particleId, velocity);
 
-			float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
+				// handle vein on collision
+				float3 ds = 0.8f * velocityDir;
+				unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
+				unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
+				unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
 
-			// TODO:
-			// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
-			// Here we probably should use atomicAdd. - Hubert
-			// move triangle a bit
-			triangles.forces.add(vertexIndex0, baricentric.x * ds);
-			triangles.forces.add(vertexIndex1, baricentric.y * ds);
-			triangles.forces.add(vertexIndex2, baricentric.z * ds);
+				float3 v0 = triangles.positions.get(vertexIndex0);
+				float3 v1 = triangles.positions.get(vertexIndex1);
+				float3 v2 = triangles.positions.get(vertexIndex2);
+
+				float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
+
+				// TODO:
+				// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
+				// Here we probably should use atomicAdd. - Hubert
+				// move triangle a bit
+				triangles.forces.add(vertexIndex0, baricentric.x * ds);
+				triangles.forces.add(vertexIndex1, baricentric.y * ds);
+				triangles.forces.add(vertexIndex2, baricentric.z * ds);
+			}
 		}
-
 	set_particle_values:
 
 		physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
@@ -211,191 +211,191 @@ namespace sim
 		if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
 			goto set_particle_values;
 		}
-
-		// Check all corner cases and call the appropriate function specialization
-		// Ugly but fast
-		if (xId < 1)
 		{
-			if (yId < 1)
+			// Check all corner cases and call the appropriate function specialization
+			// Ugly but fast
+			if (xId < 1)
 			{
-				if (zId < 1)
+				if (yId < 1)
 				{
-					collisionDetected = calculateSideCollisions<0, 1, 0, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					if (zId < 1)
+					{
+						collisionDetected = calculateSideCollisions<0, 1, 0, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else if (zId > triangleGrid.cellCountZ - 2)
+					{
+						collisionDetected = calculateSideCollisions<0, 1, 0, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else
+					{
+						collisionDetected = calculateSideCollisions<0, 1, 0, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
 				}
-				else if (zId > triangleGrid.cellCountZ - 2)
+				else if (yId > triangleGrid.cellCountY - 2)
 				{
-					collisionDetected = calculateSideCollisions<0, 1, 0, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					if (zId < 1)
+					{
+						collisionDetected = calculateSideCollisions<0, 1, -1, 0, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else if (zId > triangleGrid.cellCountZ - 2)
+					{
+						collisionDetected = calculateSideCollisions<0, 1, -1, 0, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else
+					{
+						collisionDetected = calculateSideCollisions<0, 1, -1, 0, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
 				}
 				else
 				{
-					collisionDetected = calculateSideCollisions<0, 1, 0, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					if (zId < 1)
+					{
+						collisionDetected = calculateSideCollisions<0, 1, -1, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else if (zId > triangleGrid.cellCountZ - 2)
+					{
+						collisionDetected = calculateSideCollisions<0, 1, -1, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else
+					{
+						collisionDetected = calculateSideCollisions<0, 1, -1, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
 				}
 			}
-			else if (yId > triangleGrid.cellCountY - 2)
+			else if (xId > triangleGrid.cellCountX - 2)
 			{
-				if (zId < 1)
+				if (yId < 1)
 				{
-					collisionDetected = calculateSideCollisions<0, 1, -1, 0, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					if (zId < 1)
+					{
+						collisionDetected = calculateSideCollisions<-1, 0, 0, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else if (zId > triangleGrid.cellCountZ - 2)
+					{
+						collisionDetected = calculateSideCollisions<-1, 0, 0, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else
+					{
+						collisionDetected = calculateSideCollisions<-1, 0, 0, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
 				}
-				else if (zId > triangleGrid.cellCountZ - 2)
+				else if (yId > triangleGrid.cellCountY - 2)
 				{
-					collisionDetected = calculateSideCollisions<0, 1, -1, 0, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					if (zId < 1)
+					{
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 0, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else if (zId > triangleGrid.cellCountZ - 2)
+					{
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 0, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else
+					{
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 0, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
 				}
 				else
 				{
-					collisionDetected = calculateSideCollisions<0, 1, -1, 0, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					if (zId < 1)
+					{
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else if (zId > triangleGrid.cellCountZ - 2)
+					{
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else
+					{
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
 				}
 			}
 			else
 			{
-				if (zId < 1)
+				if (yId < 1)
 				{
-					collisionDetected = calculateSideCollisions<0, 1, -1, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					if (zId < 1)
+					{
+						collisionDetected = calculateSideCollisions<-1, 1, 0, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else if (zId > triangleGrid.cellCountZ - 2)
+					{
+						collisionDetected = calculateSideCollisions<-1, 1, 0, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else
+					{
+						collisionDetected = calculateSideCollisions<-1, 1, 0, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
 				}
-				else if (zId > triangleGrid.cellCountZ - 2)
+				else if (yId > triangleGrid.cellCountY - 2)
 				{
-					collisionDetected = calculateSideCollisions<0, 1, -1, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					if (zId < 1)
+					{
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 0, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else if (zId > triangleGrid.cellCountZ - 2)
+					{
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 0, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else
+					{
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 0, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
 				}
 				else
 				{
-					collisionDetected = calculateSideCollisions<0, 1, -1, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					if (zId < 1)
+					{
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else if (zId > triangleGrid.cellCountZ - 2)
+					{
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
+					else
+					{
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+					}
 				}
+			}
+
+			float3 relativePosition = pos - (pos + r.t * r.direction);
+			float distanceSquared = length_squared(relativePosition);
+
+			if (collisionDetected && distanceSquared <= veinImpactDistance * veinImpactDistance)
+			{
+				// handle particle on collision
+				if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
+				{
+					physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared,
+						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces);
+				}
+
+				float speed = length(velocity);
+				velocity = velocityCollisionDamping * speed * reflectedVelociy;
+				bloodCells.particles.velocities.set(particleId, velocity);
+
+				// handle vein on collision
+				float3 ds = 0.8f * velocityDir;
+				unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
+				unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
+				unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
+
+				float3 v0 = triangles.positions.get(vertexIndex0);
+				float3 v1 = triangles.positions.get(vertexIndex1);
+				float3 v2 = triangles.positions.get(vertexIndex2);
+
+				float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
+
+				// TODO:
+				// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
+				// Here we probably should use atomicAdd. - Hubert
+				// move triangle a bit
+				triangles.forces.add(vertexIndex0, baricentric.x * ds);
+				triangles.forces.add(vertexIndex1, baricentric.y * ds);
+				triangles.forces.add(vertexIndex2, baricentric.z * ds);
 			}
 		}
-		else if (xId > triangleGrid.cellCountX - 2)
-		{
-			if (yId < 1)
-			{
-				if (zId < 1)
-				{
-					collisionDetected = calculateSideCollisions<-1, 0, 0, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else if (zId > triangleGrid.cellCountZ - 2)
-				{
-					collisionDetected = calculateSideCollisions<-1, 0, 0, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else
-				{
-					collisionDetected = calculateSideCollisions<-1, 0, 0, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-			}
-			else if (yId > triangleGrid.cellCountY - 2)
-			{
-				if (zId < 1)
-				{
-					collisionDetected = calculateSideCollisions<-1, 0, -1, 0, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else if (zId > triangleGrid.cellCountZ - 2)
-				{
-					collisionDetected = calculateSideCollisions<-1, 0, -1, 0, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else
-				{
-					collisionDetected = calculateSideCollisions<-1, 0, -1, 0, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-			}
-			else
-			{
-				if (zId < 1)
-				{
-					collisionDetected = calculateSideCollisions<-1, 0, -1, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else if (zId > triangleGrid.cellCountZ - 2)
-				{
-					collisionDetected = calculateSideCollisions<-1, 0, -1, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else
-				{
-					collisionDetected = calculateSideCollisions<-1, 0, -1, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-			}
-		}
-		else
-		{
-			if (yId < 1)
-			{
-				if (zId < 1)
-				{
-					collisionDetected = calculateSideCollisions<-1, 1, 0, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else if (zId > triangleGrid.cellCountZ - 2)
-				{
-					collisionDetected = calculateSideCollisions<-1, 1, 0, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else
-				{
-					collisionDetected = calculateSideCollisions<-1, 1, 0, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-			}
-			else if (yId > triangleGrid.cellCountY - 2)
-			{
-				if (zId < 1)
-				{
-					collisionDetected = calculateSideCollisions<-1, 1, -1, 0, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else if (zId > triangleGrid.cellCountZ - 2)
-				{
-					collisionDetected = calculateSideCollisions<-1, 1, -1, 0, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else
-				{
-					collisionDetected = calculateSideCollisions<-1, 1, -1, 0, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-			}
-			else
-			{
-				if (zId < 1)
-				{
-					collisionDetected = calculateSideCollisions<-1, 1, -1, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else if (zId > triangleGrid.cellCountZ - 2)
-				{
-					collisionDetected = calculateSideCollisions<-1, 1, -1, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-				else
-				{
-					collisionDetected = calculateSideCollisions<-1, 1, -1, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
-				}
-			}
-		}
-
-		float3 relativePosition = pos - (pos + r.t * r.direction);
-		float distanceSquared = length_squared(relativePosition);
-
-		if (collisionDetected && distanceSquared <= veinImpactDistance * veinImpactDistance)
-		{
-			// handle particle on collision
-			if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
-			{
-				physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared,
-					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces);
-			}
-
-			float speed = length(velocity);
-			velocity = velocityCollisionDamping * speed * reflectedVelociy;
-			bloodCells.particles.velocities.set(particleId, velocity);
-
-			// handle vein on collision
-			float3 ds = 0.8f * velocityDir;
-			unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
-			unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
-			unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
-
-			float3 v0 = triangles.positions.get(vertexIndex0);
-			float3 v1 = triangles.positions.get(vertexIndex1);
-			float3 v2 = triangles.positions.get(vertexIndex2);
-
-			float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
-
-			// TODO:
-			// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
-			// Here we probably should use atomicAdd. - Hubert
-			// move triangle a bit
-			triangles.forces.add(vertexIndex0, baricentric.x * ds);
-			triangles.forces.add(vertexIndex1, baricentric.y * ds);
-			triangles.forces.add(vertexIndex2, baricentric.z * ds);
-		}
-
 	set_particle_values:
 
 		physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
