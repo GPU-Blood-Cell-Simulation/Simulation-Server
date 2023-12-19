@@ -26,7 +26,7 @@ namespace sim
 	template<int totalBloodCellCount>
 	__global__ void generateRandomPositonsAndVelocitieskernel(curandState* states, cudaVec3 initialPositions, cudaVec3 initialVelocities);
 
-	SimulationController::SimulationController(BloodCells& bloodCells, VeinTriangles& triangles, Grid particleGrid, Grid triangleGrid) :
+	SimulationController::SimulationController(BloodCells& bloodCells, VeinTriangles& triangles,  UniformGrid* particleGrid, UniformGrid* triangleGrid) :
 		bloodCells(bloodCells), triangles(triangles), particleGrid(particleGrid), triangleGrid(triangleGrid),
 		bloodCellsThreads(particleCount),
 		veinVerticesThreads(triangles.vertexCount),
@@ -205,12 +205,12 @@ namespace sim
 	// Main simulation function, called every frame
 	void SimulationController::calculateNextFrame()
 	{
-		std::visit([&](auto&& g1, auto&& g2)
-			{
+		//std::visit([&](auto&& g1, auto&& g2)
+			//{
 				// 1. Calculate grids
 				// TODO: possible optimization - these grisds can be calculated simultaneously
-				g1->calculateGrid(bloodCells.particles, particleCount);
-				g2->calculateGrid(triangles.centers.x, triangles.centers.y, triangles.centers.z, triangles.triangleCount);
+				particleGrid->calculateGrid(bloodCells.particles, particleCount);
+				triangleGrid->calculateGrid(triangles.centers.x, triangles.centers.y, triangles.centers.z, triangles.triangleCount);
 
 				// // 2. Propagate particle forces into neighbors
 				bloodCells.gatherForcesFromNeighbors(streams);
@@ -226,7 +226,7 @@ namespace sim
 
 						CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
 						calculateParticleCollisions<BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart>
-							<< < threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (bloodCells, *g1, cellModelsBoundingSpheres);
+							<< < threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (bloodCells, *particleGrid, cellModelsBoundingSpheres);
 						
 					});
 				HANDLE_ERROR(cudaPeekAtLastError());
@@ -241,7 +241,7 @@ namespace sim
 
 						CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
 						detectVeinCollisionsAndPropagateForces<BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart>
-							<< <  threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (bloodCells, triangles, *g2, cellModelsBoundingSpheres);
+							<< <  threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (bloodCells, triangles, *triangleGrid, cellModelsBoundingSpheres);
 
 					});
 				HANDLE_ERROR(cudaPeekAtLastError());
@@ -264,6 +264,6 @@ namespace sim
 					HANDLE_ERROR(cudaPeekAtLastError());
 				}
 
-			}, particleGrid, triangleGrid);
+			//}, particleGrid, triangleGrid);
 	}
 }

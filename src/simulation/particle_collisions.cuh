@@ -58,13 +58,13 @@ namespace sim
 
 
 	// Should have been a deleted function but CUDA doesn't like it
-	template<typename T, int particlesInBloodCell,int bloodCellmodelStart, int particlesStart>
-	__global__ void calculateParticleCollisions(BloodCells bloodCells, T grid, float* boundingSpheresModel) {}
+	//template<typename T, int particlesInBloodCell,int bloodCellmodelStart, int particlesStart>
+	//__global__ void calculateParticleCollisions(BloodCells bloodCells, T grid, float* boundingSpheresModel) {}
 
 
 	// Calculate collisions between particles using UniformGrid
 	template<int particlesInBloodCell, int bloodCellmodelStart, int particlesStart>
-	__global__ void calculateParticleCollisions<UniformGrid>(BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel)
+	__global__ void calculateParticleCollisions/*<UniformGrid>*/(BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel)
 	{
 		int id = blockIdx.x * blockDim.x + threadIdx.x;
 		if (id >= particleCount)
@@ -229,24 +229,24 @@ namespace sim
 	}
 
 	// Calculate collisions between particles without any grid (naive implementation)
-	template<int particlesInBloodCell, int bloodCellmodelStart, int particlesStart>
-	__global__ void calculateParticleCollisions<NoGrid>(BloodCells bloodCells, NoGrid grid, float* boundingSpheresModel)
-	{
-		int id = blockIdx.x * blockDim.x + threadIdx.x;
-		if (id >= particleCount)
-			return;
+	// template<int particlesInBloodCell, int bloodCellmodelStart, int particlesStart>
+	// __global__ void calculateParticleCollisions<NoGrid>(BloodCells bloodCells, NoGrid grid, float* boundingSpheresModel)
+	// {
+	// 	int id = blockIdx.x * blockDim.x + threadIdx.x;
+	// 	if (id >= particleCount)
+	// 		return;
 
-		float3 p1 = bloodCells.particles.positions.get(id);
-		float3 v1 = bloodCells.particles.positions.get(id);
+	// 	float3 p1 = bloodCells.particles.positions.get(id);
+	// 	float3 v1 = bloodCells.particles.positions.get(id);
 
-		// Naive implementation
-		for (int i = 0; i < particleCount; i++)
-		{
-			if (id == i)
-				continue;
+	// 	// Naive implementation
+	// 	for (int i = 0; i < particleCount; i++)
+	// 	{
+	// 		if (id == i)
+	// 			continue;
 
-			// if to use in the future, last argument should be changed
-			detectCollision(bloodCells, p1, v1, id, i, 0.0f);
-		}
-	}
+	// 		// if to use in the future, last argument should be changed
+	// 		detectCollision(bloodCells, p1, v1, id, i, 0.0f);
+	// 	}
+	// }
 }
