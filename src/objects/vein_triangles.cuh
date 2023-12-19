@@ -5,6 +5,7 @@
 #include "../utilities/cuda_vec3.cuh"
 #include "../utilities/math.cuh"
 #include "../utilities/vertex_index_enum.hpp"
+#include "vein_neighbors.cuh"
 
 #include <vector>
 #include <tuple>
@@ -18,7 +19,6 @@
 class VeinTriangles
 {
 public:
-	const int triangleCount = veinIndexCount / 3;
 	const int vertexCount = veinPositionCount;
 
 	cudaVec3 positions{ vertexCount };
@@ -28,11 +28,9 @@ public:
 	unsigned int* indices;
 	cudaVec3 centers{ triangleCount };
 
-	// TODO: move these out of the class
-	const float veinVertexHorizontalDistance;
-	const float veinVertexNonHorizontalDistances[3];
+	VeinNeighbors neighbors;
 
-	VeinTriangles(const std::tuple<float, float, float>& springLengths);
+	VeinTriangles();
 	VeinTriangles(const VeinTriangles& other);
 	~VeinTriangles();
 

@@ -1,4 +1,7 @@
 #pragma once
+
+#include "constexpr_vec.hpp"
+
 #include <cmath>
 #include <cstdio>
 

@@ -28,7 +28,7 @@ namespace sim
 		bloodCells(bloodCells), triangles(triangles), particleGrid(particleGrid), triangleGrid(triangleGrid),
 		bloodCellsThreads(particleCount),
 		veinVerticesThreads(triangles.vertexCount),
-		veinTrianglesThreads(triangles.triangleCount)
+		veinTrianglesThreads(triangleCount)
 	{
 		// Create streams
 		for (int i = 0; i < bloodCellTypeCount; i++)
@@ -170,16 +170,15 @@ namespace sim
 		std::visit([&](auto&& g1, auto&& g2)
 			{
 				// 1. Calculate grids
-				// TODO: possible optimization - these grisds can be calculated simultaneously
+				// TODO: possible optimization - these grids can be calculated simultaneously
 				g1->calculateGrid(bloodCells.particles, particleCount);
-				g2->calculateGrid(triangles.centers.x, triangles.centers.y, triangles.centers.z, triangles.triangleCount);
+				g2->calculateGrid(triangles.centers.x, triangles.centers.y, triangles.centers.z, triangleCount);
 
-				// TODO: ERROR HERE
 				// 2. Detect particle collisions
 				calculateParticleCollisions << < bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (bloodCells, *g1);
 				HANDLE_ERROR(cudaPeekAtLastError());
 
-				// // 3. Propagate particle forces into neighbors
+				// 3. Propagate particle forces into neighbors
 
 				bloodCells.gatherForcesFromNeighbors(streams);
 				HANDLE_ERROR(cudaPeekAtLastError());
@@ -191,9 +190,9 @@ namespace sim
 
 				// 5. Propagate triangle forces into neighbors
 				triangles.gatherForcesFromNeighbors(veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
-				HANDLE_ERROR(cudaPeekAtLastError());
+				HANDLE_ERROR(cudaPeekAtLastError());		
 
-				// // 6. Propagate forces -> velocities, velocities -> positions for vein triangles
+				// 6. Propagate forces -> velocities, velocities -> positions for vein triangles
 				triangles.propagateForcesIntoPositions(veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
 				HANDLE_ERROR(cudaPeekAtLastError());
 

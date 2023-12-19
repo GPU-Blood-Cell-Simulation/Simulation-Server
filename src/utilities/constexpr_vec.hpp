@@ -27,3 +27,8 @@ struct cvec
 		return { x, y, z };
 	}
 };
+
+inline cvec operator-(const cvec& v1, const cvec& v2)
+{
+	return {v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
+}

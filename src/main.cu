@@ -98,13 +98,13 @@ programLoopFunction
     VeinGenerator veinGenerator;
 
     // Create vein triangles
-    VeinTriangles triangles(veinGenerator.getSpringLengths());
+    VeinTriangles triangles;
     SingleObjectMesh veinMesh = veinGenerator.CreateMesh();
 
     // Create grids
     UniformGrid particleGrid(particleCount, 20, 20, 20);
 #ifdef UNIFORM_TRIANGLES_GRID
-    UniformGrid triangleCentersGrid(triangles.triangleCount, 10, 10, 10);
+    UniformGrid triangleCentersGrid(triangleCount, 10, 10, 10);
 #else
     NoGrid triangleCentersGrid;
 #endif

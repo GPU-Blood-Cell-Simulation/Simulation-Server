@@ -35,7 +35,7 @@ namespace graphics
 
 		// Uniform matrices
 		glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
-		glm::mat4 projection = glm::perspective(glm::radians<float>(45.0f), static_cast<float>(windowWidth) / windowHeight, 0.1f, depth * 10);
+		glm::mat4 projection = glm::perspective(glm::radians<float>(45.0f), static_cast<float>(windowWidth) / windowHeight, 0.1f, depth * 100);
 
 		MultipleObjectModel bloodCellmodel[bloodCellTypeCount];
 		Model veinModel;

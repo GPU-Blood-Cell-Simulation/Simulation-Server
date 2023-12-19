@@ -25,8 +25,6 @@ __device__ int calculateIdForCell(float x, float y, float z, int cellWidth, int 
 	if (x < minX || x > maxX || y < minY || y > maxY || z < minZ || z > maxZ)
 	{
 		printf("Position out of grid bounds: (%f, %f, %f)\n", x, y, z);
-		printf("min (%f, %f, %f)\n", minX, minY, minZ);
-		printf("max (%f, %f, %f)\n", maxX, maxY, maxZ);
 	}
 
 	// should we clamp x,y,z if out of bounds?
