@@ -208,9 +208,9 @@ namespace sim
 		unsigned int zId = static_cast<unsigned int>((pos.z - minZ) / triangleGrid.cellDepth);
 
 		// cubical bounds
-		if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
-			goto set_particle_values;
-		}
+		// if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
+		// 	goto set_particle_values;
+		// }
 		{
 			// Check all corner cases and call the appropriate function specialization
 			// Ugly but fast

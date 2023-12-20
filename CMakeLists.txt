@@ -112,7 +112,7 @@ link_directories(${CMAKE_SOURCE_DIR}/Libraries/lib/)
 #
 add_executable(Simulation_server ${CUDA_SOURCES} ${CPP_SOURCES} ${CUDA_HEADERS} ${CPP_HEADERS})
 
-target_compile_options(Simulation_server PRIVATE -ggdb3 $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+target_compile_options(Simulation_server PRIVATE -ggdb3 $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr --maxrregcount=40>)
 set_target_properties(Simulation_server PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 target_link_libraries(Simulation_server ${LIBS})
