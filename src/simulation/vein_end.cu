@@ -1,6 +1,6 @@
 #include "vein_end.cuh"
 
-#include "../config/physics.hpp"
+#include "../simulation/physics.cuh"
 #include "../config/simulation.hpp"
 #include "../meta_factory/blood_cell_factory.hpp"
 #include "../meta_factory/vein_factory.hpp"
@@ -54,20 +54,19 @@ constexpr int CalculateBlocksCount(SynchronizationType syncType, int particleCou
 	return constCeil(static_cast<float>(particleCount) / CalculateThreadsPerBlock(syncType, particleCount, particlesInBloodCell));
 }
 
-
 template <int bloodCellsCount, int particlesInBloodCell, int particlesStart>
 __global__ void handleVeinEndsBlockSync(BloodCells bloodCells)
 {
 	__shared__ bool belowVein[CalculateThreadsPerBlock(blockSync, bloodCellsCount, particlesInBloodCell)];
 	int indexInType = blockDim.x * blockIdx.x + threadIdx.x;
-	 
+
 	if (indexInType >= bloodCellsCount * particlesInBloodCell)
 		return;
 
 	int realIndex = particlesStart + indexInType;
 	float posX = bloodCells.particles.positions.x[realIndex];
 	float posY = bloodCells.particles.positions.y[realIndex]; 
-	float posZ = bloodCells.particles.positions.z[realIndex]; 
+	float posZ = bloodCells.particles.positions.z[realIndex];
 
 	if (posY >= upperBoundTreshold) {
 		// Bounce particle off upper bound
@@ -84,15 +83,16 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells)
 	int numberOfParticlesInThread = threadIdx.x / particlesInBloodCell * particlesInBloodCell;
 
 	// Algorithm goes through all neighbours and checks if any of them is low enought to be teleported
-	#pragma unroll
+#pragma unroll
 	for (int i = 1; i < particlesInBloodCell; i++)
 	{
- 		teleport |= belowVein[((particleInCellIndex + i) % particlesInBloodCell) + numberOfParticlesInThread];
+		teleport |= belowVein[((particleInCellIndex + i) % particlesInBloodCell) + numberOfParticlesInThread];
 	}
 
 	if (teleport)
 	{
 		// TODO: add some randomnes to velocity and change positivon to one which is always inside the vein
+		//bloodCells.particles.positions.y[realIndex] += targetTeleportHeight - lowerBoundTreshold - 10;
 		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight;
 		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
@@ -102,7 +102,7 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells)
 template <int bloodCellsCount, int particlesInBloodCell, int particlesStart>
 __global__ void handleVeinEndsWarpSync(BloodCells bloodCells)
 {
-  	int indexInType = blockDim.x * blockIdx.x + threadIdx.x;
+	int indexInType = blockDim.x * blockIdx.x + threadIdx.x;
 
 	//printf("%d\n", indexInType);
 	if (indexInType >= bloodCellsCount * particlesInBloodCell)
@@ -121,13 +121,14 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells)
 	}
 
 	static constexpr int initSyncBitMask = (particlesInBloodCell == 32) ? 0xffffffff : (1 << (particlesInBloodCell)) - 1;
-	int syncBitMask = initSyncBitMask << static_cast<int>(std::floor(static_cast<float>(threadInWarpID)/particlesInBloodCell)) * particlesInBloodCell;
+	int syncBitMask = initSyncBitMask << static_cast<int>(std::floor(static_cast<float>(threadInWarpID) / particlesInBloodCell)) * particlesInBloodCell;
 
 	// Bit mask of particles, which are below treshold
 	int particlesBelowTreshold = __any_sync(syncBitMask, posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold);
 
 	if (particlesBelowTreshold != 0) {
 		// TODO: add some randomnes to velocity and change positivon to one which is always inside the vein
+		//bloodCells.particles.positions.y[realIndex] += targetTeleportHeight - lowerBoundTreshold - 10;
 		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight;
 		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
@@ -135,7 +136,7 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells)
 
 
 void HandleVeinEnd(BloodCells& cells, const std::array<cudaStream_t, bloodCellTypeCount>& streams)
-{ 
+{
 	using IndexList = mp_iota_c<bloodCellTypeCount>;
 	mp_for_each<IndexList>([&](auto i)
 		{

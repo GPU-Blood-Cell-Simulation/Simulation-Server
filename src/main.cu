@@ -86,8 +86,10 @@ int main()
 }
 
 // Main simulation loop - upon returning from this function all memory-freeing destructors are called
+
 programLoopFunction
 {
+
     int frameCount = 0;
 
     // Create blood cells
@@ -115,7 +117,6 @@ programLoopFunction
     // Create a graphics controller
     graphics::GLController glController(veinMesh, simulationController.initialCellPositions);
     graphics::Camera camera;
-
 #ifdef WINDOW_RENDER
     double lastTime = glfwGetTime();
     windowController.ConfigureInputAndCamera(&camera);

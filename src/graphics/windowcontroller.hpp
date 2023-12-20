@@ -2,14 +2,19 @@
 #include <GLFW/glfw3.h>
 #include "camera.hpp"
 #include "inputcontroller.hpp"
+#include <memory>
 
 class WindowController
 {
+	graphics::InputController inputController;
+
 public:
 	WindowController();
 	~WindowController();
 
-	void ConfigureWindow();
+	GLFWwindow* window = nullptr;
+	graphics::Camera* camera;
+
 	void ConfigureInputAndCamera(graphics::Camera* camera);
 
 	inline void handleInput()
@@ -17,11 +22,4 @@ public:
 		if(camera != nullptr)
 			inputController.adjustParametersUsingInput(*camera);
 	}
-
-	GLFWwindow* window = nullptr;
-	graphics::Camera* camera = nullptr;
-
-private:
-	graphics::InputController inputController;
-
 };

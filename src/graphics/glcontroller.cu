@@ -8,9 +8,6 @@
 #include "../utilities/cuda_vec3.cuh"
 #include "../utilities/cuda_threads.hpp"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 #include <iostream>
 

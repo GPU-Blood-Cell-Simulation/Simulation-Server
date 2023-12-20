@@ -24,6 +24,7 @@ WindowController::WindowController()
 
 WindowController::~WindowController()
 {
+    glfwDestroyWindow(window);
     glfwTerminate();
 }
 

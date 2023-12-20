@@ -456,6 +456,7 @@
     <ClInclude Include="src\objects\particles.cuh" />
     <ClInclude Include="src\objects\vein_triangles.cuh" />
     <ClInclude Include="src\simulation\particle_collisions.cuh" />
+    <ClInclude Include="src\simulation\physics.cuh" />
     <ClInclude Include="src\simulation\simulation_controller.cuh" />
     <ClInclude Include="src\simulation\vein_collisions.cuh" />
     <ClInclude Include="src\simulation\vein_end.cuh" />

@@ -13,24 +13,25 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-using Grid = std::variant<UniformGrid*, NoGrid*>;
+//using Grid = std::variant<UniformGrid*, NoGrid*>;
 
 namespace sim
 {
 	class SimulationController
 	{
 	public:
-		SimulationController(BloodCells& bloodCells, VeinTriangles& triangles, Grid particleGrid, Grid triangleGrid);
+		SimulationController(BloodCells& bloodCells, VeinTriangles& triangles, UniformGrid* particleGrid, UniformGrid* triangleGrid);
 		~SimulationController();
 
 		void calculateNextFrame();
 		std::vector<glm::vec3> initialCellPositions;
+		float* cellModelsBoundingSpheres;
 
 	private:
 		BloodCells& bloodCells;
 		VeinTriangles& triangles;
-		Grid particleGrid;
-		Grid triangleGrid;
+		UniformGrid* particleGrid;
+		UniformGrid* triangleGrid;
 
 		CudaThreads bloodCellsThreads;
 		CudaThreads veinVerticesThreads;
