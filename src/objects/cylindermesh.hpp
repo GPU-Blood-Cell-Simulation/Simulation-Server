@@ -43,26 +43,6 @@ public:
 		);*/
 	}
 
-	inline const std::vector<glm::vec3> getVertices() const
-	{
-		std::vector<glm::vec3> positions(vertices.size());
-		std::transform(vertices.cbegin(), vertices.cend(), positions.begin(), [&](auto& v) {
-			return v.position;
-		});
-		return positions;
-	}
-
-	inline const std::vector<unsigned int>& getIndices() const
-	{
-		return indices;
-	}
-
-	inline std::tuple<float, float, float> getSpringLengths() const
-	{
-		//return springLengths;
-		return std::tuple(0,0,0);
-	}
-
 	SingleObjectMesh CreateMesh()
 	{
 		return SingleObjectMesh(std::move(vertices), std::move(indices));

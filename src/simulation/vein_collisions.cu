@@ -318,7 +318,7 @@ namespace sim
 		}
 
 		
-		for (int triangleId = 0; triangleId < triangles.triangleCount; ++triangleId)
+		for (int triangleId = 0; triangleId < triangleCount; ++triangleId)
 		{
 			constexpr float EPS = 1e-7f;
 			// triangle vectices and edges
