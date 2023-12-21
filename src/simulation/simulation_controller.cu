@@ -26,7 +26,7 @@ namespace sim
 	template<int totalBloodCellCount>
 	__global__ void generateRandomPositonsAndVelocitieskernel(curandState* states, cudaVec3 initialPositions, cudaVec3 initialVelocities);
 
-	SimulationController::SimulationController(BloodCells& bloodCells, VeinTriangles& triangles, Grid* particleGrid, Grid* triangleGrid) :
+	SimulationController::SimulationController(BloodCells& bloodCells, VeinTriangles& triangles, Grid particleGrid, Grid triangleGrid) :
 		bloodCells(bloodCells), triangles(triangles), particleGrid(particleGrid), triangleGrid(triangleGrid),
 		bloodCellsThreads(particleCount),
 		veinVerticesThreads(triangles.vertexCount),
@@ -49,6 +49,7 @@ namespace sim
 		{
 			HANDLE_ERROR(cudaStreamDestroy(streams[i]));
 		}
+		HANDLE_ERROR(cudaFree(cellModelsBoundingSpheres));
 	}
 
 	// Generate initial positions and velocities of particles

@@ -259,10 +259,10 @@ namespace graphics
 		cylinderSolidColorShader->setMatrix("view", camera.getView());
 		cylinderSolidColorShader->setMatrix("projection", projection);
 
-		glDisable(GL_CULL_FACE);
-		//glCullFace(GL_FRONT);
+		//glDisable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
 		veinModel.draw(cylinderSolidColorShader.get());
-		//glCullFace(GL_BACK);
-		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		//glEnable(GL_CULL_FACE);
 	}
 }

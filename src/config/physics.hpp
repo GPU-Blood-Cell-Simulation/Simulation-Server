@@ -14,7 +14,7 @@ inline constexpr float particle_d_fact = 20.0f;
 inline constexpr float vein_d_fact = 0.0f;
 
 inline constexpr float viscous_damping = 0.1f;
-
+inline constexpr float vein_boundaries_velocity_damping = 0.65f;
 // Particle-particle collision coefficients
 inline constexpr float collisionSpringCoeff = 6.0f;
 inline constexpr float collisionDampingCoeff = 6.0f;
