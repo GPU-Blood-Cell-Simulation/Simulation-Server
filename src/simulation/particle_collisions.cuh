@@ -26,8 +26,8 @@ namespace sim
 	}
 
 	// Detect Colllisions in all 27 cells unless some corner cases are present - specified by template parameters. 
-	template<int xMin, int xMax, int yMin, int yMax, int zMin, int zMax, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart>
-	__device__ void detectCollisionsInNeighborCells(BloodCells& bloodCells, UniformGrid& grid, float3 p1, float3 v1, int particleId, int cellId, float* boundingSpheresModel)
+	template<int xMin, int xMax, int yMin, int yMax, int zMin, int zMax>
+	__device__ void detectCollisionsInNeighborCells(BloodCells& bloodCells, UniformGrid& grid, float3 p1, float3 v1, int particleId, int cellId, float* boundingSpheresModel, int boundingModelIndex)
 	{
 		#pragma unroll
 		for (int x = xMin; x <= xMax; x++)
@@ -48,8 +48,8 @@ namespace sim
 						// one particular iteration (0,0,0) differently than the others
 						if (particleId == secondParticleId)
 							continue;
-						int modelIndex = bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell;
-						detectCollision(bloodCells, p1, v1, particleId, secondParticleId, boundingSpheresModel[modelIndex]);
+						//int modelIndex = bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell;
+						detectCollision(bloodCells, p1, v1, particleId, secondParticleId, boundingSpheresModel[boundingModelIndex]);
 					}
 				}
 			}
@@ -58,13 +58,12 @@ namespace sim
 
 
 	// Should have been a deleted function but CUDA doesn't like it
-	//template<typename T, int particlesInBloodCell,int bloodCellmodelStart, int particlesStart>
-	//__global__ void calculateParticleCollisions(BloodCells bloodCells, T grid, float* boundingSpheresModel) {}
-
+	template<typename T>
+	__global__ void calculateParticleCollisions(BloodCells bloodCells, T grid, float* boundingSpheresModel,int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
 	// Calculate collisions between particles using UniformGrid
-	template<int particlesInBloodCell, int bloodCellmodelStart, int particlesStart>
-	__global__ void calculateParticleCollisions/*<UniformGrid>*/(BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel)
+	template<>
+	__global__ void calculateParticleCollisions<UniformGrid>(BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
 		int id = blockIdx.x * blockDim.x + threadIdx.x;
 		if (id >= particleCount)
@@ -82,51 +81,52 @@ namespace sim
 		
 		// Check all corner cases and call the appropriate function specialization
 		// Ugly but fast
+		int boundingModelIndex = bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell;
 		if (xId < 1)
 		{
 			if (yId < 1)
 			{
 				if (zId < 1)
 				{
-					detectCollisionsInNeighborCells<0, 1, 0, 1, 0, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<0, 1, 0, 1, 0, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else if (zId > grid.cellCountZ - 2)
 				{
-					detectCollisionsInNeighborCells<0, 1, 0, 1, -1, 0, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<0, 1, 0, 1, -1, 0>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else
 				{
-					detectCollisionsInNeighborCells<0, 1, 0, 1, -1, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<0, 1, 0, 1, -1, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 			}
 			else if (yId > grid.cellCountY - 2)
 			{
 				if (zId < 1)
 				{
-					detectCollisionsInNeighborCells<0, 1, -1, 0, 0, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<0, 1, -1, 0, 0, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else if (zId > grid.cellCountZ - 2)
 				{
-					detectCollisionsInNeighborCells<0, 1, -1, 0, -1, 0, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<0, 1, -1, 0, -1, 0>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else
 				{
-					detectCollisionsInNeighborCells<0, 1, -1, 0, -1, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<0, 1, -1, 0, -1, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 			}
 			else
 			{
 				if (zId < 1)
 				{
-					detectCollisionsInNeighborCells<0, 1, -1, 1, 0, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<0, 1, -1, 1, 0, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else if (zId > grid.cellCountZ - 2)
 				{
-					detectCollisionsInNeighborCells<0, 1, -1, 1, -1, 0, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<0, 1, -1, 1, -1, 0>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else
 				{
-					detectCollisionsInNeighborCells<0, 1, -1, 1, -1, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<0, 1, -1, 1, -1, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 			}
 		}
@@ -136,45 +136,45 @@ namespace sim
 			{
 				if (zId < 1)
 				{
-					detectCollisionsInNeighborCells<-1, 0, 0, 1, 0, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 0, 0, 1, 0, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else if (zId > grid.cellCountZ - 2)
 				{
-					detectCollisionsInNeighborCells<-1, 0, 0, 1, -1, 0, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 0, 0, 1, -1, 0>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else
 				{
-					detectCollisionsInNeighborCells<-1, 0, 0, 1, -1, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 0, 0, 1, -1, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 			}
 			else if (yId > grid.cellCountY - 2)
 			{
 				if (zId < 1)
 				{
-					detectCollisionsInNeighborCells<-1, 0, -1, 0, 0, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 0, -1, 0, 0, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else if (zId > grid.cellCountZ - 2)
 				{
-					detectCollisionsInNeighborCells<-1, 0, -1, 0, -1, 0, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 0, -1, 0, -1, 0>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else
 				{
-					detectCollisionsInNeighborCells<-1, 0, -1, 0, -1, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 0, -1, 0, -1, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 			}
 			else
 			{
 				if (zId < 1)
 				{
-					detectCollisionsInNeighborCells<-1, 0, -1, 1, 0, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 0, -1, 1, 0, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else if (zId > grid.cellCountZ - 2)
 				{
-					detectCollisionsInNeighborCells<-1, 0, -1, 1, -1, 0, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 0, -1, 1, -1, 0>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else
 				{
-					detectCollisionsInNeighborCells<-1, 0, -1, 1, -1, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 0, -1, 1, -1, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 			}
 		}
@@ -184,69 +184,69 @@ namespace sim
 			{
 				if (zId < 1)
 				{
-					detectCollisionsInNeighborCells<-1, 1, 0, 1, 0, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 1, 0, 1, 0, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else if (zId > grid.cellCountZ - 2)
 				{
-					detectCollisionsInNeighborCells<-1, 1, 0, 1, -1, 0, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 1, 0, 1, -1, 0>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else
 				{
-					detectCollisionsInNeighborCells<-1, 1, 0, 1, -1, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 1, 0, 1, -1, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 			}
 			else if (yId > grid.cellCountY - 2)
 			{
 				if (zId < 1)
 				{
-					detectCollisionsInNeighborCells<-1, 1, -1, 0, 0, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 1, -1, 0, 0, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else if (zId > grid.cellCountZ - 2)
 				{
-					detectCollisionsInNeighborCells<-1, 1, -1, 0, -1, 0, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 1, -1, 0, -1, 0>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else
 				{
-					detectCollisionsInNeighborCells<-1, 1, -1, 0, -1, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 1, -1, 0, -1, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 			}
 			else
 			{
 				if (zId < 1)
 				{
-					detectCollisionsInNeighborCells<-1, 1, -1, 1, 0, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 1, -1, 1, 0, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else if (zId > grid.cellCountZ - 2)
 				{
-					detectCollisionsInNeighborCells<-1, 1, -1, 1, -1, 0, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 1, -1, 1, -1, 0>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 				else
 				{
-					detectCollisionsInNeighborCells<-1, 1, -1, 1, -1, 1, particlesInBloodCell, bloodCellmodelStart, particlesStart>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel);
+					detectCollisionsInNeighborCells<-1, 1, -1, 1, -1, 1>(bloodCells, grid, p1, v1, particleId, cellId, boundingSpheresModel, boundingModelIndex);
 				}
 			}
 		}
 	}
 
 	// Calculate collisions between particles without any grid (naive implementation)
-	// template<int particlesInBloodCell, int bloodCellmodelStart, int particlesStart>
-	// __global__ void calculateParticleCollisions<NoGrid>(BloodCells bloodCells, NoGrid grid, float* boundingSpheresModel)
-	// {
-	// 	int id = blockIdx.x * blockDim.x + threadIdx.x;
-	// 	if (id >= particleCount)
-	// 		return;
+	 template<>
+	 __global__ void calculateParticleCollisions<NoGrid>(BloodCells bloodCells, NoGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
+	 {
+	 	int id = blockIdx.x * blockDim.x + threadIdx.x;
+	 	if (id >= particleCount)
+	 		return;
 
-	// 	float3 p1 = bloodCells.particles.positions.get(id);
-	// 	float3 v1 = bloodCells.particles.positions.get(id);
+	 	float3 p1 = bloodCells.particles.positions.get(id);
+	 	float3 v1 = bloodCells.particles.positions.get(id);
 
-	// 	// Naive implementation
-	// 	for (int i = 0; i < particleCount; i++)
-	// 	{
-	// 		if (id == i)
-	// 			continue;
+	 	// Naive implementation
+	 	for (int i = 0; i < particleCount; i++)
+	 	{
+	 		if (id == i)
+	 			continue;
 
-	// 		// if to use in the future, last argument should be changed
-	// 		detectCollision(bloodCells, p1, v1, id, i, 0.0f);
-	// 	}
-	// }
+	 		// if to use in the future, last argument should be changed
+	 		detectCollision(bloodCells, p1, v1, id, i, 0.0f);
+	 	}
+	 }
 }

@@ -75,107 +75,110 @@ namespace sim
 	}
 
 #pragma region Main Collision Template Kernels
-	// template<typename T, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart>
-	// __global__ void detectVeinCollisionsAndPropagateForces(BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel) {}
+	 template<typename T>
+	 __global__ void detectVeinCollisionsAndPropagateForces(BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel,
+		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
-	// template<int particlesInBloodCell, int bloodCellmodelStart, int particlesStart>
-	// __global__ void detectVeinCollisionsAndPropagateForces<NoGrid>(BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel)
-	// {
-	// 	int particleId = blockDim.x * blockIdx.x + threadIdx.x;
+	 template<>
+	 __global__ void detectVeinCollisionsAndPropagateForces<NoGrid>(BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
+		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
+	 {
+	 	int particleId = blockDim.x * blockIdx.x + threadIdx.x;
 
-	// 	if (particleId >= particleCount)
-	// 		return;
+	 	if (particleId >= particleCount)
+	 		return;
 
-	// 	// propagate force into velocities
-	// 	float3 F = bloodCells.particles.forces.get(particleId);
-	// 	float3 velocity = bloodCells.particles.velocities.get(particleId);
-	// 	float3 initialVelocity = velocity;
-	// 	float3 pos = bloodCells.particles.positions.get(particleId);
+	 	// propagate force into velocities
+	 	float3 F = bloodCells.particles.forces.get(particleId);
+	 	float3 velocity = bloodCells.particles.velocities.get(particleId);
+	 	float3 initialVelocity = velocity;
+	 	float3 pos = bloodCells.particles.positions.get(particleId);
 
-	// 	velocity = velocity + dt * F;
-	// 	float3 velocityDir = normalize(velocity);
+	 	velocity = velocity + dt * F;
+	 	float3 velocityDir = normalize(velocity);
 
 
-	// 	// cubical bounds
-	// 	if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
-	// 		goto set_particle_values;
-	// 	}
-	// 	{
-	// 		ray r(pos, velocityDir);
-	// 		float3 reflectedVelociy = make_float3(0, 0, 0);
+	 	// cubical bounds
+	 	if (modifyVelocityIfPositionOutOfBounds(pos, velocity, velocityDir)) {
+	 		goto set_particle_values;
+	 	}
+	 	{
+	 		ray r(pos, velocityDir);
+	 		float3 reflectedVelociy = make_float3(0, 0, 0);
 
-	// 		bool collisionOccured = false;
-	// 		for (int triangleId = 0; triangleId < triangles.triangleCount; ++triangleId)
-	// 		{
-	// 			constexpr float EPS = 1e-7f;
-	// 			// triangle vectices and edges
-	// 			float3 v0 = triangles.positions.get(triangles.getIndex(triangleId, vertex0));
-	// 			float3 v1 = triangles.positions.get(triangles.getIndex(triangleId, vertex1));
-	// 			float3 v2 = triangles.positions.get(triangles.getIndex(triangleId, vertex2));
-	// 			const float3 edge1 = v1 - v0;
-	// 			const float3 edge2 = v2 - v0;
+	 		bool collisionOccured = false;
+	 		for (int triangleId = 0; triangleId < triangleCount; ++triangleId)
+	 		{
+	 			constexpr float EPS = 1e-7f;
+	 			// triangle vectices and edges
+	 			float3 v0 = triangles.positions.get(triangles.getIndex(triangleId, vertex0));
+	 			float3 v1 = triangles.positions.get(triangles.getIndex(triangleId, vertex1));
+	 			float3 v2 = triangles.positions.get(triangles.getIndex(triangleId, vertex2));
+	 			const float3 edge1 = v1 - v0;
+	 			const float3 edge2 = v2 - v0;
 
-	// 			const float3 h = cross(r.direction, edge2);
-	// 			const float a = dot(edge1, h);
-	// 			if (a > -EPS && a < EPS)
-	// 				continue; // ray parallel to triangle
+	 			const float3 h = cross(r.direction, edge2);
+	 			const float a = dot(edge1, h);
+	 			if (a > -EPS && a < EPS)
+	 				continue; // ray parallel to triangle
 
-	// 			const float f = 1 / a;
-	// 			const float3 s = r.origin - v0;
-	// 			const float u = f * dot(s, h);
-	// 			if (u < 0 || u > 1)
-	// 				continue;
-	// 			if (!realCollisionDetection(v0, v1, v2, r, reflectedVelociy))
-	// 				continue;
+	 			const float f = 1 / a;
+	 			const float3 s = r.origin - v0;
+	 			const float u = f * dot(s, h);
+	 			if (u < 0 || u > 1)
+	 				continue;
+	 			if (!realCollisionDetection(v0, v1, v2, r, reflectedVelociy))
+	 				continue;
 
-	// 			r.objectIndex = triangleId;
-	// 			collisionOccured = true;
-	// 			break;
-	// 		}
+	 			r.objectIndex = triangleId;
+	 			collisionOccured = true;
+	 			break;
+	 		}
 
-	// 		float3 relativePosition = pos - (pos + r.t * r.direction);
-	// 		float distanceSquared = length_squared(relativePosition);
+	 		float3 relativePosition = pos - (pos + r.t * r.direction);
+	 		float distanceSquared = length_squared(relativePosition);
 
-	// 		if (collisionOccured && distanceSquared <= veinImpactDistance * veinImpactDistance)
-	// 		{
-	// 			// handle particle on collision
-	// 			if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
-	// 			{
-	// 				physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared, particleId,
-	// 					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces);
-	// 			}
-	// 			float speed = length(velocity);
-	// 			velocity = velocityCollisionDamping * speed * reflectedVelociy;
-	// 			bloodCells.particles.velocities.set(particleId, velocity);
+	 		if (collisionOccured && distanceSquared <= veinImpactDistance * veinImpactDistance)
+	 		{
+	 			// handle particle on collision
+	 			if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
+	 			{
+	 				physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared, particleId,
+	 					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces);
+	 			}
+	 			float speed = length(velocity);
+	 			velocity = velocityCollisionDamping * speed * reflectedVelociy;
+	 			bloodCells.particles.velocities.set(particleId, velocity);
 
-	// 			// handle vein on collision
-	// 			float3 ds = 0.8f * velocityDir;
-	// 			unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
-	// 			unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
-	// 			unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
+	 			// handle vein on collision
+	 			float3 ds = 0.8f * velocityDir;
+	 			unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
+	 			unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
+	 			unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
 
-	// 			float3 v0 = triangles.positions.get(vertexIndex0);
-	// 			float3 v1 = triangles.positions.get(vertexIndex1);
-	// 			float3 v2 = triangles.positions.get(vertexIndex2);
+	 			float3 v0 = triangles.positions.get(vertexIndex0);
+	 			float3 v1 = triangles.positions.get(vertexIndex1);
+	 			float3 v2 = triangles.positions.get(vertexIndex2);
 
-	// 			float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
+	 			float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
 
-	// 			// TODO:
-	// 			// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
-	// 			// Here we probably should use atomicAdd. - Hubert
-	// 			// move triangle a bit
-	// 			triangles.forces.add(vertexIndex0, baricentric.x * ds);
-	// 			triangles.forces.add(vertexIndex1, baricentric.y * ds);
-	// 			triangles.forces.add(vertexIndex2, baricentric.z * ds);
-	// 		}
-	// 	}
-	// set_particle_values:
+	 			// TODO:
+	 			// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
+	 			// Here we probably should use atomicAdd. - Hubert
+	 			// move triangle a bit
+	 			triangles.forces.add(vertexIndex0, baricentric.x * ds);
+	 			triangles.forces.add(vertexIndex1, baricentric.y * ds);
+	 			triangles.forces.add(vertexIndex2, baricentric.z * ds);
+	 		}
+	 	}
+	 set_particle_values:
 
-	// 	physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
-	// }
+	 	physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
+	 }
 
-	template<int particlesInBloodCell, int bloodCellmodelStart, int particlesStart>
-	__global__ void detectVeinCollisionsAndPropagateForces/*<UniformGrid>*/(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel)
+	template<>
+	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
+		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
 		int particleId = blockDim.x * blockIdx.x + threadIdx.x;
 

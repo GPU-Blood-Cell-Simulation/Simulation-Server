@@ -76,51 +76,51 @@ namespace sim
 
 		float3 newPosition = position + dt * velocity;
 
-		if (newPosition.x < EPS) {
+		if (newPosition.x < minX + EPS) {
 
-			float dx = EPS - newPosition.x;
+			float dx = minX + EPS - newPosition.x;
 			float takeBackLength = dx / normalizedVelocity.x;
 			position = position - takeBackLength * normalizedVelocity;
 			velocity.x *= -1;
 			return true;
 		}
-		else if (newPosition.x > width - EPS) {
+		else if (newPosition.x > maxX - EPS) {
 
-			float dx = newPosition.x - width + EPS;
+			float dx = newPosition.x - maxX + EPS;
 			float takeBackLength = dx / normalizedVelocity.x;
 			position = position - takeBackLength * normalizedVelocity;
 			velocity.x *= -1;
 			return true;
 		}
 
-		if (newPosition.y < 0.15f * height + EPS) {
+		if (newPosition.y < 0.15f * minY + EPS) {
 
-			float dy = EPS - newPosition.y;
+			float dy = minY + EPS - newPosition.y;
 			float takeBackLength = dy / normalizedVelocity.y;
 			position = position - takeBackLength * normalizedVelocity;
 			velocity.y *= -1;
 			return true;
 		}
-		else if (newPosition.y > 0.85f * height - EPS) {
+		else if (newPosition.y > 0.85f * maxY - EPS) {
 
-			float dy = newPosition.y - height + EPS;
+			float dy = newPosition.y - maxY + EPS;
 			float takeBackLength = dy / normalizedVelocity.y;
 			position = position - takeBackLength * normalizedVelocity;
 			velocity.y *= -1;
 			return true;
 		}
 
-		if (newPosition.z < EPS) {
+		if (newPosition.z < minZ + EPS) {
 
-			float dz = EPS - newPosition.z;
+			float dz = minZ + EPS - newPosition.z;
 			float takeBackLength = dz / normalizedVelocity.z;
 			position = position - takeBackLength * normalizedVelocity;
 			velocity.z *= -1;
 			return true;
 		}
-		else if (newPosition.z > depth - EPS) {
+		else if (newPosition.z > maxZ - EPS) {
 
-			float dz = newPosition.z - depth + EPS;
+			float dz = newPosition.z - maxZ + EPS;
 			float takeBackLength = dz / normalizedVelocity.z;
 			position = position - takeBackLength * normalizedVelocity;
 			velocity.z *= -1;
