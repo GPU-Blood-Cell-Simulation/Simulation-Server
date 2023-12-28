@@ -1,5 +1,4 @@
 #pragma once
-
 // Frames to render
 inline constexpr int maxFrames = 20000; //500;
 
@@ -13,9 +12,9 @@ inline constexpr float dt = 0.008f;
 inline constexpr bool useBloodFlow = true;
 
 // uniform grid cell count
-inline constexpr int cellWidth = 20;
-inline constexpr int cellHeight = 20;
-inline constexpr int cellDepth = 20;
+inline constexpr int cellWidth = 30;
+inline constexpr int cellHeight = 30;
+inline constexpr int cellDepth = 30;
 
 //inline constexpr int cellCountX = static_cast<int>(width / cellWidth);
 //inline constexpr int cellCountY = static_cast<int>(height / cellHeight);
@@ -23,7 +22,7 @@ inline constexpr int cellDepth = 20;
 
 // represents ratio of radius of maximal and actual bounding sphere
 // for particles in cells
-inline constexpr int boundingSpheresCoeff = 5;
+inline constexpr int boundingSpheresCoeff = 3;
 inline constexpr float gridYMargin = 10.0f;
 
 inline constexpr float gridXZMargin = 20.0f;

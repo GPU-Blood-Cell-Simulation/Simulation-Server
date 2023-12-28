@@ -81,12 +81,15 @@ namespace sim
 		// TODO: is there a faster way to calculate this?
 		/*if (velocity.x != 0 && velocity.y != 0 && velocity.z != 0)
 			goto set_particle_values;*/
-
+		
 		float3 velocityDir = normalize(velocity);
 
 		ray r(pos, velocityDir);
 		float3 reflectedVelociy = make_float3(0, 0, 0);
 
+		modifyVelocityIfPositionOutOfBounds(pos,  pos + 0.5f * dt * (velocity + initialVelocity), velocity, velocityDir);
+		physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
+		
 		// TODO: fix this
 		bool collisionDetected = false;
 		unsigned int cellId = triangleGrid.calculateCellId(pos);
@@ -252,14 +255,15 @@ namespace sim
 				{
 					physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared,
 						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces);
+					// TODO : think about more precise way to calculate vein response force on particle
 				}
 
 				float speed = length(velocity);
-				velocity = velocityCollisionDamping * speed * reflectedVelociy;
+				velocity = velocity_collision_damping * speed * reflectedVelociy;
 				bloodCells.particles.velocities.set(particleId, velocity);
 
 				// handle vein on collision
-				float3 ds = 0.8f * velocityDir;
+				float3 ds = vein_collision_force_intensity * velocityDir;
 				unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
 				unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
 				unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
@@ -279,15 +283,6 @@ namespace sim
 				triangles.forces.add(vertexIndex2, baricentric.z * ds);
 			}
 		}
-	set_particle_values:
-
-		// cubical bounds
-		//if () {
-			//goto set_particle_values;
-		//}
-		modifyVelocityIfPositionOutOfBounds(pos,  pos + 0.5f * dt * (velocity + initialVelocity), velocity, velocityDir);
-		physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
-
 		return;
 	}
 
@@ -308,7 +303,9 @@ namespace sim
 
 	 	velocity = velocity + dt * F;
 	 	float3 velocityDir = normalize(velocity);
-
+		
+		modifyVelocityIfPositionOutOfBounds(pos, pos + 0.5f * dt * (velocity + initialVelocity), velocity, velocityDir);
+	 	physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
 
 	 	{
 	 		ray r(pos, velocityDir);
@@ -355,11 +352,11 @@ namespace sim
 	 					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces);
 	 			}
 	 			float speed = length(velocity);
-	 			velocity = velocityCollisionDamping * speed * reflectedVelociy;
+	 			velocity = velocity_collision_damping * speed * reflectedVelociy;
 	 			bloodCells.particles.velocities.set(particleId, velocity);
 
 	 			// handle vein on collision
-	 			float3 ds = 0.8f * velocityDir;
+	 			float3 ds = 0.1f * velocityDir;
 	 			unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
 	 			unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
 	 			unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
@@ -379,14 +376,6 @@ namespace sim
 	 			triangles.forces.add(vertexIndex2, baricentric.z * ds);
 	 		}
 	 	}
-	 set_particle_values:
-
-	 	// cubical bounds
-	 	// if () {
-	 	// 	return;
-	 	// }
-		modifyVelocityIfPositionOutOfBounds(pos, pos + 0.5f * dt * (velocity + initialVelocity), velocity, velocityDir);
-	 	physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
 	 }
 
 	// because floats cannot be template parameters

@@ -160,15 +160,9 @@ namespace preset
 		mpFloat3<-57735, 57735, 57735, 5> // 7
 		>;
 
-#pragma endregion 
-
-
 	/// <summary>
 	/// Blood cell model vertices
 	/// </summary>
-#pragma region BloodCell20Vertices
-	
-
 	using BloodCellVertices =
 		mp_list <
 		mpFloat3<48, -11413, 51, 5>,
@@ -514,5 +508,4 @@ mp_list <
 	Spring<1, 19, 25986, 5>
 > ;
 #endif
-#pragma endregion
 }

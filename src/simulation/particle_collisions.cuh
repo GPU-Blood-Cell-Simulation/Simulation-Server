@@ -18,10 +18,10 @@ namespace sim
 		float3 relativePosition = position1 - position2;
 		float distanceSquared = length_squared(relativePosition);
 
-		if (distanceSquared <= radius * radius && distanceSquared >= 0.0000000005f)
+		if (distanceSquared <= radius * radius && distanceSquared >= 0.0001f)
 		{
 			float3 relativeVelocity = velocity1 - bloodCells.particles.velocities.get(particleId2);
-			physics::addResilientForceOnCollision(relativePosition, relativeVelocity, distanceSquared, radius, particleId1, 1.0f, bloodCells.particles.forces);
+			physics::addResilientForceOnCollision(relativePosition, relativeVelocity, distanceSquared, radius, particleId1, 0.5f, bloodCells.particles.forces);
 		}
 	}
 

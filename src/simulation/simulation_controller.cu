@@ -164,7 +164,7 @@ namespace sim
 		if (id >= totalBloodCellCount)
 			return;
 		initialPositions.x[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
-		initialPositions.y[id] = minSpawnY;
+		initialPositions.y[id] = minSpawnY - 20.0f*curand_uniform(&states[id])*min(particleCount/1000.0f, 1.0f);
 		initialPositions.z[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
 
 #ifdef INITIAL_VELOCITY_RANDOM

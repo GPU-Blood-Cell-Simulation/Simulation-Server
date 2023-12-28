@@ -23,9 +23,8 @@ namespace physics
 	/// <returns></returns>
 	__device__ inline float springMassForceWithDampingForParticle(float3 dP, float3 dv, float springLength)
 	{
-		return ((length(dP) - springLength) * particle_k_sniff + dot(normalize(dP), dv) * particle_d_fact);
+		return (length(dP) - springLength) * particle_k_sniff + dot(normalize(dP), dv) * particle_d_fact;
 	}
-
 
 	__device__ inline float springMassForceWithDampingForVein(float3 p1, float3 p2, float3 v1, float3 v2, float springLength)
 	{
@@ -99,7 +98,7 @@ namespace physics
 		float3 shearForce = collistionShearCoeff * tangentialVelocity;
 
 		// Uncoalesced writes - area for optimization
-		forces.add(particleId, 0.5f * (springForce + damplingForce + shearForce));
+		forces.add(particleId, intensityCoefficient * (springForce + damplingForce + shearForce));
 	}
 
 	__device__ inline void propagateForcesInParticles(unsigned int particleId, BloodCells& bloodCells, float3 velocity, float3 initialVelocity)

@@ -62,8 +62,10 @@ __global__ static void gatherForcesKernel(BloodCells bloodCells)
 			float3 springForceComponent = physics::calculateParticlesSpringForceComponent(position - neighbourPosition,
 				velocity - neighbourVelocity, initialForce, neighbourInitialForce, springLength, p, v);
 
+#ifdef USE_RUNGE_KUTTA_FOR_PARTICLE
 			newPosition = newPosition + p;
 			newVelocity = newVelocity + v;
+#endif
 			newForce = newForce + springForceComponent;
 		}
 	}
