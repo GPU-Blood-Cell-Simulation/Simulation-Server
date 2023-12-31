@@ -22,7 +22,7 @@ namespace sim
 	__global__ void setBloodCellsPositionsFromRandom(curandState* states, Particles particles, cudaVec3 bloodCellModelPosition, cudaVec3 initialPositions, cudaVec3 initialVelocities);
 
 	template<int totalBloodCellCount>
-	__global__ void generateRandomPositonsAndVelocitieskernel(curandState* states, cudaVec3 initialPositions, cudaVec3 initialVelocities);
+	__global__ void generateRandomPositonsAndVelocitiesKernel(curandState* states, cudaVec3 initialPositions, cudaVec3 initialVelocities);
 	
 	SimulationController::SimulationController(BloodCells& bloodCells, VeinTriangles& triangles, Grid particleGrid, Grid triangleGrid) :
 		bloodCells(bloodCells), triangles(triangles), particleGrid(particleGrid), triangleGrid(triangleGrid),
@@ -115,7 +115,7 @@ namespace sim
 		cudaVec3 initialVelocities(bloodCellCount);
 
 		// Generate random positions and velocity vectors
-		generateRandomPositonsAndVelocitieskernel<bloodCellCount> << <  bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, initialPositions, initialVelocities);
+		generateRandomPositonsAndVelocitiesKernel<bloodCellCount> << <  bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, initialPositions, initialVelocities);
 		HANDLE_ERROR(cudaThreadSynchronize());
 
 		// TODO: ugly code - use std::array
@@ -155,7 +155,7 @@ namespace sim
 
 	// generate initial positions for blood cells
 	template<int totalBloodCellCount>
-	__global__ void generateRandomPositonsAndVelocitieskernel(curandState* states, cudaVec3 initialPositions, cudaVec3 initialVelocities)
+	__global__ void generateRandomPositonsAndVelocitiesKernel(curandState* states, cudaVec3 initialPositions, cudaVec3 initialVelocities)
 	{
 		int id = blockIdx.x * blockDim.x + threadIdx.x;
 		if (id >= totalBloodCellCount)
@@ -256,7 +256,7 @@ namespace sim
 
 				if constexpr (useBloodFlow)
 				{
-					HandleVeinEnd(bloodCells, streams);
+					HandleVeinEnd(bloodCells, devStates, streams);
 					HANDLE_ERROR(cudaPeekAtLastError());
 				}
 			}, particleGrid, triangleGrid);
