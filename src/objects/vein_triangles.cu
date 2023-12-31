@@ -1,6 +1,6 @@
 #include "vein_triangles.cuh"
 
-#include "../config/simulation.hpp"
+#include "../simulation/physics.cuh"
 #include "../config/vein_definition.hpp"
 #include "../utilities/cuda_handle_error.cuh"
 #include "../utilities/math.cuh"
@@ -127,7 +127,7 @@ __global__ static void gatherForcesKernel(VeinTriangles triangles)
 		{
 			springLength = springLengths[id];			
 			neighborPosition = triangles.positions.get(neighborId);
-			springForce = triangles.calculateVeinSpringForce(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(neighborId), springLength);
+			springForce = physics::springMassForceWithDampingForVein(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(neighborId), springLength);
 			vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);	
 		}
 	}	

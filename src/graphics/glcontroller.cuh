@@ -14,7 +14,6 @@
 #include <glm/vec3.hpp>
 #include <memory>
 
-
 namespace graphics
 {
 	// Controls rendering of the particles

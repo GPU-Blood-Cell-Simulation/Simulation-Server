@@ -25,6 +25,7 @@ namespace sim
 
 		void calculateNextFrame();
 		std::vector<glm::vec3> initialCellPositions;
+		float* cellModelsBoundingSpheres;
 
 	private:
 		BloodCells& bloodCells;

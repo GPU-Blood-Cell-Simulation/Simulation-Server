@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../config/physics.hpp"
+#include "../simulation/physics.cuh"
 #include "../meta_factory/vein_factory.hpp"
 #include "../utilities/cuda_vec3.cuh"
 #include "../utilities/math.cuh"
@@ -38,11 +38,6 @@ public:
 	__device__ inline unsigned int getIndex(int triangleIndex, VertexIndex vertexIndex) const
 	{
 		return indices[3 * triangleIndex + vertexIndex];
-	}
-
-	__device__ inline float calculateVeinSpringForce(float3 p1, float3 p2, float3 v1, float3 v2, float springLength)
-	{
-		return (length(p1 - p2) - springLength) * vein_k_sniff + dot(normalize(p1 - p2), (v1 - v2)) * vein_d_fact;
 	}
 
 	void gatherForcesFromNeighbors(int blocks, int threadsPerBlock);

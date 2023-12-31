@@ -81,9 +81,9 @@ __global__ void calculateStartAndEndOfCellKernel(const float* positionX, const f
 // Allocate GPU buffers for the index buffers
 UniformGrid::UniformGrid(const int objectCount, int cellWidth, int cellHeight, int cellDepth) :
 	objectCount(objectCount), cellWidth(cellWidth), cellHeight(cellHeight), cellDepth(cellDepth),
-	cellCountX(static_cast<int>(std::ceil(width / cellWidth) + 0.5f)),
-	cellCountY(static_cast<int>(std::ceil(height / cellHeight) + 0.5f)),
-	cellCountZ(static_cast<int>(std::ceil(depth / cellDepth) + 0.5f)),
+	cellCountX(static_cast<int>(width / cellWidth)),
+	cellCountY(static_cast<int>(height / cellHeight)),
+	cellCountZ(static_cast<int>(depth / cellDepth)),
 	cellCount(cellCountX * cellCountY * cellCountZ)
 {
 	HANDLE_ERROR(cudaMalloc((void**)&gridCellIds, objectCount * sizeof(int)));

@@ -8,9 +8,6 @@
 #include "../utilities/cuda_vec3.cuh"
 #include "../utilities/cuda_threads.hpp"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 #include <iostream>
 
@@ -262,10 +259,10 @@ namespace graphics
 		cylinderSolidColorShader->setMatrix("view", camera.getView());
 		cylinderSolidColorShader->setMatrix("projection", projection);
 
-		glDisable(GL_CULL_FACE);
-		//glCullFace(GL_FRONT);
+		//glDisable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
 		veinModel.draw(cylinderSolidColorShader.get());
-		//glCullFace(GL_BACK);
-		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		//glEnable(GL_CULL_FACE);
 	}
 }

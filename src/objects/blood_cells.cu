@@ -1,5 +1,6 @@
 #include "blood_cells.cuh"
 
+#include "../simulation/physics.cuh"
 #include "../meta_factory/blood_cell_factory.hpp"
 #include "../utilities/cuda_handle_error.cuh"
 #include "../utilities/math.cuh"
@@ -8,7 +9,6 @@
 #include <vector>
 
 #include "cuda_runtime.h"
-
 
 constexpr float NO_SPRING = 0;
 
@@ -43,7 +43,8 @@ __global__ static void gatherForcesKernel(BloodCells bloodCells)
 
 	float3 position = bloodCells.particles.positions.get(realIndex);
 	float3 velocity = bloodCells.particles.velocities.get(realIndex);
-	float3 force{ 0, 0, 0 };
+	float3 initialForce = bloodCells.particles.forces.get(realIndex);
+	float3 newPosition {0,0,0}, newVelocity {0,0,0}, newForce{ 0, 0, 0 };
 
 #pragma unroll
 	for (int neighbourCellindex = 0; neighbourCellindex < particlesInBloodCell; neighbourCellindex++)
@@ -56,13 +57,28 @@ __global__ static void gatherForcesKernel(BloodCells bloodCells)
 
 			float3 neighbourPosition = bloodCells.particles.positions.get(neighbourIndex);
 			float3 neighbourVelocity = bloodCells.particles.velocities.get(neighbourIndex);
+			float3 neighbourInitialForce = bloodCells.particles.forces.get(neighbourIndex);
+			float3 p{ 0,0,0 }, v{ 0,0,0 };
+			float3 springForceComponent = physics::calculateParticlesSpringForceComponent(position - neighbourPosition,
+				velocity - neighbourVelocity, initialForce, neighbourInitialForce, springLength, p, v);
 
-			float springForce = bloodCells.calculateParticleSpringForce(position, neighbourPosition, velocity, neighbourVelocity, springLength);
-
-			force = force + springForce * normalize(neighbourPosition - position);
+#ifdef USE_RUNGE_KUTTA_FOR_PARTICLE
+			newPosition = newPosition + p;
+			newVelocity = newVelocity + v;
+#endif
+			newForce = newForce + springForceComponent;
 		}
 	}
-	bloodCells.particles.forces.add(realIndex, force);
+	// add gravitation and viscous damping
+	newForce = newForce + physics::accumulateEnvironmentForcesForParticles(velocity);
+
+#ifdef USE_RUNGE_KUTTA_FOR_PARTICLE
+	//bloodCells.particles.positions.add(realIndex, newPosition);
+	//bloodCells.particles.velocities.add(realIndex, newVelocity);
+	bloodCells.particles.forces.set(realIndex, (initialForce + newForce)/6.0f);
+#else
+	bloodCells.particles.forces.set(realIndex, (initialForce + newForce) / 2);
+#endif
 }
 
 void BloodCells::gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodCellTypeCount>& streams)
@@ -78,5 +94,4 @@ void BloodCells::gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodC
 			gatherForcesKernel<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, graphStart>
 				<< <threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (*this);
 		});
-
 }
