@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../grids/uniform_grid.cuh"
-#include "../grids/no_grid.cuh"
+#include "../grids/grid_definition.hpp"
 #include "../objects/blood_cells.cuh"
 #include "../objects/vein_triangles.cuh"
 #include "../utilities/math.cuh"
@@ -12,8 +11,6 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-
-using Grid = std::variant<UniformGrid*, NoGrid*>;
 
 namespace sim
 {
