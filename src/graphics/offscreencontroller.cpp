@@ -48,8 +48,7 @@ OffscreeenController::OffscreeenController()
     assertEGLError("eglBindAPI");
 
     // 5. Create a context and make it current
-    eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT, 
-                                        NULL);
+    eglCtx = eglCreateContext(eglDpy, eglCfg, EGL_NO_CONTEXT, NULL);
     assertEGLError("eglCreateContext");
 
     eglMakeCurrent(eglDpy, eglSurf, eglSurf, eglCtx);
