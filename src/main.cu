@@ -56,7 +56,7 @@ int main()
 #ifdef WINDOW_RENDER
     WindowController windowController;
 #else
-    OffscreeenController offscreenController;
+    OffscreenController offscreenController;
     StremmingController streamingController("127.0.0.1", 4321);
     streamingController.StartStreaming();
 #endif

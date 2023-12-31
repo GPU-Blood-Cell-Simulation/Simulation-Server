@@ -23,7 +23,7 @@ static const EGLint pbufferAttribs[] = {
   };
 
 
-OffscreeenController::OffscreeenController()
+OffscreenController::OffscreenController()
 {
     EGLint major, minor;
     EGLint numConfigs;
@@ -56,7 +56,7 @@ OffscreeenController::OffscreeenController()
     assertEGLError("eglMakeCurrent");   
 }
 
-OffscreeenController::~OffscreeenController()
+OffscreenController::~OffscreenController()
 {
     eglDestroyContext(eglDpy, eglCtx);
     assertEGLError("eglDestroyContext");
@@ -65,7 +65,7 @@ OffscreeenController::~OffscreeenController()
     assertEGLError("eglTerminate");
 }
 
-void OffscreeenController::assertEGLError(const std::string & msg)
+void OffscreenController::assertEGLError(const std::string & msg)
 {
     EGLint error = eglGetError();
 
