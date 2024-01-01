@@ -29,7 +29,7 @@ static void bus_error_handler(GstBus *bus, GstMessage *msg, gpointer data)
 
 
 StremmingController::StremmingController(const std::string& host, int port):
-	host(host), port(port), pixels(windowHeight * windowWidth * 4), timestamp(0)
+	host(host), port(port), pixels(windowHeight * windowWidth * 3), timestamp(0)
 {
 	/* init GStreamer */
 	gst_init (NULL, NULL);
@@ -60,7 +60,7 @@ StremmingController::StremmingController(const std::string& host, int port):
 	/* setup */
   	g_object_set(G_OBJECT(appsrc), "caps",
   		gst_caps_new_simple ("video/x-raw",
-             "format", G_TYPE_STRING, "RGBA",
+             "format", G_TYPE_STRING, "RGB",
 				     "width", G_TYPE_INT, windowWidth,
 				     "height", G_TYPE_INT, windowHeight,
 				     "framerate", GST_TYPE_FRACTION, 0, 1,
@@ -134,14 +134,14 @@ void StremmingController::SendFrame()
 {
 	GstBuffer *buffer;
 
-	glReadPixels(0, 0, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+	glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
 
 	buffer = gst_buffer_new_wrapped_full(GST_MEMORY_FLAG_LAST, (gpointer)(pixels.data()), pixels.size(), 0, pixels.size(), NULL, NULL );
 
-	GST_BUFFER_PTS (buffer) = timestamp;
-	GST_BUFFER_DURATION (buffer) = gst_util_uint64_scale_int(1, GST_SECOND, 30);
+	GST_BUFFER_PTS(buffer) = timestamp;
+	GST_BUFFER_DURATION(buffer) = gst_util_uint64_scale_int(1, GST_SECOND, 30);
 
-	timestamp += GST_BUFFER_DURATION (buffer);
+	timestamp += GST_BUFFER_DURATION(buffer);
 
 	if (gst_app_src_push_buffer((GstAppSrc*)appsrc, buffer) != GST_FLOW_OK) {
 		throw std::runtime_error("Error while pushing data to buffer");

@@ -18,6 +18,7 @@ public:
     void StopStreaming();
 
     void SendFrame();
+
 private:
     const std::string host;
     const int port;
@@ -28,5 +29,5 @@ private:
     std::vector<GLubyte> pixels;
     GstClockTime timestamp;
 
-    //void bus_message_handler(GstBus *bus, GstMessage *msg, gpointer data);
+    bool recording;
 };
