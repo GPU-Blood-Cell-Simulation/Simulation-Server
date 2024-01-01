@@ -255,9 +255,12 @@ namespace sim
 				{
 					physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared,
 						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces);
-					float3 F = bloodCells.particles.forces.get(particleId);
-					float3 responseForce = -1.0f*dot(F, r.normal)*r.normal/dot(r.normal, r.normal);
-					bloodCells.particles.forces.add(particleId, responseForce);
+					if constexpr (enableReactionForce)
+					{
+						float3 F = bloodCells.particles.forces.get(particleId);
+						float3 responseForce = -1.0f*dot(F, r.normal)*r.normal/dot(r.normal, r.normal);
+						bloodCells.particles.forces.add(particleId, responseForce);
+					}
 				}
 
 				float speed = length(velocity);
@@ -352,9 +355,12 @@ namespace sim
 	 			{
 	 				physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared, particleId,
 	 					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces);
-	 				float3 F = bloodCells.particles.forces.get(particleId);
-					float3 responseForce = dot(F, r.normal)*r.normal/dot(r.normal, r.normal);
-					bloodCells.particles.forces.add(particleId, responseForce);
+	 				if constexpr (enableReactionForce)
+					{
+						float3 F = bloodCells.particles.forces.get(particleId);
+						float3 responseForce = -1.0f*dot(F, r.normal)*r.normal/dot(r.normal, r.normal);
+						bloodCells.particles.forces.add(particleId, responseForce);
+					}
 				}
 	 			float speed = length(velocity);
 	 			velocity = velocity_collision_damping * speed * reflectedVelociy;

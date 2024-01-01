@@ -11,6 +11,9 @@ inline constexpr float dt = 0.008f;
 // Blood flow
 inline constexpr bool useBloodFlow = true;
 
+// reaction force
+inline constexpr bool enableReactionForce = true;
+
 // uniform grid cell count
 inline constexpr int cellWidth = 30;
 inline constexpr int cellHeight = 30;
