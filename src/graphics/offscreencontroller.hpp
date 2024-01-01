@@ -4,11 +4,11 @@
 #include <string>
 
 
-class OffscreeenController
+class OffscreenController
 {
 public:
-    OffscreeenController();
-    ~OffscreeenController();
+    OffscreenController();
+    ~OffscreenController();
 
     int width, height;
 
