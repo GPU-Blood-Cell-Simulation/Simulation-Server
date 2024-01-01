@@ -92,9 +92,9 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells, curandState* stat
 
 	if (teleport)
 	{
-		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.5f * cylinderRadius + bloodCellModels.x[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.x[bloodCellmodelStart];
+		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.x[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.x[bloodCellmodelStart];
 		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight + bloodCellModels.y[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.y[bloodCellmodelStart];
-		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.5f * cylinderRadius + bloodCellModels.z[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.z[bloodCellmodelStart];
+		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.z[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.z[bloodCellmodelStart];
 		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
 }
@@ -128,9 +128,9 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells, curandState* state
 	int particlesBelowTreshold = __any_sync(syncBitMask, posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold);
 
 	if (particlesBelowTreshold != 0) {
-		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.5f * cylinderRadius + bloodCellModels.x[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.x[bloodCellmodelStart];
+		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.x[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.x[bloodCellmodelStart];
 		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight + bloodCellModels.y[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.y[bloodCellmodelStart];
-		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.5f * cylinderRadius + bloodCellModels.z[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.z[bloodCellmodelStart];
+		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.z[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.z[bloodCellmodelStart];
 		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
 }
