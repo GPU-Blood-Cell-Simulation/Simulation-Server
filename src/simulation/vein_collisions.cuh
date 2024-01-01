@@ -19,6 +19,7 @@ namespace sim
 	{
 		float3 origin;
 		float3 direction;
+		float3 normal;
 		float t = 1e10f;
 
 		// rays may be used to determine intersection with objects
