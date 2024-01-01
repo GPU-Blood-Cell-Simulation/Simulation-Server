@@ -23,7 +23,7 @@ inline constexpr int cellDepth = 30;
 // represents ratio of radius of maximal and actual bounding sphere
 // for particles in cells
 inline constexpr int boundingSpheresCoeff = 3;
-inline constexpr float gridYMargin = 10.0f;
+inline constexpr float gridYMargin = 20.0f;
 
 inline constexpr float gridXZMargin = 20.0f;
 

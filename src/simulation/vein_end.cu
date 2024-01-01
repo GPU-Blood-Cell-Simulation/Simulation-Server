@@ -9,12 +9,12 @@
 #include "cuda_runtime.h"
 
 
-constexpr float upperBoundTreshold = maxY - gridYMargin;
-constexpr float lowerBoundTreshold = minY + gridYMargin;
-constexpr float rightBoundTreshold = maxX - gridXZMargin;
-constexpr float leftBoundTreshold = minX + gridXZMargin;
-constexpr float frontBoundTreshold = maxZ - gridXZMargin;
-constexpr float backBoundTreshold = minZ + gridXZMargin;
+constexpr float upperBoundTreshold = maxY - gridYMargin / 2;
+constexpr float lowerBoundTreshold = minY + gridYMargin / 2;
+constexpr float rightBoundTreshold = maxX - gridXZMargin / 2;
+constexpr float leftBoundTreshold = minX + gridXZMargin / 2;
+constexpr float frontBoundTreshold = maxZ - gridXZMargin / 2;
+constexpr float backBoundTreshold = minZ + gridXZMargin / 2;
 constexpr float targetTeleportHeight = minSpawnY;
 
 enum SynchronizationType { warpSync, blockSync };
@@ -55,7 +55,7 @@ constexpr int CalculateBlocksCount(SynchronizationType syncType, int particleCou
 }
 
 template <int bloodCellsCount, int particlesInBloodCell, int particlesStart>
-__global__ void handleVeinEndsBlockSync(BloodCells bloodCells)
+__global__ void handleVeinEndsBlockSync(BloodCells bloodCells, curandState* states)
 {
 	__shared__ bool belowVein[CalculateThreadsPerBlock(blockSync, bloodCellsCount, particlesInBloodCell)];
 	int indexInType = blockDim.x * blockIdx.x + threadIdx.x;
@@ -73,7 +73,7 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells)
 		bloodCells.particles.velocities.y[realIndex] -= 5;
 	}
 
-	// Check lower bound
+	// Check if teleportiation should occur
 	bool teleport = posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold;
 	belowVein[threadIdx.x] = teleport;
 
@@ -91,16 +91,17 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells)
 
 	if (teleport)
 	{
-		// TODO: add some randomnes to velocity and change positivon to one which is always inside the vein
-		//bloodCells.particles.positions.y[realIndex] += targetTeleportHeight - lowerBoundTreshold - 10;
+		// TODO: make sure particles within a cell are close to each other
+		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex]) - 0.5f) * 0.5f * cylinderRadius;
 		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight;
+		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex]) - 0.5f) * 0.5f * cylinderRadius;
 		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
 }
 
 # include <stdio.h>
 template <int bloodCellsCount, int particlesInBloodCell, int particlesStart>
-__global__ void handleVeinEndsWarpSync(BloodCells bloodCells)
+__global__ void handleVeinEndsWarpSync(BloodCells bloodCells, curandState* states)
 {
 	int indexInType = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -127,15 +128,16 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells)
 	int particlesBelowTreshold = __any_sync(syncBitMask, posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold);
 
 	if (particlesBelowTreshold != 0) {
-		// TODO: add some randomnes to velocity and change positivon to one which is always inside the vein
-		//bloodCells.particles.positions.y[realIndex] += targetTeleportHeight - lowerBoundTreshold - 10;
+		// TODO: make sure particles within a cell are close to each other
+		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex]) - 0.5f) * 0.5f * cylinderRadius;
 		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight;
+		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex]) - 0.5f) * 0.5f * cylinderRadius;
 		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
 }
 
 
-void HandleVeinEnd(BloodCells& cells, const std::array<cudaStream_t, bloodCellTypeCount>& streams)
+void HandleVeinEnd(BloodCells& cells, curandState* devStates, const std::array<cudaStream_t, bloodCellTypeCount>& streams)
 {
 	using IndexList = mp_iota_c<bloodCellTypeCount>;
 	mp_for_each<IndexList>([&](auto i)
@@ -162,10 +164,10 @@ void HandleVeinEnd(BloodCells& cells, const std::array<cudaStream_t, bloodCellTy
 
 			if constexpr (syncType == warpSync)
 				handleVeinEndsWarpSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart>
-				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells);
+				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells, devStates);
 			else if constexpr (syncType == blockSync)
 				handleVeinEndsBlockSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart>
-				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells);
+				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells, devStates);
 			// else
 			// 	static_assert(false, "Unknown synchronization type");
 		});
