@@ -20,6 +20,7 @@ public:
 
     void StartPlayback();
     void Pause();
+    void EndPlayback();
 
     void SendFrame();
 
@@ -46,8 +47,8 @@ private:
     
     /* Recording elements */
     GstElement *queueFile;
+    GstElement *videoflip;
     GstElement *x264encFile;
-    GstElement *h264parse;
     GstElement *muxer;
     GstElement *filesink;
 

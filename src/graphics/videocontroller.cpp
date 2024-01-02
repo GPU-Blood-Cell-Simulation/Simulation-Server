@@ -101,6 +101,9 @@ GstElement *VideoController::createPipelineElement(const std::string& factoryNam
 
 VideoController::~VideoController()
 {
+	// TODO: check playing state
+	EndPlayback();
+
 	if (teeStreamPad != NULL) {
 		gst_element_release_request_pad(tee, teeStreamPad);
 		gst_object_unref(teeStreamPad);
@@ -165,16 +168,20 @@ void VideoController::SetUpRecording(const std::string &file_name)
 	GstPadLinkReturn ret;
 
 	queueFile = createPipelineElement("queue", "fileQueue");
+	videoflip = createPipelineElement("videoflip", "videoflip");
 	x264encFile = createPipelineElement("x264enc", "fileEncoder");
-	muxer = createPipelineElement("matroskamux", "matroskamux");
+	muxer = createPipelineElement("qtmux", "qtmux");
 	filesink = createPipelineElement("filesink", "filesink");
-	h264parse = createPipelineElement("h264parse", "h264parse");
 
+	// set file name
 	g_object_set(G_OBJECT(filesink), "location", file_name.c_str(), NULL);
 
-	gst_bin_add_many(GST_BIN(pipeline), queueFile, x264encFile, h264parse, muxer, filesink, NULL);
+	// rotate image by 180 degrees
+	g_object_set(G_OBJECT(videoflip), "video-direction", 0x00000002, NULL);
 
-	if (gst_element_link_many(queueFile, x264encFile, h264parse, muxer, filesink, NULL) != TRUE) {
+	gst_bin_add_many(GST_BIN(pipeline), queueFile, videoflip, x264encFile, muxer, filesink, NULL);
+
+	if (gst_element_link_many(queueFile, videoflip, x264encFile, muxer, filesink, NULL) != TRUE) {
 		throw std::runtime_error("Error while linking file elements");
 	}
 
@@ -208,6 +215,32 @@ void VideoController::Pause()
 	if (ret == GST_STATE_CHANGE_FAILURE) {
         throw std::runtime_error("Cannot set pipeline to playing state");
     }
+}
+
+
+void VideoController::EndPlayback()
+{
+	gst_app_src_end_of_stream((GstAppSrc*)appsrc);
+
+	GstMessage *msg = gst_bus_timed_pop_filtered(
+        bus, 5 * GST_SECOND,
+        (GstMessageType)(GST_MESSAGE_ERROR | GST_MESSAGE_EOS)
+    );
+
+	if (msg == NULL) {
+		gst_message_unref(msg);
+		throw std::runtime_error("Video pipeline close timeout");
+	}
+    else if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_ERROR) {
+		gst_message_unref(msg);
+        throw std::runtime_error("Error while closing");
+    }
+	else if (GST_MESSAGE_TYPE(msg) != GST_MESSAGE_EOS) {
+		gst_message_unref(msg);
+        throw std::runtime_error("Unknown message from pipeline");
+	}
+
+	gst_message_unref(msg);
 }
 
 
