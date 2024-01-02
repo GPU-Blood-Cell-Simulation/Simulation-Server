@@ -16,7 +16,7 @@ public:
     ~VideoController();
 
     void SetUpStreaming(int port, const std::string& host);
-    void SetUpRecording(const std::string& file_name = "BloodFlow.mp4");
+    void SetUpRecording(const std::string& file_name);
 
     void StartPlayback();
     void Pause();

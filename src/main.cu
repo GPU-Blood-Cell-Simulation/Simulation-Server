@@ -63,7 +63,7 @@ int main()
     
     VideoController streamingController;
     streamingController.SetUpStreaming(4321, "127.0.0.1");
-    streamingController.SetUpRecording();
+    streamingController.SetUpRecording("BloodFlow.mp4");
     streamingController.StartPlayback();
 #endif
 

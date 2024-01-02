@@ -174,8 +174,7 @@ void VideoController::SetUpRecording(const std::string &file_name)
 
 	gst_bin_add_many(GST_BIN(pipeline), queueFile, x264encFile, h264parse, muxer, filesink, NULL);
 
-	if (gst_element_link_many(queueFile, x264encFile, h264parse, NULL) != TRUE ||
-		gst_element_link_many(muxer, filesink, NULL) != TRUE) {
+	if (gst_element_link_many(queueFile, x264encFile, h264parse, muxer, filesink, NULL) != TRUE) {
 		throw std::runtime_error("Error while linking file elements");
 	}
 
@@ -184,21 +183,10 @@ void VideoController::SetUpRecording(const std::string &file_name)
 	GstPad *filePad = gst_element_get_static_pad(queueFile, "sink");
 
 	ret = gst_pad_link(teeFilePad, filePad);
-	//gst_object_unref(filePad);
+	gst_object_unref(filePad);
 	
 	if (ret != GST_PAD_LINK_OK) {
 		throw std::runtime_error("Error while linking stream to tee");
-	}
-
-	/* Manually link muxer with filesink */
-	mp4muxRequestPad = gst_element_request_pad_simple(muxer, "video_%u");
-	GstPad *x264parsePad = gst_element_get_static_pad(h264parse, "src");
-
-	ret = gst_pad_link(x264parsePad, mp4muxRequestPad);
-	//gst_object_unref(x264parsePad);
-
-	if (ret != GST_PAD_LINK_OK) {
-		throw std::runtime_error("Error while linking parse to mux");
 	}
 }
 
