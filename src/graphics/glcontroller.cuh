@@ -29,7 +29,7 @@ namespace graphics
 	private:
 
 		// Particle color
-		glm::vec3 particleDiffuse = glm::vec3(0.8f, 0.2f, 0.2f);
+		std::array<glm::vec3, bloodCellTypeCount> bloodCellTypeDiffuse; // = glm::vec3(0.8f, 0.2f, 0.2f);
 		float particleSpecular = 0.6f;
 
 		// Uniform matrices

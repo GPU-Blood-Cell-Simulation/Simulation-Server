@@ -64,7 +64,7 @@ namespace sim
 	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
 		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
-		int particleId = blockDim.x * blockIdx.x + threadIdx.x;
+		int particleId = particlesStart + blockDim.x * blockIdx.x + threadIdx.x;
 
 		if (particleId >= particleCount)
 			return;
