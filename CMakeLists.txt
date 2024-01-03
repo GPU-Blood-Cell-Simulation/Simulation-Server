@@ -126,15 +126,5 @@ file(COPY Shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 #
 # Tests
 #
-add_subdirectory("Libraries/googletest-1.14.0/")
-
-include(CTest)
-
-if (BUILD_TESTING)
-    add_executable(my_test tests/sample_test.cpp)
-    target_link_libraries(my_test PRIVATE GTest::gtest_main)
-
-    include(GoogleTest)
-    # Finds all the Google tests associated with the executable
-    gtest_discover_tests(my_test)
-endif()
+add_subdirectory("${PROJECT_SOURCE_DIR}/Libraries/googletest-1.14.0/")
+add_subdirectory("tests/")
