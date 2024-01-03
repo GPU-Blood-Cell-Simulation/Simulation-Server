@@ -7,4 +7,4 @@
 #include <curand_kernel.h>
 
 
-void HandleVeinEnd(BloodCells& cells, curandState* devStates, const std::array<cudaStream_t, bloodCellTypeCount>& streams);
+void HandleVeinEnd(BloodCells& cells, curandState* devStates, const std::array<cudaStream_t, bloodCellTypeCount>& streams, cudaVec3& bloodCellModels);

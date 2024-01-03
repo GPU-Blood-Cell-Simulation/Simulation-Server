@@ -160,9 +160,9 @@ namespace sim
 		int id = blockIdx.x * blockDim.x + threadIdx.x;
 		if (id >= totalBloodCellCount)
 			return;
-		initialPositions.x[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
-		initialPositions.y[id] = minSpawnY - 20.0f*curand_uniform(&states[id])*min(particleCount/1000.0f, 1.0f);
-		initialPositions.z[id] = (curand_uniform(&states[id]) - 0.5f) * 0.5f * cylinderRadius;
+		initialPositions.x[id] = (curand_uniform(&states[id]) - 0.5f) * 1.2f * cylinderRadius;
+		initialPositions.y[id] = minSpawnY - 180.0f*curand_uniform(&states[id])*min(particleCount/1000.0f, 1.0f);
+		initialPositions.z[id] = (curand_uniform(&states[id]) - 0.5f) * 1.2f * cylinderRadius;
 
 #ifdef INITIAL_VELOCITY_RANDOM
 		float verticalVelocity = randomVelocityModifier * initVelocityY;
@@ -256,7 +256,7 @@ namespace sim
 
 				if constexpr (useBloodFlow)
 				{
-					HandleVeinEnd(bloodCells, devStates, streams);
+					HandleVeinEnd(bloodCells, devStates, streams, bloodCellModels);
 					HANDLE_ERROR(cudaPeekAtLastError());
 				}
 			}, particleGrid, triangleGrid);
