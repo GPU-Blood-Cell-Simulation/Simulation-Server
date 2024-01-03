@@ -27,7 +27,7 @@
 #   include "communication/msg_controller.hpp"
 
 #   undef __noinline__
-#   include "graphics/streamingcontroller.hpp"
+#   include "graphics/videocontroller.hpp"
 #   define __noinline__ __attribute__((noinline))
 
 
@@ -46,7 +46,7 @@
 #ifdef WINDOW_RENDER
 #define programLoopFunction void programLoop(WindowController& windowController)
 #else
-#define programLoopFunction void programLoop(StremmingController& streamingController)
+#define programLoopFunction void programLoop(VideoController& streamingController)
 #endif
 
 programLoopFunction;
@@ -60,8 +60,11 @@ int main()
     WindowController windowController;
 #else
     OffscreenController offscreenController;
-    StremmingController streamingController("127.0.0.1", 4321);
-    streamingController.StartStreaming();
+    
+    VideoController streamingController;
+    streamingController.SetUpStreaming(4321, "127.0.0.1");
+    streamingController.SetUpRecording("BloodFlow.mov");
+    streamingController.StartPlayback();
 #endif
 
     // Load GL and set the viewport to match window size
@@ -173,7 +176,6 @@ programLoopFunction
 #else // server calculations
 
         // Send data to client
-            // TODO
         streamingController.SendFrame();
         msgController.handleMsgs();
 
