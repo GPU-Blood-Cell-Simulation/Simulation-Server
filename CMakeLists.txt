@@ -48,6 +48,7 @@ set(LIBS
   ${CUDA_CUDA_LIBRARY}
   ${CUDA_curand_LIBRARY}
   GLAD
+  ${CMAKE_SOURCE_DIR}/Libraries/lib/libenet.a
 )
 
 #

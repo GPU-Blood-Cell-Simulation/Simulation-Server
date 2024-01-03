@@ -24,10 +24,13 @@
 #else
 
 #   include "graphics/offscreencontroller.hpp"
+#   include "communication/msg_controller.hpp"
 
 #   undef __noinline__
 #   include "graphics/streamingcontroller.hpp"
 #   define __noinline__ __attribute__((noinline))
+
+
 
 #endif
 
@@ -120,6 +123,9 @@ programLoopFunction
 #ifdef WINDOW_RENDER
     double lastTime = glfwGetTime();
     windowController.ConfigureInputAndCamera(&camera);
+#else
+    MsgController msgController(4322);
+    msgController.setCamera(&camera);
 #endif
 
     // MAIN LOOP HERE - dictated by glfw
@@ -170,6 +176,7 @@ programLoopFunction
         // Send data to client
             // TODO
         streamingController.SendFrame();
+        msgController.handleMsgs();
 
         shouldBeRunning = frameCount++ < maxFrames;
 #endif

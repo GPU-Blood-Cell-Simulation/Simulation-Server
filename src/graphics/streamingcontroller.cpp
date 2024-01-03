@@ -71,6 +71,15 @@ StremmingController::StremmingController(const std::string& host, int port):
 		"port", port,
 		NULL);
 
+	// Set the fastest preset
+	g_object_set(G_OBJECT(x264enc), "speed-preset", 1, NULL);
+
+	// Tune for minimal latency
+	g_object_set(G_OBJECT(x264enc), "tune", 0x00000004, NULL);
+
+	// Tune for animation
+	g_object_set(G_OBJECT(x264enc), "psy-tune", 2, NULL);
+
 	gst_bin_add_many(GST_BIN (pipeline),
 		appsrc, convert, x264enc, rtph264pay, udpsink, queue, NULL);
 
