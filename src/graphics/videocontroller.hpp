@@ -47,7 +47,7 @@ private:
     
     /* Recording elements */
     GstElement *queueFile;
-    GstElement *videoflip;
+    GstElement *videoFlip;
     GstElement *x264encFile;
     GstElement *muxer;
     GstElement *filesink;

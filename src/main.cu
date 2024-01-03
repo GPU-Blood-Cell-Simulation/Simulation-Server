@@ -177,7 +177,6 @@ programLoopFunction
 #else // server calculations
 
         // Send data to client
-            // TODO
         streamingController.SendFrame();
         msgController.handleMsgs();
 
