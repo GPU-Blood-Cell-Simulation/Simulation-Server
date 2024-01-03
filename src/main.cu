@@ -94,7 +94,6 @@ programLoopFunction
 {
 
     int frameCount = 0;
-
     // Create blood cells
     BloodCells bloodCells;
 

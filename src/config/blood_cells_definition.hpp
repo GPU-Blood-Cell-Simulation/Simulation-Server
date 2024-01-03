@@ -9,50 +9,18 @@
 namespace
 {
 	using namespace boost::mp11;
-	// BLOOD CELL PARAMETERS
 
-	// Please always double check your commas!
-	using UserDefinedBloodCellList = mp_list <
+	using UserDefinedBloodCellList = mp_list<
+	BloodCellDef<50, 20, 108, 15720158,
+		preset::White_blood_cell_One_Springs,
+		preset::White_blood_cell_One_Vertices,
+		preset::White_blood_cell_One_Indices,
+		preset::White_blood_cell_One_Normals>,
 
-		/*BloodCellDef<1, 2,
-		preset::Dipole
-		>,
-
-		BloodCellDef<1, 4,
-		preset::Quadrupole
-		>,
-
-		BloodCellDef<3, 2,
-		preset::Dipole
-		>,
-
-		BloodCellDef<1, 3,
-		mp_list<
-		Spring<0, 1, 3>,
-		Spring<1, 2, 3>,
-		Spring<2, 0, 3>
-		> >,*/
-
-		/*BloodCellDef<5, 8, 48,
-		preset::Cube,
-		preset::CubeVertices,
-		preset::CubeIndices,
-		preset::CubeNormals
-		>,*/
-
-		BloodCellDef<2000, 20, 108,
-		preset::BloodCellSprings,
-		preset::BloodCellVertices,
-		preset::BloodCellIndices,
-		preset::BloodCellNormals
-		>
-		/*,
-
-		BloodCellDef<5, 4, 12,
-		preset::Tetrahedron,
-		preset::TetrahedronVertices,
-		preset::TetrahedronIndices,
-		preset::TetrahedronNormals
-		>*/
+	BloodCellDef<100, 20, 108, 14352898,
+		preset::Blood_dust_One_Springs,
+		preset::Blood_dust_One_Vertices,
+		preset::Blood_dust_One_Indices,
+		preset::Blood_dust_One_Normals>
 	> ;
 }

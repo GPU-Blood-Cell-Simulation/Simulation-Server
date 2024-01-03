@@ -119,6 +119,13 @@ namespace graphics
 			// Register OpenGL buffer in CUDA for blood cell
 			HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&(cudaPositionsResource[typeIndex]), bloodCellmodel[typeIndex].getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
 			HANDLE_ERROR(cudaPeekAtLastError());
+
+			// create diffuse color for blood cell type
+			vec3 color;
+			color.b = float(BloodCellDefinition::color & 0xFF)/255.0f;
+			color.g = float((BloodCellDefinition::color >> 8) & 0xFF)/255.0f;
+			color.r = float((BloodCellDefinition::color >> 16) & 0xFF)/255.0f;
+			bloodCellTypeDiffuse[typeIndex] = color;
 		});
 		springLines.constructSprings(VBOs);
 
@@ -234,7 +241,6 @@ namespace graphics
 			phongForwardShader->setMatrix("projection", projection);
 
 			phongForwardShader->setVector("viewPos", camera.getPosition());
-			phongForwardShader->setVector("Diffuse", particleDiffuse);
 			phongForwardShader->setFloat("Specular", particleSpecular);
 			phongForwardShader->setFloat("Shininess", 32);
 
@@ -242,6 +248,7 @@ namespace graphics
 			using TypeList = mp_iota_c<bloodCellTypeCount>;
 			mp_for_each<TypeList>([&](auto typeIndex)
 				{
+					phongForwardShader->setVector("Diffuse", bloodCellTypeDiffuse[typeIndex]);
 					bloodCellmodel[typeIndex].draw(phongForwardShader.get());
 				});
 		}

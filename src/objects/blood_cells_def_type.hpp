@@ -38,13 +38,14 @@ struct mpIndex
 	inline static constexpr int index = I;
 };
 
-template<int Count, int ParticlesInCell, int IndicesInCell, typename L, typename V, typename I, typename N>
+template<int Count, int ParticlesInCell, int IndicesInCell, int Color, typename L, typename V, typename I, typename N>
 struct BloodCellDef
 {
 	using List = L;
 	using Vertices = V;
 	using Indices = I;
 	using Normals = N;
+	inline static constexpr int color = Color;
 	inline static constexpr int count = Count;
 	inline static constexpr int particlesInCell = ParticlesInCell;
 	inline static constexpr int indicesInCell = IndicesInCell;

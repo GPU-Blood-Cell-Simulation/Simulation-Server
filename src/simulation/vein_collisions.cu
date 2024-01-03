@@ -37,8 +37,8 @@ namespace sim
 			// it is caused by the order of vertices in triangles used to correct face culling
 			// change order of edge2 and edge1 in cross product for oposite normal
 			// Question: Is the situation when we should use oposite normal possible ?
-			float3 normal = normalize(cross(edge2, edge1));
-			reflectionVector = r.direction - 2 * dot(r.direction, normal) * normal;
+			r.normal = normalize(cross(edge2, edge1));
+			reflectionVector = r.direction - 2 * dot(r.direction, r.normal) * r.normal;
 			return true;
 		}
 		return false;
@@ -64,7 +64,7 @@ namespace sim
 	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
 		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
-		int particleId = blockDim.x * blockIdx.x + threadIdx.x;
+		int particleId = particlesStart + blockDim.x * blockIdx.x + threadIdx.x;
 
 		if (particleId >= particleCount)
 			return;
@@ -255,7 +255,12 @@ namespace sim
 				{
 					physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared,
 						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces);
-					// TODO : think about more precise way to calculate vein response force on particle
+					if constexpr (enableReactionForce)
+					{
+						float3 F = bloodCells.particles.forces.get(particleId);
+						float3 responseForce = -1.0f*dot(F, r.normal)*r.normal/dot(r.normal, r.normal);
+						bloodCells.particles.forces.add(particleId, responseForce);
+					}
 				}
 
 				float speed = length(velocity);
@@ -350,7 +355,13 @@ namespace sim
 	 			{
 	 				physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared, particleId,
 	 					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces);
-	 			}
+	 				if constexpr (enableReactionForce)
+					{
+						float3 F = bloodCells.particles.forces.get(particleId);
+						float3 responseForce = -1.0f*dot(F, r.normal)*r.normal/dot(r.normal, r.normal);
+						bloodCells.particles.forces.add(particleId, responseForce);
+					}
+				}
 	 			float speed = length(velocity);
 	 			velocity = velocity_collision_damping * speed * reflectedVelociy;
 	 			bloodCells.particles.velocities.set(particleId, velocity);

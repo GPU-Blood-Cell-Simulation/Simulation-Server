@@ -65,7 +65,7 @@ namespace sim
 	template<>
 	__global__ void calculateParticleCollisions<UniformGrid>(BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
-		int id = blockIdx.x * blockDim.x + threadIdx.x;
+		int id = particlesStart + blockIdx.x * blockDim.x + threadIdx.x;
 		if (id >= particleCount)
 			return;
 
