@@ -14,7 +14,7 @@ inline constexpr float particle_d_fact = 9.0f; //1.0f/dt;
 inline constexpr float vein_d_fact = 0.45f;
 
 // viscous damping slows down particle proportionally to its velocity
-inline constexpr float viscous_damping = 0.3f; 
+inline constexpr float viscous_damping = 0.39f; 
 
 // suppression coefficient to slow down particles on vein boundaries
 inline constexpr float vein_boundaries_velocity_damping = 0.65f;

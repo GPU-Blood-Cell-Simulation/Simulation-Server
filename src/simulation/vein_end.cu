@@ -54,10 +54,11 @@ constexpr int CalculateBlocksCount(SynchronizationType syncType, int particleCou
 	return constCeil(static_cast<float>(particleCount) / CalculateThreadsPerBlock(syncType, particleCount, particlesInBloodCell));
 }
 
-template <int bloodCellsCount, int particlesInBloodCell, int particlesStart>
-__global__ void handleVeinEndsBlockSync(BloodCells bloodCells, curandState* states)
-{
+template <int bloodCellsCount, int particlesInBloodCell, int particlesStart, int bloodCellmodelStart>
+__global__ void handleVeinEndsBlockSync(BloodCells bloodCells, curandState* states, cudaVec3 bloodCellModels)
+{ 
 	__shared__ bool belowVein[CalculateThreadsPerBlock(blockSync, bloodCellsCount, particlesInBloodCell)];
+
 	int indexInType = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if (indexInType >= bloodCellsCount * particlesInBloodCell)
@@ -91,17 +92,16 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells, curandState* stat
 
 	if (teleport)
 	{
-		// TODO: make sure particles within a cell are close to each other
-		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex]) - 0.5f) * 0.5f * cylinderRadius;
-		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight;
-		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex]) - 0.5f) * 0.5f * cylinderRadius;
+		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.x[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.x[bloodCellmodelStart];
+		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight + bloodCellModels.y[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.y[bloodCellmodelStart];
+		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.z[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.z[bloodCellmodelStart];
 		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
 }
 
 # include <stdio.h>
-template <int bloodCellsCount, int particlesInBloodCell, int particlesStart>
-__global__ void handleVeinEndsWarpSync(BloodCells bloodCells, curandState* states)
+template <int bloodCellsCount, int particlesInBloodCell, int particlesStart, int bloodCellmodelStart>
+__global__ void handleVeinEndsWarpSync(BloodCells bloodCells, curandState* states, cudaVec3 bloodCellModels)
 {
 	int indexInType = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -128,16 +128,15 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells, curandState* state
 	int particlesBelowTreshold = __any_sync(syncBitMask, posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold);
 
 	if (particlesBelowTreshold != 0) {
-		// TODO: make sure particles within a cell are close to each other
-		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex]) - 0.5f) * 0.5f * cylinderRadius;
-		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight;
-		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex]) - 0.5f) * 0.5f * cylinderRadius;
+		bloodCells.particles.positions.x[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.x[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.x[bloodCellmodelStart];
+		bloodCells.particles.positions.y[realIndex] = targetTeleportHeight + bloodCellModels.y[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.y[bloodCellmodelStart];
+		bloodCells.particles.positions.z[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.z[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.z[bloodCellmodelStart];
 		bloodCells.particles.velocities.set(realIndex, make_float3(initVelocityX, initVelocityY, initVelocityZ));
 	}
 }
 
 
-void HandleVeinEnd(BloodCells& cells, curandState* devStates, const std::array<cudaStream_t, bloodCellTypeCount>& streams)
+void HandleVeinEnd(BloodCells& cells, curandState* devStates, const std::array<cudaStream_t, bloodCellTypeCount>& streams, cudaVec3& bloodCellModels)
 {
 	using IndexList = mp_iota_c<bloodCellTypeCount>;
 	mp_for_each<IndexList>([&](auto i)
@@ -163,11 +162,11 @@ void HandleVeinEnd(BloodCells& cells, curandState* devStates, const std::array<c
 			);
 
 			if constexpr (syncType == warpSync)
-				handleVeinEndsWarpSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart>
-				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells, devStates);
+				handleVeinEndsWarpSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellModelStarts[i]>
+				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells, devStates, bloodCellModels);
 			else if constexpr (syncType == blockSync)
-				handleVeinEndsBlockSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart>
-				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells, devStates);
+				handleVeinEndsBlockSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellModelStarts[i]>
+				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells, devStates, bloodCellModels);
 			// else
 			// 	static_assert(false, "Unknown synchronization type");
 		});
