@@ -248,7 +248,7 @@ namespace graphics
 			using TypeList = mp_iota_c<bloodCellTypeCount>;
 			mp_for_each<TypeList>([&](auto typeIndex)
 				{
-					phongForwardShader->setVector("Diffuse", bloodCellTypeDiffuse[bloodCellTypeCount - typeIndex.value]);
+					phongForwardShader->setVector("Diffuse", bloodCellTypeDiffuse[typeIndex]);
 					bloodCellmodel[typeIndex].draw(phongForwardShader.get());
 				});
 		}
