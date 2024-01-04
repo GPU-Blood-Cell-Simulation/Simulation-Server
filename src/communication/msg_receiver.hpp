@@ -61,6 +61,11 @@ public:
     MsgReceiver(int port, const std::string& address = "localhost");
     ~MsgReceiver();
 
+    /// <summary>
+	/// Checks for incoming events from the client. If no message was encountered, then
+    /// It returns <c>ReceivedEvent<c> object with event set as <c>noMessage<c>. Function is not blocking.
+	/// </summary>
+	/// <returns>Event received from the client</returns>
     ReceivedEvent pollMessages() const;
 
 private:
