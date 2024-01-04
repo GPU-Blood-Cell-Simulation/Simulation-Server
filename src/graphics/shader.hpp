@@ -6,8 +6,10 @@
 #include <string>
 #include <vector>
 
-
-// https://learnopengl.com/Getting-started/Shaders
+/// <summary>
+/// Represents shader for rendering purposes
+/// https://learnopengl.com/Getting-started/Shaders
+/// </summary> 
 class Shader
 {
 public:

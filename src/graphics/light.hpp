@@ -4,6 +4,9 @@
 
 using namespace glm;
 
+/// <summary>
+/// Represents light components
+/// </summary>
 struct Light
 {
     vec3 ambient;
@@ -11,6 +14,9 @@ struct Light
     vec3 specular;
 };
 
+/// <summary>
+/// Represents light components with direction
+/// </summary>
 struct DirLight : public Light
 {
     vec3 direction;

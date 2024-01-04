@@ -4,6 +4,9 @@
 #include "inputcontroller.hpp"
 #include <memory>
 
+/// <summary>
+/// Controlls visualization main window
+/// </summary>
 class WindowController
 {
 	graphics::InputController inputController;

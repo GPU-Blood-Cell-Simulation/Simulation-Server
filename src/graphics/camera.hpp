@@ -9,6 +9,9 @@
 
 namespace graphics
 {
+	/// <summary>
+	/// Represents camera vision for visualization purpose
+	/// </summary>
 	class Camera
 	{
 	public:
@@ -26,7 +29,16 @@ namespace graphics
 		void rotateUp();
 		void rotateDown();
 
+		/// <summary>
+		/// Get's view matrix
+		/// </summary>
+		/// <returns>view matrix</returns>
 		const glm::mat4& getView() const;
+
+		/// <summary>
+		/// Get's actual camera position
+		/// </summary>
+		/// <returns>vector camera of position</returns>
 		const glm::vec3& getPosition() const;
 	private:
 		glm::mat4 view;
