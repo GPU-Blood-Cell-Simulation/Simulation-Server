@@ -11,7 +11,16 @@
 
 namespace sim
 {
-
+	/// <summary>
+	/// Device method to detect and react on particle collisions
+	/// </summary>
+	/// <param name="bloodCells">data of blood cells</param>
+	/// <param name="position1">first particle position</param>
+	/// <param name="velocity1">first particle velocity</param>
+	/// <param name="particleId1">first particle id</param>
+	/// <param name="particleId2">second particle id</param>
+	/// <param name="radius">first particle radius</param>
+	/// <returns></returns>
 	__device__ inline void detectCollision(BloodCells& bloodCells, float3 position1, float3 velocity1, int particleId1, int particleId2, float radius)
 	{
 		float3 position2 = bloodCells.particles.positions.get(particleId2);
@@ -25,7 +34,18 @@ namespace sim
 		}
 	}
 
-	// Detect Colllisions in all 27 cells unless some corner cases are present - specified by template parameters. 
+	/// <summary>
+	/// Detect Colllisions in all 27 cells unless some corner cases are present - specified by template parameters.
+	/// </summary>
+	/// <param name="bloodCells">data of blood cells</param>
+	/// <param name="grid">particle uniform grid</param>
+	/// <param name="p1">first particle position</param>
+	/// <param name="v1">first particle velocity</param>
+	/// <param name="particleId">particle id</param>
+	/// <param name="cellId">grid cell id</param>
+	/// <param name="boundingSpheresModel">data of bounding sphere in blood cell model</param>
+	/// <param name="boundingModelIndex">blood cell model index shift for bounding sphere data</param>
+	/// <returns></returns>
 	template<int xMin, int xMax, int yMin, int yMax, int zMin, int zMax>
 	__device__ void detectCollisionsInNeighborCells(BloodCells& bloodCells, UniformGrid& grid, float3 p1, float3 v1, int particleId, int cellId, float* boundingSpheresModel, int boundingModelIndex)
 	{
@@ -61,7 +81,16 @@ namespace sim
 	template<typename T>
 	__global__ void calculateParticleCollisions(BloodCells bloodCells, T grid, float* boundingSpheresModel,int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
-	// Calculate collisions between particles using UniformGrid
+	/// <summary>
+	/// Calculate collisions between particles using UniformGrid
+	/// </summary>
+	/// <param name="bloodCells">data of blood cells</param>
+	/// <param name="grid">particle uniform grid</param>
+	/// <param name="boundingSpheresModel">data of bounding sphere in blood cell model</param>
+	/// <param name="particlesInBloodCell">Number of particles in blood cell model</param>
+	/// <param name="bloodCellmodelStart">index shift for blood cell model</param>
+	/// <param name="particlesStart">index shift for particle data</param>
+	/// <returns></returns>
 	template<>
 	__global__ void calculateParticleCollisions<UniformGrid>(BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
@@ -228,7 +257,17 @@ namespace sim
 		}
 	}
 
-	// Calculate collisions between particles without any grid (naive implementation)
+
+	/// <summary>
+	/// Calculate collisions between particles without any grid (naive implementation)
+	/// </summary>
+	/// <param name="bloodCells">data of blood cells</param>
+	/// <param name="grid">particle uniform grid</param>
+	/// <param name="boundingSpheresModel">data of bounding sphere in blood cell model</param>
+	/// <param name="particlesInBloodCell">Number of particles in blood cell model</param>
+	/// <param name="bloodCellmodelStart">index shift for blood cell model</param>
+	/// <param name="particlesStart">index shift for particle data</param>
+	/// <returns></returns>
 	 template<>
 	 __global__ void calculateParticleCollisions<NoGrid>(BloodCells bloodCells, NoGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	 {

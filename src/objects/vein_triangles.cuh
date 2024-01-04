@@ -34,7 +34,9 @@ public:
 	VeinTriangles(const VeinTriangles& other);
 	~VeinTriangles();
 
-
+	/// <summary>
+	/// device funtion to get triangle vertex absolute index
+	/// </summary>
 	__device__ inline unsigned int getIndex(int triangleIndex, VertexIndex vertexIndex) const
 	{
 		return indices[3 * triangleIndex + vertexIndex];
@@ -48,9 +50,7 @@ public:
 private:
 	bool isCopy = false;
 
-	/// !!! STILL NOT IMPLEMENTED !!!
-	/// <param name="vertexIndex">0, 1 or 2 as triangle vertices</param>
-	/// <returns></returns>
+	// !!! STILL NOT IMPLEMENTED !!!
 	__device__ inline void atomicAdd(int triangleIndex, VertexIndex vertexIndex, float3 value)
 	{
 		int index = indices[3 * triangleIndex + vertexIndex];

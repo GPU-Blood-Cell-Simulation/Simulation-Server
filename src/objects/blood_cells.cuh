@@ -20,6 +20,9 @@ public:
 	BloodCells(const BloodCells& other);
 	~BloodCells();
 
+	/// <summary>
+	/// Perform gathering forces contribution from neighbour particles for every particle
+	/// </summary>
 	void gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodCellTypeCount>& streams);
 };
 

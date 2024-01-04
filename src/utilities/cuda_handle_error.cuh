@@ -7,7 +7,12 @@
 #include "device_launch_parameters.h"
 
 
-// A handy function for easy error checking
+/// <summary>
+/// A handy function for easy error checking
+/// </summary>
+/// <param name="err">cuda error</param>
+/// <param name="file">file name</param>
+/// <param name="line">line in file</param>
 static void HandleError(cudaError_t err, const char* file, int line);
 
 static void HandleError(cudaError_t err, const char* file, int line)

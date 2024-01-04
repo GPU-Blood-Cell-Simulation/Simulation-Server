@@ -14,6 +14,9 @@ inline constexpr int triangleCount = veinIndexCount / 3;
 
 namespace internal
 {
+	/// <summary>
+	/// Calculates lower bound for vein grid
+	/// </summary>
 	inline constexpr auto calculateMin = [](int dim)
 	{
 		cvec vec = *std::min_element(veinPositions.begin(), veinPositions.end(), [&](auto v1, auto v2)
@@ -23,6 +26,9 @@ namespace internal
 		return vec[dim] - (dim == 1 ? gridYMargin : gridXZMargin);
 	};
 
+	/// <summary>
+	/// Calculates upper bound for vein grid
+	/// </summary>
 	inline constexpr auto calculateMax = [](int dim)
 	{
 		cvec vec = *std::max_element(veinPositions.begin(), veinPositions.end(), [&](auto v1, auto v2)
@@ -33,16 +39,49 @@ namespace internal
 	};
 }
 
-
+/// <summary>
+/// X lower bound of vein grid
+/// </summary>
 inline constexpr float minX = internal::calculateMin(0);
+
+/// <summary>
+/// X upper bound of vein grid
+/// </summary>
 inline constexpr float maxX = internal::calculateMax(0);
+
+/// <summary>
+/// Y upper bound of vein grid
+/// </summary>
 inline constexpr float maxY = internal::calculateMax(1);
+
+/// <summary>
+/// Y lower bound of vein grid
+/// </summary>
 inline constexpr float minY = internal::calculateMin(1);
+
+/// <summary>
+/// Z upper bound of vein grid
+/// </summary>
 inline constexpr float maxZ = internal::calculateMax(2);
+
+/// <summary>
+/// Z lower bound of vein grid
+/// </summary>
 inline constexpr float minZ = internal::calculateMin(2);
 
+/// <summary>
+/// Grid's width
+/// </summary>
 inline constexpr float width = maxX - minX;
+
+/// <summary>
+/// Grid's height
+/// </summary>
 inline constexpr float height = maxY - minY;
+
+/// <summary>
+/// Grid's depth
+/// </summary>
 inline constexpr float depth = maxZ - minZ;
 
 // TODO: read hLayers
@@ -65,7 +104,9 @@ namespace internal
 		return v < 0 ? -v : v;
 	}
 
-	// Calculate maximum number of neighbors per vein vertex
+	/// <summary>
+	/// Calculate maximum number of neighbors per vein vertex
+	/// </summary>
 	inline constexpr auto calculateMaxNeighbors = []()
 	{
 		std::array<int, veinPositionCount> neighborCount{0};
@@ -83,8 +124,9 @@ namespace internal
 // TODO: Hardcoded for now because the lambda above is too difficult for gcc, perhaps there is another way?
 inline constexpr int veinVertexMaxNeighbors = 9; //internal::calculateMaxNeighbors();
 
-// Calculate vein neighbor lists for cuda
-
+/// <summary>
+/// Calculate vein neighbor lists for cuda
+/// </summary>
 inline auto calculateSpringLengths = []()
 {
 	std::array<std::vector<unsigned int>, veinPositionCount> neighbors {};

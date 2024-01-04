@@ -38,6 +38,17 @@ struct mpIndex
 	inline static constexpr int index = I;
 };
 
+/// <summary>
+/// Represents blood cell type definition
+/// </summary>
+/// <typeparam name="L">List of springs</typeparam>
+/// <typeparam name="V">List of vertices</typeparam>
+/// <typeparam name="I">List of indices</typeparam>
+/// <typeparam name="N">List of normals</typeparam>
+/// <typeparam name="Count">Amount of blood cells in given type</typeparam>
+/// <typeparam name="ParticlesInCell">Size of each blood cell in given type</typeparam>
+/// <typeparam name="IndicesInCell">Number of indices for given type</typeparam>
+/// <typeparam name="Color">Color of blood cell in given type</typeparam>
 template<int Count, int ParticlesInCell, int IndicesInCell, int Color, typename L, typename V, typename I, typename N>
 struct BloodCellDef
 {
@@ -51,6 +62,13 @@ struct BloodCellDef
 	inline static constexpr int indicesInCell = IndicesInCell;
 };
 
+/// <summary>
+/// Represents spring definition
+/// </summary>
+/// <typeparam name="Start">Primary vertex for spring</typeparam>
+/// <typeparam name="End">Terminal vertex for spring</typeparam>
+/// <typeparam name="Length">Spring initial lenght</typeparam>
+/// <typeparam name="decimalPrecision">Decimal float template precision</typeparam>
 template<int Start, int End, int Length, int decimalPrecision>
 struct Spring
 {

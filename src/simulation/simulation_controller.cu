@@ -16,11 +16,23 @@
 
 namespace sim
 {
+	/// <summary>
+	/// Setups random device states
+	/// </summary>
+	/// <param name="states">states pointer</param>
+	/// <param name="seed">seed for random</param>
+	/// <returns></returns>
 	__global__ void setupCurandStatesKernel(curandState* states, unsigned long seed);
-
+	
+	/// <summary>
+	/// Sets initial positions for blood cells depends on model data
+	/// </summary>
 	template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int bloodCellStart, int bloodCellmodelStar>
 	__global__ void setBloodCellsPositionsFromRandom(curandState* states, Particles particles, cudaVec3 bloodCellModelPosition, cudaVec3 initialPositions, cudaVec3 initialVelocities);
 
+	/// <summary>
+	/// Generate random initial positions and velocities for particles
+	/// </summary>
 	template<int totalBloodCellCount>
 	__global__ void generateRandomPositonsAndVelocitiesKernel(curandState* states, cudaVec3 initialPositions, cudaVec3 initialVelocities);
 	
