@@ -9,6 +9,9 @@
 
 typedef std::uint8_t eventType;
 
+/// <summary>
+/// Enum for distinct event types
+/// </summary>
 enum class Event: eventType {
     noMessage = 0,
 
@@ -31,13 +34,18 @@ enum class Event: eventType {
 };
 
 
+/// <summary>
+/// Enum for streaming states
+/// </summary>
 enum class EventState {
     start,
     stop,
     notRelevant
 };
 
-
+/// <summary>
+/// Represents event received from client
+/// </summary>
 struct ReceivedEvent {
     Event event;
     EventState state;
@@ -45,7 +53,9 @@ struct ReceivedEvent {
     ReceivedEvent(Event event = Event::noMessage, EventState state = EventState::notRelevant);
 };
 
-
+/// <summary>
+/// Represents message received from client
+/// </summary>
 class MsgReceiver {
 public:
     MsgReceiver(int port, const std::string& address = "localhost");
