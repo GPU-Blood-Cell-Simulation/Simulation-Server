@@ -29,17 +29,35 @@ public:
 	cudaVec3(const cudaVec3& other);
 	~cudaVec3();
 
-	// to use only on device
+	/// <summary>
+	/// Gets certaing vector as float3
+	/// </summary>
+	/// <param name="index">vector index</param>
+	/// <returns>vector as float3</returns>
 	__device__ inline float3 get(int index) const
 	{
 		return make_float3(x[index], y[index], z[index]);
 	}
+
+	/// <summary>
+	/// Sets certaing vector
+	/// </summary>
+	/// <param name="index">vector index</param>
+	/// <param name="v">vector value</param>
+	/// <returns></returns>
 	__device__ inline void set(int index, float3 v)
 	{
 		x[index] = v.x;
 		y[index] = v.y;
 		z[index] = v.z;
 	}
+
+	/// <summary>
+	/// Adds value to the certaing vector
+	/// </summary>
+	/// <param name="index">vector index</param>
+	/// <param name="v">vector value</param>
+	/// <returns></returns>
 	__device__ inline void add(int index, float3 v)
 	{
 		x[index] += v.x;

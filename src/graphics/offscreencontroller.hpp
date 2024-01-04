@@ -3,7 +3,9 @@
 #include <EGL/egl.h>
 #include <string>
 
-
+/// <summary>
+/// Controls streaming actions
+/// </summary>
 class OffscreenController
 {
 public:

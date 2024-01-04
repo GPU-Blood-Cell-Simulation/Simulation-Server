@@ -3,7 +3,9 @@
 #include <cmath>
 #include <stdexcept>
 
-
+/// <summary>
+/// Represents blocks and threads number for cuda kernels
+/// </summary>
 class CudaThreads
 {
 public:

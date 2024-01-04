@@ -10,7 +10,9 @@
 #include <algorithm>
 #include <functional>
 
-// TODO: remove
+/// <summary>
+/// Generates vein mesh data
+/// </summary>
 class VeinGenerator
 {
 	std::vector<Vertex> vertices;
@@ -43,6 +45,10 @@ public:
 		);*/
 	}
 
+	/// <summary>
+	/// Create vein mesh object
+	/// </summary>
+	/// <returns>vein mesh</returns>
 	SingleObjectMesh CreateMesh()
 	{
 		return SingleObjectMesh(std::move(vertices), std::move(indices));

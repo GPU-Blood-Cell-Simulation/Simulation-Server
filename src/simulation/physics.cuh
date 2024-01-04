@@ -15,17 +15,26 @@ namespace physics
 {
 
 	/// <summary>
-	/// Computes force of spring mass model with damping
+	/// Computes force of spring mass model with damping for particle
 	/// </summary>
 	/// <param name="dP"> - relative distance p1 - p2, where p1 is particle for which we calculate force</param>
 	/// <param name="dv"> - relative velocity v1 - v2, where v1 is particle for which we calculate force</param>
 	/// <param name="springLength">rest length of a spring</param>
-	/// <returns></returns>
+	/// <returns>force contribution from neighbour particle</returns>
 	__device__ inline float springMassForceWithDampingForParticle(float3 dP, float3 dv, float springLength)
 	{
 		return (length(dP) - springLength) * particle_k_sniff + dot(normalize(dP), dv) * particle_d_fact;
 	}
 
+	/// <summary>
+	/// Computes force of spring mass model with damping for vein
+	/// </summary>
+	/// <param name="p1"> - position of particle for which we calculate the force</param>
+	/// <param name="p2"> - position of second particle</param>
+	/// <param name="v1"> - velocity of particle for which we calculate the force</param>
+	/// <param name="v2"> - velocity of second particle</param>
+	/// <param name="springLength">rest length of a spring</param>
+	/// <returns>force contribution from neighbour particle</returns>
 	__device__ inline float springMassForceWithDampingForVein(float3 p1, float3 p2, float3 v1, float3 v2, float springLength)
 	{
 		return (length(p1 - p2) - springLength) * vein_k_sniff + dot(normalize(p1 - p2), (v1 - v2)) * vein_d_fact;
@@ -40,7 +49,7 @@ namespace physics
 	/// <param name="springLength">rest length of a spring</param>
 	/// <param name="position"> - calculated position for next frame</param>
 	/// <param name="velocity"> - calculated velocity for next frame</param>
-	/// <returns></returns>
+	/// <returns>force contribution from neighbour particle</returns>
 	__device__ inline float3 calculateParticlesSpringForceComponent(float3 dP, float3 dv, float3 f1, float3 f2, float springLength, float3& position, float3& velocity)
 	{
 		float3 normalizedShift = normalize(-1*dP);
@@ -68,6 +77,15 @@ namespace physics
 #endif
 	}
 
+	/// <summary>
+	/// Computes force of spring mass model with damping for vein
+	/// </summary>
+	/// <param name="p1"> - position of particle for which we calculate the force</param>
+	/// <param name="p2"> - position of second particle</param>
+	/// <param name="v1"> - velocity of particle for which we calculate the force</param>
+	/// <param name="v2"> - velocity of second particle</param>
+	/// <param name="springLength">rest length of a spring</param>
+	/// <returns>force contribution from neighbour particle</returns>
 	__device__ inline float calculateVeinSpringForceComponent(float3 p1, float3 p2, float3 v1, float3 v2, float springLength)
 	{
 #ifdef USE_EULER_FOR_VEIN
@@ -80,13 +98,23 @@ namespace physics
 	/// gathers all other forces that influence on particle
 	/// </summary>
 	/// <param name="v">particle velocity</param>
-	/// <returns></returns>
+	/// <returns>vector of combined environment forces</returns>
 	__device__ inline float3 accumulateEnvironmentForcesForParticles(float3 v)
 	{
 		return make_float3(Gx, Gy, Gz) - viscous_damping * v;
 	}
 
-
+	/// <summary>
+	/// adds resilient force on object collision
+	/// </summary>
+	/// <param name="relativePosition">difference of positions for objects</param>
+	/// <param name="relativeVelocity">difference of velocities for objects</param>
+	/// <param name="distanceSquared">distance squared between objects</param>
+	/// <param name="radius">objects radius</param>
+	/// <param name="particleId">base particle id</param>
+	/// <param name="intensityCoefficient">coefficient to control force intensity</param>
+	/// <param name="forces">device data of current forces</param>
+	/// <returns></returns>
 	__device__ inline void addResilientForceOnCollision(float3 relativePosition, float3 relativeVelocity, float distanceSquared, float radius, unsigned int particleId, float intensityCoefficient, cudaVec3& forces)
 	{
 		float3 relativeDirection = normalize(relativePosition);
@@ -101,6 +129,14 @@ namespace physics
 		forces.add(particleId, intensityCoefficient * (springForce + damplingForce + shearForce));
 	}
 
+	/// <summary>
+	/// Propagates forces in blood cell particle
+	/// </summary>
+	/// <param name="particleId">id of particle</param>
+	/// <param name="bloodCells">device data of bloodcells</param>
+	/// <param name="velocity">calculated particle velocity</param>
+	/// <param name="initialVelocity">initial particle velocity</param>
+	/// <returns></returns>
 	__device__ inline void propagateForcesInParticles(unsigned int particleId, BloodCells& bloodCells, float3 velocity, float3 initialVelocity)
 	{
 

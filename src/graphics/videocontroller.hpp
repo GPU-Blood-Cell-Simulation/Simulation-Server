@@ -7,7 +7,9 @@
 #include <glad/glad.h>
 #include <string>
 
-
+/// <summary>
+/// Controlls visualization's streaming and recording 
+/// </summary>
 class VideoController
 {
 public:

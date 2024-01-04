@@ -16,14 +16,31 @@
 
 namespace graphics
 {
-	// Controls rendering of the particles
+	/// <summary>
+	/// Controls rendering of the particles
+	/// </summary>
 	class GLController {
 	public:
 
 		GLController(Mesh& veinMesh, std::vector<glm::vec3>& initialPositions);
 		~GLController();
+
+		/// <summary>
+		/// Translate device particle positions to OpenGL buffer
+		/// </summary>
+		/// <param name="positions">cuda buffer of particle positions</param>
 		void calculatePositions(cudaVec3 positions);
+
+		/// <summary>
+		/// Translate device triangles positions to OpenGL buffer
+		/// </summary>
+		/// <param name="triangles">device data for vein triangles</param>
 		void calculateTriangles(VeinTriangles triangles);
+
+		/// <summary>
+		/// Calls OpenGL rendering pipeline for current camera view
+		/// </summary>
+		/// <param name="camera">visualization camera</param>
 		void draw(Camera& camera);
 
 	private:

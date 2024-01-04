@@ -10,6 +10,15 @@ namespace graphics
 	class InputController
 	{
 	public:
+
+		/// <summary>
+		/// Handles given input on window
+		/// </summary>
+		/// <param name="window">pointer to current window</param>
+		/// <param name="key">user input</param>
+		/// <param name="scancode">input code</param>
+		/// <param name="action">input action</param>
+		/// <param name="mods">input mods</param>
 		static void handleUserInput(GLFWwindow* window, int key, int scancode, int action, int mods);
 		static void adjustParametersUsingInput(Camera& camera);
 	private:

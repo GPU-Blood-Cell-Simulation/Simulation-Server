@@ -16,12 +16,18 @@
 
 namespace sim
 {
+	/// <summary>
+	/// Controlls simulation including main simulation loop
+	/// </summary>
 	class SimulationController
 	{
 	public:
 		SimulationController(BloodCells& bloodCells, VeinTriangles& triangles, Grid particleGrid, Grid triangleGrid);
 		~SimulationController();
 
+		/// <summary>
+		/// Executes main simulation loop
+		/// </summary>
 		void calculateNextFrame();
 		std::vector<glm::vec3> initialCellPositions;
 		float* cellModelsBoundingSpheres;

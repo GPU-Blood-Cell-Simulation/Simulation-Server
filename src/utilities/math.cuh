@@ -33,16 +33,33 @@ __host__ __device__ inline float3 operator/(float3 v, float a)
 	return make_float3(v.x / a, v.y / a, v.z / a);
 }
 
+/// <summary>
+/// Checks if v is (0,0,0)
+/// </summary>
+/// <param name="v">input vector</param>
+/// <returns>boolean value of this property</returns>
 __host__ __device__ inline bool isEmpty(float3 v)
 {
 	return v.x == 0 && v.y == 0 && v.z == 0;
 }
 
+/// <summary>
+/// Calculates dot product
+/// </summary>
+/// <param name="a">first vector</param>
+/// <param name="b">second vector</param>
+/// <returns>dot product value of a and b</returns>
 __host__ __device__ inline float dot(float3 a, float3 b)
 {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
+/// <summary>
+/// Calculates cross product
+/// </summary>
+/// <param name="a">first vector</param>
+/// <param name="b">second vector</param>
+/// <returns>cross product value of a and b</returns>
 __host__ __device__ inline float3 cross(float3 u, float3 v)
 {
 	return make_float3(u.y * v.z - u.z * v.y,
@@ -50,17 +67,31 @@ __host__ __device__ inline float3 cross(float3 u, float3 v)
 		u.x * v.y - u.y * v.x);
 }
 
+/// <summary>
+/// Calculate square of length of vector
+/// </summary>
+/// <param name="v">input vector</param>
+/// <returns>length squared</returns>
 __host__ __device__ inline float length_squared(float3 v)
 {
 	return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
+/// <summary>
+/// Calculate length of vector
+/// </summary>
+/// <param name="v">input vector</param>
+/// <returns>length</returns>
 __host__ __device__ inline float length(float3 v)
 {
 	return sqrtf(length_squared(v));
 }
 
-// TODO: is there a way to compute the inverse square root faster?
+/// <summary>
+/// Normalize given vector
+/// </summary>
+/// <param name="v">input</param>
+/// <returns>normalized vector</returns>
 __host__ __device__ inline float3 normalize(float3 v) // versor
 {
 	float3 vn = v / sqrtf(dot(v, v));
@@ -72,7 +103,11 @@ __host__ __device__ inline float3 normalize(float3 v) // versor
 	return vn;
 }
 
-// constexpr version of ceil function - normal one is notavaiable in constexpr functions
+/// <summary>
+/// constexpr version of ceil function - normal one is notavaiable in constexpr functions
+/// </summary>
+/// <param name="num">argument of function ceil</param>
+/// <returns></returns>
 constexpr int constCeil(float num)
 {
 	return (static_cast<float>(static_cast<int>(num)) == num)

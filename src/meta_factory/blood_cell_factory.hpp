@@ -13,30 +13,54 @@ namespace
 {
 	using namespace boost::mp11;
 
-	// Helper meta-function for adding particles
+	/// <summary>
+	/// Helper meta-function for adding particles
+	/// </summary>
+	/// <typeparam name="State">Actual state value</typeparam>
+	/// <typeparam name="Def">Consecutive definition value</typeparam>
 	template<class State, class Def>
 	using Add = mp_int<State::value + Def::count * Def::particlesInCell>;
 
-	// Helper meta-function for adding particles of distinct cellTypes
+	/// <summary>
+	/// Helper meta-function for adding particles of distinct cellTypes
+	/// </summary>
+	/// <typeparam name="State">Actual state value</typeparam>
+	/// <typeparam name="Def">Consecutive definition value</typeparam>
 	template<class State, class Def>
 	using AddDistinct = mp_int<State::value + Def::particlesInCell>;
 
-	// Helper meta-function for adding blood Cells
+	/// <summary>
+	/// Helper meta-function for adding blood Cells
+	/// </summary>
+	/// <typeparam name="State">Actual state value</typeparam>
+	/// <typeparam name="Def">Consecutive definition value</typeparam>
 	template<class State, class Def>
 	using AddCells = mp_int<State::value + Def::count>;
 
-	// Helper meta-function for calculating the graph size
+	/// <summary>
+	/// Helper meta-function for calculating the graph size
+	/// </summary>
+	/// <typeparam name="State">Actual state value</typeparam>
+	/// <typeparam name="Def">Consecutive definition value</typeparam>
 	template<class State, class Def>
 	using AddSquared = mp_int<State::value + Def::particlesInCell * Def::particlesInCell>;
 
-	// Helper meta-functor for filtering the user-provided list
+	/// <summary>
+	/// Helper meta-functor for filtering the user-provided list
+	/// </summary>
+	/// <typeparam name="Def1">First blood cell definition</typeparam>
+	/// <typeparam name="Def2">Second blood cell definition</typeparam>
 	template<class Def1, class Def2>
 	struct IsDuplicate
 	{
 		static constexpr bool value = (Def1::particlesInCell == Def2::particlesInCell) && std::is_same_v<typename Def1::List, typename Def2::List>;
 	};
 
-	// Helper meta-function for folding the blood cell list for every distinct type
+	/// <summary>
+	/// Helper meta-function for folding the blood cell list for every distinct type
+	/// </summary>
+	/// <typeparam name="State">Actual state value</typeparam>
+	/// <typeparam name="Def">Consecutive definition value</typeparam>
 	template<class State, class Def>
 	using AddDistinctTypes = BloodCellDef
 		<
@@ -50,8 +74,11 @@ namespace
 		typename State::Normals
 		>;
 
-	// In order to merge all definitions of the same type, we first fold the list for every definitions using
-	// a custom meta-function and then we remove all the duplicates
+	/// <summary>
+	/// In order to merge all definitions of the same type, we first fold the list for every definitions using
+	/// a custom meta-function and then we remove all the duplicates
+	/// </summary>
+	/// <typeparam name="i">index</typeparam>
 	template<int i>
 	struct FoldedBloodCellList
 	{
@@ -84,7 +111,9 @@ namespace
 		using type = mp_list<>;
 	};
 
-	// Filter out duplicated folded types
+	/// <summary>
+	/// Filter out duplicated folded types
+	/// </summary>
 	using UniqueBloodCellList = mp_unique_if<FoldedBloodCellList<mp_size<UserDefinedBloodCellList>::value - 1>::type, IsDuplicate>;
 
 	inline constexpr bool isPowerOfTwo(int n)
@@ -92,7 +121,12 @@ namespace
 		return n & (n - 1);
 	}
 	
-	// Heuristics: powers of 2 should be at the beginning
+	/// <summary>
+	/// Heuristics: powers of 2 should be at the beginning
+	/// </summary>
+	/// <param name="particlesInCell1">number of particles in first cell</param>
+	/// <param name="particlesInCell2">number of particles in second cell</param>
+	/// <returns></returns>
 	inline constexpr bool orderBloodCells(int particlesInCell1, int particlesInCell2)
 	{
 		// Power of two?
@@ -111,35 +145,55 @@ namespace
 		return true;
 	}
 
-	// Helper meta-functor for ordering the blood cell definitions
+	/// <summary>
+	/// Helper meta-functor for ordering the blood cell definitions
+	/// </summary>
+	/// <typeparam name="Def1">First blood cell definition</typeparam>
+	/// <typeparam name="Def2">Second blood cell definition</typeparam>
 	template<class Def1, class Def2>
 	struct BloodCellComparator
 	{
 		static constexpr bool value = orderBloodCells(Def1::particlesInCell, Def2::particlesInCell);
 	};
 
-	// Sort the blood cell definitions
+	/// <summary>
+	/// Sort the blood cell definitions
+	/// </summary>
 	using BloodCellList = mp_sort<UniqueBloodCellList, BloodCellComparator>;
 
-	// Check the final list
+	/// <summary>
+	/// Check the final list
+	/// </summary>
 	static_assert(mp_size<BloodCellList>::value <= maxCudaStreams, "Max number of streams exceeded");
 
-	// Particle count
+	/// <summary>
+	/// Particle count
+	/// </summary>
 	inline constexpr int particleCount = mp_fold<BloodCellList, mp_int<0>, Add>::value;
 
-	// Particle count of distinct blood cell types
+	/// <summary>
+	/// Particle count of distinct blood cell types
+	/// </summary>
 	inline constexpr int particleDistinctCellsCount = mp_fold<BloodCellList, mp_int<0>, AddDistinct>::value;
 
-	// Blood cell count
+	/// <summary>
+	/// Blood cell count
+	/// </summary>
 	inline constexpr int bloodCellCount = mp_fold<BloodCellList, mp_int<0>, AddCells>::value;
 
-	// Total particle graph size
+	/// <summary>
+	/// Total particle graph size
+	/// </summary>
 	inline constexpr int totalGraphSize = mp_fold<BloodCellList, mp_int<0>, AddSquared>::value;
 
-	// Distinct blood cell types
+	/// <summary>
+	/// Distinct blood cell types
+	/// </summary>
 	inline constexpr int bloodCellTypeCount = mp_size<BloodCellList>::value;
 
-	// Fill the particles start array
+	/// <summary>
+	/// Fill the particles start array
+	/// </summary>
 	inline constexpr auto particlesStartsGenerator = []()
 	{
 		std::array<int, bloodCellTypeCount> arr{};
@@ -156,11 +210,14 @@ namespace
 		return arr;
 	};
 
-
-	// Determine where in the device array a particular stream should start its job (calculate accumulated particlesInCell sums)
+	/// <summary>
+	/// Determine where in the device array a particular stream should start its job (calculate accumulated particlesInCell sums)
+	/// </summary>
 	inline constexpr auto particlesStarts = particlesStartsGenerator();
 
-	// Fill the blood cells start array
+	/// <summary>
+	/// Fill the blood cells start array
+	/// </summary>
 	inline constexpr auto bloodCellTypesStartsGenerator = []()
 		{
 			std::array<int, bloodCellTypeCount> arr{};
@@ -174,10 +231,14 @@ namespace
 			return arr;
 		};
 
-	// Array of accumulated sums of blood cells in particular type
+	/// <summary>
+	/// Array of accumulated sums of blood cells in particular type
+	/// </summary>
 	inline constexpr auto bloodCellTypesStarts = bloodCellTypesStartsGenerator();
 
-	// Fill the array of blood cell models sizes in consecutive types;
+	/// <summary>
+	/// Fill the array of blood cell models sizes in consecutive types;
+	/// </summary>
 	inline constexpr auto bloodCellModelStartsGenerator = []()
 		{
 			std::array<int, bloodCellTypeCount> arr{};
@@ -191,10 +252,14 @@ namespace
 			return arr;
 		};
 
-	// Array of accumulated sums of blood cell models sizes in consecutive types;
+	/// <summary>
+	/// Array of accumulated sums of blood cell models sizes in consecutive types;
+	/// </summary>
 	inline constexpr auto bloodCellModelStarts = bloodCellModelStartsGenerator();
 
-	// Fill the accumulated graph sizes array
+	/// <summary>
+	/// Fill the accumulated graph sizes array
+	/// </summary>
 	inline constexpr auto graphSizesGenerator = []()
 	{
 		std::array<int, bloodCellTypeCount> arr{};
@@ -211,13 +276,19 @@ namespace
 		return arr;
 	};
 
-	// Graph sizes for each type
+	/// <summary>
+	/// Graph sizes for each type
+	/// </summary>
 	inline constexpr auto accumulatedGraphSizes = graphSizesGenerator();
 
-	// for initial spring length calculations
+	/// <summary>
+	/// for initial spring length calculations
+	/// </summary>
 	inline constexpr float springLengthCoefficient = 1.0f;
 
-	// Fill the particle neighborhood graph
+	/// <summary>
+	/// Fill the particle neighborhood graph
+	/// </summary>
 	inline constexpr auto springGraphGenerator = []()
 	{
 		std::array<float, totalGraphSize> arr{};
@@ -251,6 +322,9 @@ namespace
 		return arr;
 	};
 
+	/// <summary>
+	/// Particle neighbour graph
+	/// </summary>
 	inline constexpr auto springGraph = springGraphGenerator();
 
 }
