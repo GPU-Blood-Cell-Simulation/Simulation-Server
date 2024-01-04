@@ -126,6 +126,7 @@ file(COPY Shaders DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 #
 # Tests
 #
+add_subdirectory("src/")
 include(CTest)
 add_subdirectory("${PROJECT_SOURCE_DIR}/Libraries/googletest-1.14.0/")
 add_subdirectory("tests/")
