@@ -8,12 +8,10 @@ inline constexpr float vein_k_sniff = 0.05;
 inline constexpr float particle_d_fact = 9;
 inline constexpr float vein_d_fact = 0.45;
 
+inline constexpr float viscous_damping = 0.3;
 inline constexpr float vein_boundaries_velocity_damping = 0.65;
 inline constexpr float vein_collision_force_intensity = 0.08;
 
-
-// viscous damping slows down particle proportionally to its velocity
-inline constexpr float viscous_damping = 0.39f;
 inline constexpr float collisionSpringCoeff = 6;
 inline constexpr float collisionDampingCoeff = 6;
 inline constexpr float collistionShearCoeff = 4;
