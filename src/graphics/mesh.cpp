@@ -63,11 +63,6 @@ SingleObjectMesh::SingleObjectMesh(std::vector<Vertex>&& vertices, std::vector<u
 	setupMesh();
 }
 
-void SingleObjectMesh::draw(const Shader* shader) const
-{
-	Mesh::draw(shader);
-}
-
 void Mesh::draw(const Shader* shader) const
 {
 	// draw mesh
@@ -83,11 +78,6 @@ MultiObjectMesh::MultiObjectMesh(std::vector<Vertex>&& vertices, std::vector<uns
 	this->objectCount = objectCount;
 	prepareMultipleObjects(initialPositions);
 	setupMesh();
-}
-
-void MultiObjectMesh::draw(const Shader* shader) const
-{
-	Mesh::draw(shader);
 }
 
 void MultiObjectMesh::prepareMultipleObjects(std::vector<glm::vec3>& initialPositions)

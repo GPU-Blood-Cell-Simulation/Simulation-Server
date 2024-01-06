@@ -31,18 +31,6 @@ public:
 			};
 			vertices.push_back(v);
 		}
-		// Vertex distance debug info
-		
-		/*std::cout << "Horizontal (j): " << length(vertices[0].Position - vertices[1].Position) << std::endl;
-		std::cout << "Vertical (i): " << length(vertices[0].Position - vertices[hLayers].Position) << std::endl;
-		std::cout << "Diagonal: " << length(vertices[0].Position - vertices[hLayers + 1].Position) << std::endl;
-		exit(0);
-
-		springLengths = std::make_tuple(
-			length(vertices[0].position - vertices[1].position),
-			length(vertices[0].position - vertices[hLayers].position),
-			length(vertices[0].position - vertices[hLayers + 1].position)
-		);*/
 	}
 
 	/// <summary>

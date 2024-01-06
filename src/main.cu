@@ -73,10 +73,10 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     VEIN_POLYGON_MODE = GL_FILL;
 
-    // debug
-    glEnable(GL_DEBUG_OUTPUT);
 
     // Main simulation loop
 #ifdef WINDOW_RENDER

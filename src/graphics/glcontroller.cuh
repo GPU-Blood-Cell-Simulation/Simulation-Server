@@ -44,7 +44,6 @@ namespace graphics
 		void draw(Camera& camera);
 
 	private:
-
 		// Particle color
 		std::array<glm::vec3, bloodCellTypeCount> bloodCellTypeDiffuse; // = glm::vec3(0.8f, 0.2f, 0.2f);
 		float particleSpecular = 0.6f;
@@ -67,7 +66,14 @@ namespace graphics
 		std::unique_ptr<Shader> cylinderSolidColorShader;
 		std::unique_ptr<Shader> springShader;
 		
+		/// <summary>
+		/// Deferred shading gBuffer
+		/// </summary>
 		unsigned int gBuffer;
+		/// <summary>
+		/// Deferred shading textures
+		/// </summary>
+		unsigned int gPosition, gNormal, gAlbedoSpec;
 
 		cudaGraphicsResource_t cudaPositionsResource[bloodCellTypeCount];
 		cudaGraphicsResource_t cudaVeinVBOResource;

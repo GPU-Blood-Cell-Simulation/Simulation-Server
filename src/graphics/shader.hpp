@@ -44,20 +44,13 @@ public:
 class GeometryPassShader : public Shader
 {
 public:
-    GeometryPassShader(unsigned int gBuffer);
-    void use() override;
-private:
-    unsigned int gBuffer;
+    GeometryPassShader();
 };
 
 class PhongDeferredShader : public Shader
 {
 public:
-    PhongDeferredShader(unsigned int gPosition, unsigned int gNormal);
-    void use() override;
-private:
-    unsigned int gPosition;
-    unsigned int gNormal;
+    PhongDeferredShader();
 };
 
 class CylinderSolidColorShader : public Shader
