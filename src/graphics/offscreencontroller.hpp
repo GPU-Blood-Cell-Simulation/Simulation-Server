@@ -12,8 +12,6 @@ public:
     OffscreenController();
     ~OffscreenController();
 
-    int width, height;
-
 private:
     EGLDisplay eglDpy;
     EGLContext eglCtx;
