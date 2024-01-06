@@ -99,9 +99,9 @@ namespace physics
 	/// </summary>
 	/// <param name="v">particle velocity</param>
 	/// <returns>vector of combined environment forces</returns>
-	__device__ inline float3 accumulateEnvironmentForcesForParticles(float3 v)
+	__device__ inline float3 accumulateEnvironmentForcesForParticles(float3 v, float3 r)
 	{
-		return make_float3(Gx, Gy, Gz) - viscous_damping * v;
+		return make_float3(Gx, Gy, Gz) - viscous_damping * v - cross(r, v)/length_squared(r);
 	}
 
 	/// <summary>
