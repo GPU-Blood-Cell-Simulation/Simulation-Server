@@ -40,7 +40,7 @@ public:
 	}
 
 	/// <summary>
-	/// Sets certaing vector
+	/// Sets certain vector
 	/// </summary>
 	/// <param name="index">vector index</param>
 	/// <param name="v">vector value</param>
