@@ -102,7 +102,6 @@ namespace sim
 		return false;
 	}
 
-#pragma region Main Collision Template Kernels
 	 template<typename T>
 	 __global__ void detectVeinCollisionsAndPropagateForces(BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel,
 		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
@@ -136,8 +135,5 @@ namespace sim
 	template<>
 	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
 		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
-
-	
-#pragma endregion
 
 }
