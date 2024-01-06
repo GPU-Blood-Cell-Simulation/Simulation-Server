@@ -136,7 +136,7 @@ namespace graphics
 		else
 			phongForwardShader = std::make_unique<PhongForwardShader>();
 		
-		cylinderSolidColorShader = std::make_unique<CylinderSolidColorShader>();
+		veinSolidColorShader = std::make_unique<VeinSolidColorShader>();
 		springShader = std::make_unique<SpringShader>();
 
 		// Create streams
@@ -236,13 +236,13 @@ namespace graphics
 		}
 
 		// Draw vein
-		cylinderSolidColorShader->use();
-		cylinderSolidColorShader->setMatrix("view", camera.getView());
-		cylinderSolidColorShader->setMatrix("projection", projection);
+		veinSolidColorShader->use();
+		veinSolidColorShader->setMatrix("view", camera.getView());
+		veinSolidColorShader->setMatrix("projection", projection);
 
 		glDisable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
-		veinModel.draw(cylinderSolidColorShader.get());
+		veinModel.draw(veinSolidColorShader.get());
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
 	}

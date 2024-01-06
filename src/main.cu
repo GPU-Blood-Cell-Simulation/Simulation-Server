@@ -1,23 +1,25 @@
 ﻿#include <glad/glad.h>
+
+#include "config/graphics.hpp"
 #include "grids/uniform_grid.cuh"
 #include "grids/no_grid.cuh"
 #include "meta_factory/blood_cell_factory.hpp"
 #include "meta_factory/vein_factory.hpp"
 #include "objects/blood_cells.cuh"
 #include "objects/vein_triangles.cuh"
-#include "objects/cylindermesh.hpp"
 #include "simulation/simulation_controller.cuh"
 #include "utilities/cuda_handle_error.cuh"
 #include "graphics/glcontroller.cuh"
-#include "objects/cylindermesh.hpp"
+#include "objects/vein_generator.hpp"
 
 #include <curand.h>
 #include <curand_kernel.h>
 #include <iostream> // for debugging purposes
 #include <sstream>
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
-#include "config/graphics.hpp"
+
 
 #ifdef WINDOW_RENDER
 #   include "graphics/windowcontroller.hpp"
@@ -29,8 +31,6 @@
 #   undef __noinline__
 #   include "graphics/videocontroller.hpp"
 #   define __noinline__ __attribute__((noinline))
-
-
 
 #endif
 
@@ -95,18 +95,14 @@ int main()
 
 programLoopFunction
 {
-
     int frameCount = 0;
     // Create blood cells
     BloodCells bloodCells;
 
-    // Create vein mesh
-    // TODO: this will be unnecessary
-    VeinGenerator veinGenerator;
-
     // Create vein triangles
     VeinTriangles triangles;
-    SingleObjectMesh veinMesh = veinGenerator.CreateMesh();
+    // Create vein mesh
+    SingleObjectMesh veinMesh = VeinGenerator::createMesh();
 
     // Create grids
     UniformGrid particleGrid(particleCount, 20, 20, 20);

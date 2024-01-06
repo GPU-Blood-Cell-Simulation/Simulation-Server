@@ -53,10 +53,10 @@ public:
     PhongDeferredShader();
 };
 
-class CylinderSolidColorShader : public Shader
+class VeinSolidColorShader : public Shader
 {
 public:
-    CylinderSolidColorShader();
+    VeinSolidColorShader();
 };
 
 class SpringShader : public Shader

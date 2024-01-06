@@ -133,7 +133,7 @@ PhongDeferredShader::PhongDeferredShader() : Shader("Shaders/phong_deferred.vert
 PhongForwardShader::PhongForwardShader() : Shader("Shaders/phong_forward.vert", "Shaders/phong_forward.frag")
 {}
 
-CylinderSolidColorShader::CylinderSolidColorShader() : Shader("Shaders/cylindersolidcolor.vert", "Shaders/cylindersolidcolor.frag")
+VeinSolidColorShader::VeinSolidColorShader() : Shader("Shaders/veinsolidcolor.vert", "Shaders/veinsolidcolor.frag")
 {}
 
 SpringShader::SpringShader() : Shader("Shaders/spring.vert", "Shaders/spring.frag")

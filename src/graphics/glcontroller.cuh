@@ -7,7 +7,6 @@
 #include "light.hpp"
 #include "model.hpp"
 #include "../objects/vein_triangles.cuh"
-#include "../objects/cylindermesh.hpp"
 #include "spring_lines.hpp"
 
 #include <glm/mat4x4.hpp>
@@ -63,7 +62,7 @@ namespace graphics
 		std::unique_ptr<Shader> geometryPassShader;
 		std::unique_ptr<Shader> phongDeferredShader;
 		std::unique_ptr<Shader> phongForwardShader;
-		std::unique_ptr<Shader> cylinderSolidColorShader;
+		std::unique_ptr<Shader> veinSolidColorShader;
 		std::unique_ptr<Shader> springShader;
 		
 		/// <summary>
