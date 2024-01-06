@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 IF(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
@@ -25,6 +25,8 @@ set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS};-arch=sm_50)
 #
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CUDA_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall")
+set(CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall")
 
 set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl -lm")
 set (CMAKE_CUDA_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl -lm")
@@ -71,11 +73,13 @@ if(WINDOW_RENDERING)
   list(REMOVE_ITEM CPP_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/offscreencontroller.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/streamingcontroller.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/videocontroller.cpp"
   )
 
   list(REMOVE_ITEM CPP_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/offscreencontroller.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/streamingcontroller.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/graphics/videocontroller.hpp"
   )
 
 else()
