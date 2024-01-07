@@ -37,7 +37,7 @@ struct BloodCellDef
 /// <typeparam name="End">Terminal vertex for spring</typeparam>
 /// <typeparam name="Length">Spring initial lenght</typeparam>
 /// <typeparam name="decimalPrecision">Decimal float template precision</typeparam>
-template<int Start, int End, int Length, int decimalPrecision>
+template<int Start, int End, int Length, int decimalPrecision = 7>
 struct Spring
 {
 	inline static constexpr int start = Start;

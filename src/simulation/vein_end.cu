@@ -75,7 +75,19 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells, curandState* stat
 	}
 
 	// Check if teleportiation should occur
-	bool teleport = posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold;
+	bool teleport = false;
+	mp_for_each<mp_iota_c<veinEndingCenterCount>>([&](auto i)
+		{
+			static constexpr float endingX = mp_at_c<VeinEndingCenters, i>::x;
+			static constexpr float endingY = mp_at_c<VeinEndingCenters, i>::y;
+			static constexpr float endingZ = mp_at_c<VeinEndingCenters, i>::z;
+			static constexpr float radius = mp_at_c<VeinEndingRadii, i>::value;
+			teleport = teleport || length_squared(float3{posX - endingX, posY - endingY, posZ - endingZ}) <= radius * radius;
+		});
+	
+
+	// Check additional constraints to make sure particles don't leave the grid
+	teleport = teleport || posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold;
 	belowVein[threadIdx.x] = teleport;
 
 	__syncthreads();
