@@ -1,0 +1,47 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/cuda:12.3.1-devel-ubuntu22.04
+#From: nvcr.io/nvidia/cudagl:11.3.0-devel-ubuntu20.04
+
+
+%post
+    # Upgrade Ubuntu software
+    . /.singularity.d/env/10-docker*.sh
+
+    export NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,compat32,utility
+
+    # TZ=Europe/Warsaw
+    # ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+    apt-get -y update
+
+    # GCC 11
+    apt-get -y install g++-11 gcc-11
+    #apt-get -y install g++- gcc-
+
+    # Cmake
+    apt-get -y install cmake
+
+    apt-get -y install libegl1-mesa-dev
+    # apt-get install -y libglvnd-dev
+
+    apt-get -y install pkg-config
+
+    apt-get -y install libgstreamer1.0-dev
+    apt-get -y install libgstreamer-plugins-base1.0-dev
+    apt-get -y install gstreamer1.0-plugins-good
+    apt-get -y install gstreamer1.0-plugins-ugly
+
+    apt-get install -y libglvnd0 libgl1 libglx0 libegl1 libgles2
+    apt-get install -y libglu1-mesa libxi-dev libxmu-dev libglu1-mesa-dev
+    apt-get install -y freeglut3-dev
+
+%environment
+    export __NV_PRIME_RENDER_OFFLOAD=1
+    export __GLX_VENDOR_LIBRARY_NAME=nvidia
+
+    export NVIDIA_DRIVER_CAPABILITIES=compute,utility,graphics,compat32,utility
+
+    . /.singularity.d/env/10-docker*.sh
+
+%test
+    nvcc --version
