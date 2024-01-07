@@ -142,7 +142,7 @@ void HandleVeinEnd(BloodCells& cells, curandState* devStates, const std::array<c
 	mp_for_each<IndexList>([&](auto i)
 		{
 			using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-			constexpr int particlesStart = particlesStarts[i];
+			constexpr int particlesStart = particleStarts[i];
 
 			constexpr SynchronizationType syncType = SelectSynchronizationType(
 				BloodCellDefinition::count,
