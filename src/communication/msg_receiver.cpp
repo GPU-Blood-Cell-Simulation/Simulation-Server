@@ -71,7 +71,8 @@ ReceivedEvent MsgReceiver::parseMessage(const ENetEvent *event) const
         return ReceivedEvent(Event::invalidMessage);
     }
 
-    if (static_cast<eventType>(*event->packet->data) & EVENT_PAYLOAD >= static_cast<eventType>(Event::invalidMessage)) {
+    eventType eventPayload = static_cast<eventType>(*event->packet->data) & static_cast<eventType>(EVENT_PAYLOAD);
+    if (eventPayload >= static_cast<eventType>(Event::invalidMessage)) {
         return ReceivedEvent(Event::invalidMessage);
     }
 

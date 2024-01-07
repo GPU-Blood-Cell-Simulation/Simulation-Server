@@ -44,7 +44,11 @@ __global__ static void gatherForcesKernel(BloodCells bloodCells)
 	float3 position = bloodCells.particles.positions.get(realIndex);
 	float3 velocity = bloodCells.particles.velocities.get(realIndex);
 	float3 initialForce = bloodCells.particles.forces.get(realIndex);
-	float3 newPosition {0,0,0}, newVelocity {0,0,0}, newForce{ 0, 0, 0 };
+	float3 newForce{ 0, 0, 0 };
+
+#ifdef USE_RUNGE_KUTTA_FOR_PARTICLE
+	float3 newPosition {0,0,0}, newVelocity {0,0,0};
+#endif
 
 #pragma unroll
 	for (int neighbourCellindex = 0; neighbourCellindex < particlesInBloodCell; neighbourCellindex++)
