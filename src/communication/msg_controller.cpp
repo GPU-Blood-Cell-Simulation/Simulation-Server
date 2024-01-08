@@ -21,7 +21,7 @@ void MsgController::setCamera(graphics::Camera *camera)
 
 void MsgController::handleMsgs()
 {
-    ReceivedEvent received_event = receiver.pollMessages();
+    Event received_event = receiver.pollEvents();
 
     if (camera == nullptr)
         return;
@@ -38,11 +38,11 @@ void MsgController::handleMsgs()
     case EventState::notRelevant:
         switch (received_event.event)
         {
-        case Event::newConnection:
+        case EventType::newConnection:
             std::cout << "New Connection established\n";
             break;
         
-        case Event::peerDisconnected:
+        case EventType::peerDisconnected:
             activeEvents.clear();
             std::cout << "Peer disconnected\n";
             break;
@@ -66,43 +66,43 @@ void MsgController::adjustParameters()
     for (auto& event : activeEvents) {
         switch (event)
         {
-        case Event::cameraLeft:
+        case EventType::cameraLeft:
             camera->moveLeft();
             break;
         
-        case Event::cameraRight:
+        case EventType::cameraRight:
             camera->moveRight();
             break;
 
-        case Event::cameraForward:
+        case EventType::cameraForward:
             camera->moveForward();
             break;
 
-        case Event::cameraBack:
+        case EventType::cameraBack:
             camera->moveBack();
             break;
 
-        case Event::cameraAscend:
+        case EventType::cameraAscend:
             camera->ascend();
             break;
 
-        case Event::cameraDescend:
+        case EventType::cameraDescend:
             camera->descend();
             break;
 
-        case Event::cameraRotateLeft:
+        case EventType::cameraRotateLeft:
             camera->rotateLeft();
             break;
 
-        case Event::cameraRotateRight:
+        case EventType::cameraRotateRight:
             camera->rotateRight();
             break;
 
-        case Event::cameraRotateUp:
+        case EventType::cameraRotateUp:
             camera->rotateUp();
             break;
 
-        case Event::cameraRotateDown:
+        case EventType::cameraRotateDown:
             camera->rotateDown();
             break;
 

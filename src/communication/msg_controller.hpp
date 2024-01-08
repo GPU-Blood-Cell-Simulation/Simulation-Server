@@ -3,7 +3,7 @@
 #include <string>
 #include <set>
 
-#include "msg_receiver.hpp"
+#include "server_endpoint.hpp"
 #include "../graphics/camera.hpp"
 
 /// <summary>
@@ -26,10 +26,10 @@ public:
     void handleMsgs();
 
 private:
-    MsgReceiver receiver;
+    ServerCommunicationEndpoint receiver;
     graphics::Camera* camera = nullptr;
 
-    std::set<Event> activeEvents;
+    std::set<EventType> activeEvents;
 
     void adjustParameters();
 };
