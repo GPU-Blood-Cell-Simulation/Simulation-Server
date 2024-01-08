@@ -7,7 +7,6 @@
 #include "light.hpp"
 #include "model.hpp"
 #include "../objects/vein_triangles.cuh"
-#include "../objects/cylindermesh.hpp"
 #include "spring_lines.hpp"
 
 #include <glm/mat4x4.hpp>
@@ -44,7 +43,6 @@ namespace graphics
 		void draw(Camera& camera);
 
 	private:
-
 		// Particle color
 		std::array<glm::vec3, bloodCellTypeCount> bloodCellTypeDiffuse; // = glm::vec3(0.8f, 0.2f, 0.2f);
 		float particleSpecular = 0.6f;
@@ -64,10 +62,17 @@ namespace graphics
 		std::unique_ptr<Shader> geometryPassShader;
 		std::unique_ptr<Shader> phongDeferredShader;
 		std::unique_ptr<Shader> phongForwardShader;
-		std::unique_ptr<Shader> cylinderSolidColorShader;
+		std::unique_ptr<Shader> veinSolidColorShader;
 		std::unique_ptr<Shader> springShader;
 		
+		/// <summary>
+		/// Deferred shading gBuffer
+		/// </summary>
 		unsigned int gBuffer;
+		/// <summary>
+		/// Deferred shading textures
+		/// </summary>
+		unsigned int gPosition, gNormal, gAlbedoSpec;
 
 		cudaGraphicsResource_t cudaPositionsResource[bloodCellTypeCount];
 		cudaGraphicsResource_t cudaVeinVBOResource;

@@ -124,38 +124,16 @@ void Shader::setLighting(DirLight dirLight) const
 SolidColorShader::SolidColorShader() : Shader("Shaders/solidcolor.vert", "Shaders/solidcolor.frag")
 {}
 
-GeometryPassShader::GeometryPassShader(unsigned int gBuffer) : Shader("Shaders/geometry.vert", "Shaders/geometry.frag"),
-gBuffer(gBuffer)
+GeometryPassShader::GeometryPassShader() : Shader("Shaders/geometry.vert", "Shaders/geometry.frag")
 {}
 
-void GeometryPassShader::use()
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Shader::use();
-}
-
-PhongDeferredShader::PhongDeferredShader(unsigned int gPosition, unsigned int gNormal) : Shader("Shaders/phong_deferred.vert", "Shaders/phong_deferred.frag"),
-gPosition(gPosition), gNormal(gNormal)
+PhongDeferredShader::PhongDeferredShader() : Shader("Shaders/phong_deferred.vert", "Shaders/phong_deferred.frag")
 {}
-
-void PhongDeferredShader::use()
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Shader::use();
-
-    // Activate textures that have been written to by the geometry pass shader
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gPosition);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, gNormal);
-}
 
 PhongForwardShader::PhongForwardShader() : Shader("Shaders/phong_forward.vert", "Shaders/phong_forward.frag")
 {}
 
-CylinderSolidColorShader::CylinderSolidColorShader() : Shader("Shaders/cylindersolidcolor.vert", "Shaders/cylindersolidcolor.frag")
+VeinSolidColorShader::VeinSolidColorShader() : Shader("Shaders/veinsolidcolor.vert", "Shaders/veinsolidcolor.frag")
 {}
 
 SpringShader::SpringShader() : Shader("Shaders/spring.vert", "Shaders/spring.frag")
