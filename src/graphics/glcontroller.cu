@@ -8,14 +8,15 @@
 #include "../utilities/cuda_vec3.cuh"
 #include "../utilities/cuda_threads.hpp"
 
-
+#include <functional>
 #include <iostream>
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "cudaGL.h"
 #include "cuda_gl_interop.h"
-#include <functional>
+
+
 
 namespace graphics
 {
@@ -31,11 +32,6 @@ namespace graphics
 		devCudaPositionsBuffer[6 * relativeId] = positions.x[id];
 		devCudaPositionsBuffer[6 * relativeId + 1] = positions.y[id];
 		devCudaPositionsBuffer[6 * relativeId + 2] = positions.z[id];
-
-		// normals are not modified at the moment
-		//devCudaPositionsBuffer[6 * id + 3] = 0;
-		//devCudaPositionsBuffer[6 * id + 4] = 0;
-		//devCudaPositionsBuffer[6 * id + 5] = 0;
 	}
 
 	__global__ void calculateTriangleVerticesKernel(float* devVeinVBOBuffer, cudaVec3 positions, int vertexCount)
@@ -49,9 +45,6 @@ namespace graphics
 		devVeinVBOBuffer[6 * id] = v.x;
 		devVeinVBOBuffer[6 * id + 1] = v.y;
 		devVeinVBOBuffer[6 * id + 2] = v.z;
-		// devVeinVBOBuffer[6 * id + 3] = 0;
-		// devVeinVBOBuffer[6 * id + 4] = 0;
-		// devVeinVBOBuffer[6 * id + 5] = 0;
 	}
 
 	void* mapResourceAndGetPointer(cudaGraphicsResource_t resource)
@@ -66,12 +59,11 @@ namespace graphics
 	}
 
 
-	graphics::GLController::GLController( Mesh& veinMesh, std::vector<glm::vec3>& initialPositions)
+	GLController::GLController(Mesh& veinMesh, std::vector<glm::vec3>& initialPositions)
 	{
 		veinModel.addMesh(veinMesh);
 		// Register OpenGL buffer in CUDA for vein
 		HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaVeinVBOResource, veinModel.getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
-		//HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaVeinEBOResource, veinModel.getEboBuffer(0), cudaGraphicsRegisterFlagsNone));
 
 		using TypeList = mp_iota_c<bloodCellTypeCount>;
 		std::array<unsigned int, bloodCellTypeCount> VBOs;
@@ -138,31 +130,14 @@ namespace graphics
 			vec3(0, 0, -1.0f)
 		};
 
-		// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
-		unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		glDrawBuffers(2, attachments);
-
-		// create and attach depth buffer (renderbuffer)
-		unsigned int rboDepth;
-		glGenRenderbuffers(1, &rboDepth);
-		glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, windowWidth, windowHeight);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-
-		// finally check if framebuffer is complete
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			std::cout << "Framebuffer not complete!" << std::endl;
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		// Create the shaders
-		solidColorShader = std::make_unique<Shader>(SolidColorShader());
-		phongForwardShader = std::make_unique<Shader>(PhongForwardShader());
-		cylinderSolidColorShader = std::make_unique<Shader>(CylinderSolidColorShader());
-		springShader = std::make_unique<Shader>(SpringShader());
-
+		if constexpr (!useLighting)
+			solidColorShader = std::make_unique<SolidColorShader>();
+		else
+			phongForwardShader = std::make_unique<PhongForwardShader>();
+		
+		veinSolidColorShader = std::make_unique<VeinSolidColorShader>();
+		springShader = std::make_unique<SpringShader>();
 
 		// Create streams
 		for (int i = 0; i < bloodCellTypeCount; i++)
@@ -180,7 +155,7 @@ namespace graphics
 		}
 	}
 
-	void graphics::GLController::calculatePositions(cudaVec3 positions)
+	void GLController::calculatePositions(cudaVec3 positions)
 	{
 		using TypeList = mp_iota_c<bloodCellTypeCount>;
 		mp_for_each<TypeList>([&](auto typeIndex) 
@@ -203,7 +178,7 @@ namespace graphics
 		});
 	}
 
-	void graphics::GLController::calculateTriangles(VeinTriangles triangles)
+	void GLController::calculateTriangles(VeinTriangles triangles)
 	{
 		// map vertices
 		float* vboPtr = (float*)mapResourceAndGetPointer(cudaVeinVBOResource);
@@ -216,9 +191,8 @@ namespace graphics
 		HANDLE_ERROR(cudaPeekAtLastError());
 	}
 
-	void graphics::GLController::draw(Camera& camera)
+	void GLController::draw(Camera& camera)
 	{
-
 		// Draw particles
 		if constexpr (!useLighting) // solidcolor
 		{
@@ -245,8 +219,8 @@ namespace graphics
 			phongForwardShader->setFloat("Shininess", 32);
 
 			phongForwardShader->setLighting(directionalLight);
-			using TypeList = mp_iota_c<bloodCellTypeCount>;
-			mp_for_each<TypeList>([&](auto typeIndex)
+
+			mp_for_each<mp_iota_c<bloodCellTypeCount>>([&](auto typeIndex)
 				{
 					phongForwardShader->setVector("Diffuse", bloodCellTypeDiffuse[typeIndex]);
 					bloodCellmodel[typeIndex].draw(phongForwardShader.get());
@@ -262,13 +236,13 @@ namespace graphics
 		}
 
 		// Draw vein
-		cylinderSolidColorShader->use();
-		cylinderSolidColorShader->setMatrix("view", camera.getView());
-		cylinderSolidColorShader->setMatrix("projection", projection);
+		veinSolidColorShader->use();
+		veinSolidColorShader->setMatrix("view", camera.getView());
+		veinSolidColorShader->setMatrix("projection", projection);
 
 		glDisable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
-		veinModel.draw(cylinderSolidColorShader.get());
+		veinModel.draw(veinSolidColorShader.get());
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
 	}

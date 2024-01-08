@@ -14,29 +14,27 @@ struct DirLight {
 uniform float Shininess;
 uniform vec3 viewPos;
 uniform DirLight dirLight;
-uniform vec3 Diffuse;
-uniform float Specular;
 
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;
+uniform sampler2D gAlbedoSpec;
 
 // function prototypes
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 Diffuse, float Specular);
 
 void main()
 {    
-
     // properties
     vec3 FragPos = texture(gPosition, TexCoords).rgb;
     vec3 Normal = texture(gNormal, TexCoords).rgb;
 
+    vec3 Diffuse = texture(gAlbedoSpec, TexCoords).rgb;
+    float Specular = texture(gAlbedoSpec, TexCoords).a;
+
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
-
     
     // directional lighting
-
-    //FragColor = vec4(1, 0, 0, 1);
     FragColor = vec4(CalcDirLight(dirLight, norm, viewDir, Diffuse, Specular), 1.0);
 
 }
