@@ -18,6 +18,9 @@ inline constexpr float collisionSpringCoeff = 6;
 inline constexpr float collisionDampingCoeff = 6;
 inline constexpr float collistionShearCoeff = 4;
 
+inline constexpr int maxCellSizeFactorBeforeBrake = 2;
+inline constexpr float bigParticleBrakingIntensity = 0.6f;
+
 inline constexpr float initVelocityX = 0;
 inline constexpr float initVelocityY = -80;
 inline constexpr float initVelocityZ = 0;

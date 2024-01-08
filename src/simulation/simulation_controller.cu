@@ -98,12 +98,14 @@ namespace sim
 		HANDLE_ERROR(cudaMemcpy(bloodCellModels.y, hostModels[1].data(), particleDistinctCellsCount * sizeof(float), cudaMemcpyHostToDevice));
 		HANDLE_ERROR(cudaMemcpy(bloodCellModels.z, hostModels[2].data(), particleDistinctCellsCount * sizeof(float), cudaMemcpyHostToDevice));
 
+		std::array<float, particleDistinctCellsCount> particleRadiuses;
 		for (int i = 0; i < bloodCellTypeCount; ++i)
 		{
 			int modelStart = bloodCellModelStarts[i];
 			int modelSize = i + 1 == bloodCellTypeCount ? particleDistinctCellsCount - bloodCellModelStarts[i] :
 				(i == 0 ? bloodCellModelStarts[i + 1] : bloodCellModelStarts[i + 1] - bloodCellModelStarts[i]);
 
+			float3 center {0,0,0};
 			for (int j = 0; j < modelSize; ++j) {
 				for (int k = 0; k < modelSize; ++k) {
 					if (j != k) {
@@ -114,9 +116,14 @@ namespace sim
 							boundingSpheres[modelStart + j] = length;
 					}
 				}
+				center = center + make_float3(hostModels[0][modelStart + j], hostModels[1][modelStart + j], hostModels[2][modelStart + j]);
 			}
+			center = center/modelSize;
+			for(int j = 0 ; j < modelSize; ++j)
+				particleRadiuses[modelStart + j] = length(make_float3(hostModels[0][modelStart + j], hostModels[1][modelStart + j], hostModels[2][modelStart + j]) - center);
 		}
 		HANDLE_ERROR(cudaMemcpy(cellModelsBoundingSpheres, boundingSpheres.data(), particleDistinctCellsCount * sizeof(float), cudaMemcpyHostToDevice));
+		HANDLE_ERROR(cudaMemcpy(bloodCells.initialRadiuses, particleRadiuses.data(), particleDistinctCellsCount * sizeof(float), cudaMemcpyHostToDevice));
 	}
 
 	// Generate initial positions and velocities of particles

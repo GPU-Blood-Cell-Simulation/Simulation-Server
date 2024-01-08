@@ -99,9 +99,24 @@ namespace physics
 	/// </summary>
 	/// <param name="v">particle velocity</param>
 	/// <returns>vector of combined environment forces</returns>
-	__device__ inline float3 accumulateEnvironmentForcesForParticles(float3 v, float3 r)
+	__device__ inline float3 accumulateEnvironmentForcesForParticles(float3 v, float radiusRatio)
 	{
-		return make_float3(Gx, Gy, Gz) - viscous_damping * v - cross(r, v)/length_squared(r);
+		if constexpr(enableBigCellsBrake)
+		{
+			if(radiusRatio > maxCellSizeFactorBeforeBrake)
+			{
+				return make_float3(Gx, Gy, Gz) - viscous_damping * radiusRatio * bigParticleBrakingIntensity * v;
+			}
+			else
+			{
+				return make_float3(Gx, Gy, Gz) - viscous_damping * v;
+			}
+		}
+		else
+		{
+			return make_float3(Gx, Gy, Gz) - viscous_damping * v;
+		}
+		
 	}
 
 	/// <summary>
