@@ -165,7 +165,7 @@ namespace graphics
 			float* devCudaPositionBuffer = (float*)mapResourceAndGetPointer(cudaPositionsResource[typeIndex]);
 			using BloodCellDefinition = mp_at_c<BloodCellList, typeIndex>;
 
-			constexpr int particlesStart = particlesStarts[typeIndex];
+			constexpr int particlesStart = particleStarts[typeIndex];
 			constexpr int bloodCellTypeStart = bloodCellTypesStarts[typeIndex];
 
 			CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
