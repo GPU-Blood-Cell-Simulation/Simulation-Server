@@ -146,7 +146,7 @@ namespace sim
 		mp_for_each<IndexList>([&](auto i)
 			{
 				using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-				constexpr int particlesStart = particlesStarts[i];
+				constexpr int particlesStart = particleStarts[i];
 				constexpr int bloodCellTypeStart = bloodCellTypesStarts[i];
 				constexpr int bloodCellModelSizesStarts = bloodCellModelStarts[i];
 
@@ -231,7 +231,7 @@ namespace sim
 				mp_for_each<IndexList>([&](auto i)
 					{
 						using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-						constexpr int particlesStart = particlesStarts[i];
+						constexpr int particlesStart = particleStarts[i];
 						constexpr int bloodCellModelSizesStarts = bloodCellModelStarts[i];
 
 						CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
@@ -245,7 +245,7 @@ namespace sim
 				mp_for_each<IndexList>([&](auto i)
 					{
 						using BloodCellDefinition = mp_at_c<BloodCellList, i>;
-						constexpr int particlesStart = particlesStarts[i];
+						constexpr int particlesStart = particleStarts[i];
 						constexpr int bloodCellModelSizesStarts = bloodCellModelStarts[i];
 
 						CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);

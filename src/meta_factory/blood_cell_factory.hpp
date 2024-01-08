@@ -194,7 +194,7 @@ namespace
 	/// <summary>
 	/// Fill the particles start array
 	/// </summary>
-	inline constexpr auto particlesStartsGenerator = []()
+	inline constexpr auto particleStartsGenerator = []()
 	{
 		std::array<int, bloodCellTypeCount> arr{};
 
@@ -213,7 +213,7 @@ namespace
 	/// <summary>
 	/// Determine where in the device array a particular stream should start its job (calculate accumulated particlesInCell sums)
 	/// </summary>
-	inline constexpr auto particlesStarts = particlesStartsGenerator();
+	inline constexpr auto particleStarts = particleStartsGenerator();
 
 	/// <summary>
 	/// Fill the blood cells start array

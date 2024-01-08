@@ -172,3 +172,7 @@ inline auto calculateSpringLengths = []()
 
 	return std::tuple(std::move(generatedNeighborArrays), std::move(springLengths));
 };
+
+inline constexpr int veinEndingCenterCount = mp_size<VeinEndingCenters>::value;
+inline constexpr int veinEndingRadiusCount = mp_size<VeinEndingRadii>::value;
+static_assert(veinEndingCenterCount == veinEndingRadiusCount, "Ill-formed vein ednings");
