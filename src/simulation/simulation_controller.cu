@@ -135,7 +135,7 @@ namespace sim
 
 		// Generate random positions and velocity vectors
 		generateRandomPositonsAndVelocitiesKernel<bloodCellCount> << <  bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock >> > (devStates, initialPositions, initialVelocities);
-		HANDLE_ERROR(cudaThreadSynchronize());
+		HANDLE_ERROR(cudaDeviceSynchronize());
 
 		// TODO: ugly code - use std::array
 		std::array<float, bloodCellCount> xpos;
