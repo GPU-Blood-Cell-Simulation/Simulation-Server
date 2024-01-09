@@ -1,0 +1,45 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/cuda:12.3.1-devel-ubuntu22.04
+
+
+%post
+    # Run scripts from source container
+    . /.singularity.d/env/10-docker*.sh
+
+    # Upgrade Ubuntu software
+    apt-get -y update
+
+    # GCC 11
+    apt-get -y install g++-11 gcc-11
+
+    # Cmake
+    apt-get -y install cmake
+
+    apt-get -y install pkg-config
+
+    # Gstreamer with plugins
+    apt-get -y install libgstreamer1.0-dev
+    apt-get -y install libgstreamer-plugins-base1.0-dev
+    apt-get -y install gstreamer1.0-plugins-good
+    apt-get -y install gstreamer1.0-plugins-ugly
+
+    apt-get install -y libglvnd0 libgl1 libglx0 libegl1
+    apt-get install -y libglu1-mesa libxi-dev libxmu-dev libglu1-mesa-dev
+
+%environment
+    . /.singularity.d/env/10-docker*.sh
+
+%test
+    # Basic tools
+    nvcc --version
+    cmake --version
+    make -v
+    gcc --version
+
+%labels
+    Author Piotr Nieciecki piotr.nieciecki01@gmail.com
+    Version v1.0.0
+
+%help
+    This container is ment build and run blood simulation server, which is stored
+    in this repository: https://github.com/GPU-Blood-Cell-Simulation/Simulation-Server
