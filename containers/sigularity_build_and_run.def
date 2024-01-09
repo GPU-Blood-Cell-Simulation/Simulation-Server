@@ -30,5 +30,16 @@ From: nvcr.io/nvidia/cuda:12.3.1-devel-ubuntu22.04
     . /.singularity.d/env/10-docker*.sh
 
 %test
+    # Basic tools
     nvcc --version
     cmake --version
+    make -v
+    gcc --version
+
+%labels
+    Author Piotr Nieciecki piotr.nieciecki01@gmail.com
+    Version v1.0.0
+
+%help
+    This container is ment build and run blood simulation server, which is stored
+    in this repository: https://github.com/GPU-Blood-Cell-Simulation/Simulation-Server
