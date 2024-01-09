@@ -1,8 +1,11 @@
 #include "msg_controller.hpp"
 
 #include <stdexcept>
-
 #include <iostream>
+
+#include <glad/glad.h>
+
+#include "../config/graphics.hpp"
 
 
 MsgController::MsgController(int server_port, const std::string &server_address):
@@ -10,13 +13,15 @@ MsgController::MsgController(int server_port, const std::string &server_address)
 {
 }
 
-MsgController::~MsgController()
-{
-}
 
 void MsgController::setCamera(graphics::Camera *camera)
 {
     this->camera = camera;
+}
+
+void MsgController::setStreamEndCallback(const std::function<void(void)> &callback)
+{
+    streamEndCallback = callback;
 }
 
 void MsgController::handleMsgs()
@@ -29,34 +34,19 @@ void MsgController::handleMsgs()
     switch (received_event.state)
     {
     case EventState::start:
-        activeEvents.insert(received_event.event);
+        activeEvents.insert(received_event.eventType);
         break;
 
     case EventState::stop:
-        activeEvents.erase(received_event.event);
+        activeEvents.erase(received_event.eventType);
     
     case EventState::notRelevant:
-        switch (received_event.event)
-        {
-        case EventType::newConnection:
-            std::cout << "New Connection established\n";
-            break;
-        
-        case EventType::peerDisconnected:
-            activeEvents.clear();
-            std::cout << "Peer disconnected\n";
-            break;
-
-        default:
-            break;
-        }
+        handleSingleMsgs(received_event);
         break;
 
     default:
         throw std::runtime_error("Unknown event state");
     }
-
-    /* TODO: handle disconnection */
 
     adjustParameters();
 }
@@ -110,4 +100,39 @@ void MsgController::adjustParameters()
             throw std::runtime_error("Unexpected event type");
         }
     }
+}
+
+
+void MsgController::handleSingleMsgs(Event event)
+{
+        switch (event.eventType)
+        {
+        case EventType::newConnection:
+            std::cout << "New Connection established\n";
+            break;
+        
+        case EventType::peerDisconnected:
+            activeEvents.clear();
+            std::cout << "Peer disconnected\n";
+            break;
+
+        case EventType::togglePolygonMode:
+            glPolygonMode(GL_FRONT_AND_BACK, (VEIN_POLYGON_MODE = (VEIN_POLYGON_MODE == GL_LINE ? GL_FILL : GL_LINE)));
+            break;
+
+        case EventType::toggleSpringsRendering:
+            BLOOD_CELL_SPRINGS_RENDER = !BLOOD_CELL_SPRINGS_RENDER;
+            break;
+
+        case EventType::stopRendering:
+            std::cout << "Stopping rendering\n";
+            if (streamEndCallback) {
+                streamEndCallback();
+            }
+            break;
+
+        default:
+            // Other types of messages are ignored
+            break;
+        }
 }

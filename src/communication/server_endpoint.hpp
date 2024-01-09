@@ -35,7 +35,7 @@ enum class EventType: event_t {
     toggleSpringsRendering,
 
     streamSuccessfullyEnded,
-    stopStream,
+    stopRendering,
 
     newConnection,
     peerDisconnected,
@@ -58,7 +58,7 @@ enum class EventState: std::uint8_t {
 /// Represents event received from client
 /// </summary>
 struct Event {
-    EventType event;
+    EventType eventType;
     EventState state;
 
     Event(EventType event = EventType::noMessage, EventState state = EventState::notRelevant);

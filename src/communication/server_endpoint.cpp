@@ -106,7 +106,7 @@ void ServerCommunicationEndpoint::SendEvent(Event event) const
         return;
     }
 
-    event_t eventMsg = static_cast<event_t>(event.event);
+    event_t eventMsg = static_cast<event_t>(event.eventType);
 
     if (event.state == EventState::start) {
         eventMsg |= START_EVENT_MASK;
@@ -146,10 +146,10 @@ Event ServerCommunicationEndpoint::parseEvent(const ENetEvent *event)
 
 bool ServerCommunicationEndpoint::eventIsImportant(Event event)
 {
-    switch (event.event)
+    switch (event.eventType)
     {
     case EventType::streamSuccessfullyEnded:
-    case EventType::stopStream:
+    case EventType::stopRendering:
         return true;
     
     default:
@@ -158,4 +158,4 @@ bool ServerCommunicationEndpoint::eventIsImportant(Event event)
 }
 
 Event::Event(EventType event, EventState state):
-    event(event), state(state) {}
+    eventType(event), state(state) {}
