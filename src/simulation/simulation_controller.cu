@@ -112,6 +112,8 @@ namespace sim
 
 						if (length < boundingSpheres[modelStart + j])
 							boundingSpheres[modelStart + j] = length;
+						if (length < smallesRadiusInType[i])
+							smallesRadiusInType[i] = length;
 					}
 				}
 			}
@@ -140,7 +142,7 @@ namespace sim
 		HANDLE_ERROR(cudaMemcpy(zpos.data(), initialPositions.z, bloodCellCount * sizeof(float), cudaMemcpyDeviceToHost));
 
 		for (int i = 0; i < bloodCellCount; ++i)
-			initialCellPositions.push_back(glm::vec3(xpos[i], ypos[i], zpos[i]));
+			initialCellPositions[i] = {xpos[i], ypos[i], zpos[i]};
 
 		using IndexList = mp_iota_c<bloodCellTypeCount>;
 		mp_for_each<IndexList>([&](auto i)

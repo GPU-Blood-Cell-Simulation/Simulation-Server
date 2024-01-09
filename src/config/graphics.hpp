@@ -2,6 +2,7 @@
 
 inline int VEIN_POLYGON_MODE = 0;
 inline bool BLOOD_CELL_SPRINGS_RENDER = true;
+inline bool BLOOD_CELL_SPHERE_RENDER = false;
 
 inline constexpr bool useLighting = true;
 

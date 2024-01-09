@@ -116,7 +116,7 @@ programLoopFunction
     sim::SimulationController simulationController(bloodCells, triangles, &particleGrid, &triangleCentersGrid);
     
     // Create a graphics controller
-    graphics::GLController glController(veinMesh, simulationController.initialCellPositions);
+    graphics::GLController glController(veinMesh, simulationController);
     graphics::Camera camera;
 #ifdef WINDOW_RENDER
     double lastTime = glfwGetTime();

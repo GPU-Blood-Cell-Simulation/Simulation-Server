@@ -7,6 +7,7 @@
 #include "light.hpp"
 #include "model.hpp"
 #include "../objects/vein_triangles.cuh"
+#include "../simulation/simulation_controller.cuh"
 #include "spring_lines.hpp"
 
 #include <glm/mat4x4.hpp>
@@ -21,7 +22,7 @@ namespace graphics
 	class GLController {
 	public:
 
-		GLController(Mesh& veinMesh, std::vector<glm::vec3>& initialPositions);
+		GLController(Mesh& veinMesh, sim::SimulationController& simulationController);
 		~GLController();
 
 		/// <summary>
@@ -54,6 +55,9 @@ namespace graphics
 		MultipleObjectModel bloodCellmodel[bloodCellTypeCount];
 		Model veinModel;
 
+		InstancedModel cellSphereModel;
+		std::array<float, bloodCellCount> cellSphereRadius;
+
 		DirLight directionalLight;
 
 		SpringLines springLines;
@@ -64,6 +68,8 @@ namespace graphics
 		std::unique_ptr<Shader> phongForwardShader;
 		std::unique_ptr<Shader> veinSolidColorShader;
 		std::unique_ptr<Shader> springShader;
+		std::unique_ptr<Shader> solidColorSphereShader;
+		std::unique_ptr<Shader> phongForwardSphereShader;
 		
 		/// <summary>
 		/// Deferred shading gBuffer
@@ -77,6 +83,7 @@ namespace graphics
 		cudaGraphicsResource_t cudaPositionsResource[bloodCellTypeCount];
 		cudaGraphicsResource_t cudaVeinVBOResource;
 		cudaGraphicsResource_t cudaVeinEBOResource;
+		cudaGraphicsResource_t cudaOffsetResource;
 
 		cudaStream_t streams[bloodCellTypeCount];
 	};
