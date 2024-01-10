@@ -7,7 +7,6 @@
 #include "../utilities/cuda_handle_error.cuh"
 #include "../utilities/cuda_vec3.cuh"
 #include "../utilities/cuda_threads.hpp"
-#include "spheremeshgenerator.hpp"
 
 #include <functional>
 #include <iostream>
@@ -21,29 +20,33 @@
 
 namespace graphics
 {
-	__global__ void calculateOffsetsKernel(float* devCudaOffsetBuffer, cudaVec3 positions)
-	{
-		int id = blockIdx.x * blockDim.x + threadIdx.x;
-		if (id >= particleCount)
-			return;
+	// __global__ void calculateOffsetsKernel(float* devCudaOffsetBuffer, cudaVec3 positions)
+	// {
+	// 	int id = blockIdx.x * blockDim.x + threadIdx.x;
+	// 	if (id >= particleCount)
+	// 		return;
+		
+	// 	//printf("[%d] x=%.5f, y=%.5f, z=%.5f\n", id, positions.x[id], positions.y[id], positions.z[id]);
+	// 	devCudaOffsetBuffer[3 * id] = positions.x[id];
+	// 	devCudaOffsetBuffer[3 * id + 1] = positions.y[id];
+	// 	devCudaOffsetBuffer[3 * id + 2] = positions.z[id];
 
-		devCudaOffsetBuffer[3 * id] = positions.x[id];
-		devCudaOffsetBuffer[3 * id + 1] = positions.y[id];
-		devCudaOffsetBuffer[3 * id + 2] = positions.z[id];
-
-	}
+	// }
 
 	template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int bloodCellTypeStart>
-	__global__ void calculatePositionsKernel(float* devCudaPositionsBuffer, cudaVec3 positions)
+	__global__ void calculatePositionsKernel(float* devCudaPositionsVertices, float* devCudaPositionsOffsets, cudaVec3 positions)
 	{
 		int relativeId = blockIdx.x * blockDim.x + threadIdx.x;
 		if (relativeId >= particlesInBloodCell * bloodCellCount)
 			return;
 		int id = particlesStart + relativeId;
 
-		devCudaPositionsBuffer[6 * relativeId] = positions.x[id];
-		devCudaPositionsBuffer[6 * relativeId + 1] = positions.y[id];
-		devCudaPositionsBuffer[6 * relativeId + 2] = positions.z[id];
+		devCudaPositionsVertices[6 * relativeId] = positions.x[id];
+		devCudaPositionsVertices[6 * relativeId + 1] = positions.y[id];
+		devCudaPositionsVertices[6 * relativeId + 2] = positions.z[id];
+		devCudaPositionsOffsets[3 * id] = positions.x[id];
+		devCudaPositionsOffsets[3 * id + 1] = positions.y[id];
+		devCudaPositionsOffsets[3 * id + 2] = positions.z[id];
 	}
 
 	__global__ void calculateTriangleVerticesKernel(float* devVeinVBOBuffer, cudaVec3 positions, int vertexCount)
@@ -71,7 +74,7 @@ namespace graphics
 	}
 
 
-	GLController::GLController(Mesh& veinMesh, sim::SimulationController& simulationController) : cellSphereModel(sphereMeshGenerator(5, 5, 1).generateMesh(), particleCount)
+	GLController::GLController(Mesh& veinMesh, InstancedObjectMesh& sphereMesh, sim::SimulationController& simulationController): cellSphereModel(sphereMesh, particleCount)
 	{
 		veinModel.addMesh(veinMesh);
 		// Register OpenGL buffer in CUDA for vein
@@ -147,12 +150,12 @@ namespace graphics
 		if constexpr (!useLighting)
 		{
 			solidColorShader = std::make_unique<SolidColorShader>();
-			solidColorSphereShader = std::make_unique<SolidColorSphereShader>();
+			solidColorSphereShader = std::make_unique<SpheresSolidColorShader>();
 		}
 		else
 		{
 			phongForwardShader = std::make_unique<PhongForwardShader>();
-			phongForwardSphereShader = std::make_unique<PhongForwardSphereShader>();
+			phongForwardSphereShader = std::make_unique<SpheresPhongForwardShader>();
 		}
 
 		veinSolidColorShader = std::make_unique<VeinSolidColorShader>();
@@ -175,41 +178,26 @@ namespace graphics
 	}
 
 	void GLController::calculatePositions(cudaVec3 positions)
-	{
-		if (BLOOD_CELL_SPHERE_RENDER)
-		{
-			// get CUDA a pointer to openGL buffer
-			float* devCudaOffsetBuffer = (float*)mapResourceAndGetPointer(cudaOffsetResource);
-
-			// translate our CUDA positions into Vertex offsets
-			int threadsPerBlock = particleCount > 1024 ? 1024 : particleCount;
-			int blocks = (particleCount + threadsPerBlock - 1) / threadsPerBlock;
-			calculateOffsetsKernel << <blocks, threadsPerBlock >> > (devCudaOffsetBuffer, positions);
-
-			HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaOffsetResource, 0));
-		}
-		else
-		{
-			using TypeList = mp_iota_c<bloodCellTypeCount>;
-			mp_for_each<TypeList>([&](auto typeIndex)
-				{
-					// get CUDA a pointer to openGL buffer
-					// jak cos to to do odkomentowania
-					float* devCudaPositionBuffer = (float*)mapResourceAndGetPointer(cudaPositionsResource[typeIndex]);
-					using BloodCellDefinition = mp_at_c<BloodCellList, typeIndex>;
-
+	{			
+		float* devCudaPositionOffsets = (float*)mapResourceAndGetPointer(cudaOffsetResource);
+		using TypeList = mp_iota_c<bloodCellTypeCount>;
+		mp_for_each<TypeList>([&](auto typeIndex)
+			{
+				// get CUDA a pointer to openGL buffer
+				// jak cos to to do odkomentowania
+				float* devCudaPositionVertices = (float*)mapResourceAndGetPointer(cudaPositionsResource[typeIndex]);
+				using BloodCellDefinition = mp_at_c<BloodCellList, typeIndex>;
 					constexpr int particlesStart = particleStarts[typeIndex];
-					constexpr int bloodCellTypeStart = bloodCellTypesStarts[typeIndex];
-
+				constexpr int bloodCellTypeStart = bloodCellTypesStarts[typeIndex];
 					CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
-					// translate our CUDA positions into Vertex offsets
-					calculatePositionsKernel<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellTypeStart>
-						<< <threads.blocks, threads.threadsPerBlock, 0, streams[typeIndex] >> > (devCudaPositionBuffer, positions);
-					HANDLE_ERROR(cudaPeekAtLastError());
-					HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaPositionsResource[typeIndex], 0));
-					HANDLE_ERROR(cudaPeekAtLastError());
-				});
-		}
+				// translate our CUDA positions into Vertex offsets
+				calculatePositionsKernel<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellTypeStart>
+					<< <threads.blocks, threads.threadsPerBlock, 0, streams[typeIndex] >> > (devCudaPositionVertices, devCudaPositionOffsets, positions);
+				HANDLE_ERROR(cudaPeekAtLastError());
+				HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaPositionsResource[typeIndex], 0));
+				HANDLE_ERROR(cudaPeekAtLastError());
+			});
+			HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaOffsetResource, 0));
 	}
 
 	void GLController::calculateTriangles(VeinTriangles triangles)
@@ -236,6 +224,8 @@ namespace graphics
 				solidColorSphereShader->setMatrix("model", model);
 				solidColorSphereShader->setMatrix("view", camera.getView());
 				solidColorSphereShader->setMatrix("projection", projection);
+				solidColorSphereShader->setFloat("sphereRadius", 2.0f);
+				cellSphereModel.draw(phongForwardShader.get());
 			}
 			else
 			{
@@ -243,19 +233,10 @@ namespace graphics
 				solidColorShader->setMatrix("model", model);
 				solidColorShader->setMatrix("view", camera.getView());
 				solidColorShader->setMatrix("projection", projection);
-			}
-
-
-			if (BLOOD_CELL_SPHERE_RENDER)
-			{
-				solidColorSphereShader->setFloat("sphereRadius", 2.0f);
-				cellSphereModel.draw(phongForwardShader.get());
-			}
-			else
-			{
 				using TypeList = mp_iota_c<bloodCellTypeCount>;
 				mp_for_each<TypeList>([&](auto typeIndex)
 					{
+						phongForwardShader->setVector("Diffuse", bloodCellTypeDiffuse[typeIndex]);
 						bloodCellmodel[typeIndex].draw(phongForwardShader.get());
 					});
 			}
@@ -272,6 +253,9 @@ namespace graphics
 				phongForwardSphereShader->setFloat("Specular", particleSpecular);
 				phongForwardSphereShader->setFloat("Shininess", 32);
 				phongForwardSphereShader->setLighting(directionalLight);
+				phongForwardSphereShader->setFloat("sphereRadius", 2.0f);
+				phongForwardSphereShader->setVector("Diffuse", bloodCellTypeDiffuse[0]); /// TODO
+				cellSphereModel.draw(phongForwardShader.get());
 			}
 			else
 			{
@@ -283,20 +267,19 @@ namespace graphics
 				phongForwardShader->setFloat("Specular", particleSpecular);
 				phongForwardShader->setFloat("Shininess", 32);
 				phongForwardShader->setLighting(directionalLight);
+				using TypeList = mp_iota_c<bloodCellTypeCount>;
+				mp_for_each<TypeList>([&](auto typeIndex)
+					{
+						phongForwardShader->setVector("Diffuse", bloodCellTypeDiffuse[typeIndex]);
+						bloodCellmodel[typeIndex].draw(phongForwardShader.get());
+					});
 			}
 
 			if (BLOOD_CELL_SPHERE_RENDER)
 			{
-				phongForwardSphereShader->setFloat("sphereRadius", 2.0f);
-				cellSphereModel.draw(phongForwardShader.get());
 			}
 			else
 			{
-				using TypeList = mp_iota_c<bloodCellTypeCount>;
-				mp_for_each<TypeList>([&](auto typeIndex)
-					{
-						bloodCellmodel[typeIndex].draw(phongForwardShader.get());
-					});
 			}
 		}
 

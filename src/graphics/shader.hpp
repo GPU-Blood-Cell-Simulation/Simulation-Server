@@ -41,16 +41,16 @@ public:
     PhongForwardShader();
 };
 
-class SolidColorSphereShader : public Shader
+class SpheresSolidColorShader : public Shader
 {
 public:
-    SolidColorSphereShader();
+    SpheresSolidColorShader();
 };
 
-class PhongForwardSphereShader : public Shader
+class SpheresPhongForwardShader : public Shader
 {
 public:
-    PhongForwardSphereShader();
+    SpheresPhongForwardShader();
 };
 
 class GeometryPassShader : public Shader

@@ -10,7 +10,7 @@
 
 void Model::draw(const Shader* shader) const
 {
-    for (Mesh mesh : meshes) {
+    for (auto mesh : meshes) {
         mesh.draw(shader);
     }
 }
@@ -29,13 +29,17 @@ void Model::addMesh(Mesh& mesh)
     meshes.push_back(mesh);
 }
 
+void InstancedModel::draw(const Shader* shader) const
+{
+    mesh.draw(shader);
+}
 
 unsigned int InstancedModel::getCudaOffsetBuffer()
 {
     return cudaOffsetBuffer;
 }
 
-InstancedModel::InstancedModel(Mesh& mesh, unsigned int instancesCount)
+InstancedModel::InstancedModel(InstancedObjectMesh& mesh, int instancesCount): mesh(mesh)
 {
     Model::addMesh(mesh);
     this->instancesCount = instancesCount;
@@ -44,7 +48,7 @@ InstancedModel::InstancedModel(Mesh& mesh, unsigned int instancesCount)
     glBufferData(GL_ARRAY_BUFFER, instancesCount * sizeof(glm::vec3), NULL, GL_DYNAMIC_DRAW);
 
     // Set up vertex attrubute
-    for (Mesh& mesh : meshes)
+    for (auto mesh : meshes)
     {
         mesh.setVertexOffsetAttribute();
     }

@@ -20,7 +20,7 @@ public:
 	/// Calls OpenGL render pipeline for underlying meshes
 	/// </summary>
 	/// <param name="shader">pointer to shader passed to the pipeline</param>
-	void draw(const Shader* shader) const;
+	virtual void draw(const Shader* shader) const;
 
 	/// <summary>
 	/// Gets Vertex Buffer Object of certain mesh from model
@@ -55,11 +55,11 @@ protected:
 class InstancedModel : public Model
 {
 public:
-	InstancedModel(Mesh& mesh, unsigned int instancesCount);
+	InstancedModel(InstancedObjectMesh& mesh, int instancesCount);
 	unsigned int getCudaOffsetBuffer();
-
+	void draw(const Shader* shader) const override;
 protected:
-
+	InstancedObjectMesh& mesh;
 	unsigned int cudaOffsetBuffer;
 	unsigned int instancesCount;
 };

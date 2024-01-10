@@ -11,7 +11,7 @@
 #include "utilities/cuda_handle_error.cuh"
 #include "graphics/glcontroller.cuh"
 #include "objects/vein_generator.hpp"
-
+#include "objects/sphere_generator.hpp"
 #include <curand.h>
 #include <curand_kernel.h>
 #include <iostream> // for debugging purposes
@@ -103,7 +103,7 @@ programLoopFunction
     VeinTriangles triangles;
     // Create vein mesh
     SingleObjectMesh veinMesh = VeinGenerator::createMesh();
-
+    InstancedObjectMesh sphereMesh = SphereGenerator::createMesh(5, 5, 1.0f, particleCount);
     // Create grids
     UniformGrid particleGrid(particleCount, 20, 20, 20);
 #ifdef UNIFORM_TRIANGLES_GRID
@@ -116,7 +116,7 @@ programLoopFunction
     sim::SimulationController simulationController(bloodCells, triangles, &particleGrid, &triangleCentersGrid);
     
     // Create a graphics controller
-    graphics::GLController glController(veinMesh, simulationController);
+    graphics::GLController glController(veinMesh, sphereMesh, simulationController);
     graphics::Camera camera;
 #ifdef WINDOW_RENDER
     double lastTime = glfwGetTime();

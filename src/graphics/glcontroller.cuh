@@ -22,7 +22,7 @@ namespace graphics
 	class GLController {
 	public:
 
-		GLController(Mesh& veinMesh, sim::SimulationController& simulationController);
+		GLController(Mesh& veinMesh, InstancedObjectMesh& sphereMesh, sim::SimulationController& simulationController);
 		~GLController();
 
 		/// <summary>
@@ -54,8 +54,8 @@ namespace graphics
 
 		MultipleObjectModel bloodCellmodel[bloodCellTypeCount];
 		Model veinModel;
-
 		InstancedModel cellSphereModel;
+
 		std::array<float, bloodCellCount> cellSphereRadius;
 
 		DirLight directionalLight;
