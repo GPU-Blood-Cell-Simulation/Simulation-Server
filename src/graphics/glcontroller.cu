@@ -240,10 +240,12 @@ namespace graphics
 		veinSolidColorShader->setMatrix("view", camera.getView());
 		veinSolidColorShader->setMatrix("projection", projection);
 
+		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 		//glCullFace(GL_FRONT);
 		veinModel.draw(veinSolidColorShader.get());
 		//glCullFace(GL_BACK);
 		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
 	}
 }
