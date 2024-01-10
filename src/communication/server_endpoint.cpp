@@ -48,6 +48,7 @@ ServerCommunicationEndpoint::ServerCommunicationEndpoint(int port, const std::st
 
 ServerCommunicationEndpoint::~ServerCommunicationEndpoint()
 {
+    disconnect();
     enet_host_destroy(server);
 
     if (--instances == 0) {
@@ -100,9 +101,46 @@ bool ServerCommunicationEndpoint::isConnected() const
 }
 
 
+void ServerCommunicationEndpoint::disconnect()
+{
+    ENetEvent event;
+    bool successful_disconnect = false;
+
+    if (!isConnected()) {
+        return;
+    }
+
+    // Disconnect after sending all outgoing messages
+    enet_peer_disconnect_later(peer, 0);
+
+    // Wait for three seconds for peer response
+    while (enet_host_service(server, &event, 3000) > 0)
+    {
+        switch (event.type)
+        {
+        case ENET_EVENT_TYPE_RECEIVE:
+            enet_packet_destroy (event.packet);
+            break;
+        case ENET_EVENT_TYPE_DISCONNECT:
+            successful_disconnect = true;
+            return;
+
+        default:
+            break;
+        }
+    }
+
+    if (!successful_disconnect) {
+        enet_peer_reset(peer);
+    }
+}
+
+#include <iostream>
+
 void ServerCommunicationEndpoint::SendEvent(Event event) const
 {
     if (!isConnected()) {
+        std::cout << "Not connected - cannot send message\n";
         return;
     }
 
@@ -122,6 +160,8 @@ void ServerCommunicationEndpoint::SendEvent(Event event) const
     if (enet_peer_send(peer, channel, packet) != 0) {
         throw std::runtime_error("Error while sending a packet");
     }
+
+    //enet_host_flush(server);
 }
 
 

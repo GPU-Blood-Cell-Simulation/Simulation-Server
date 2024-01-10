@@ -9,7 +9,7 @@
 
 
 MsgController::MsgController(int server_port, const std::string &server_address):
-    receiver(server_port, server_address)
+    communicationEndpoint(server_port, server_address)
 {
 }
 
@@ -26,7 +26,7 @@ void MsgController::setStreamEndCallback(const std::function<void(void)> &callba
 
 void MsgController::handleMsgs()
 {
-    Event received_event = receiver.pollEvents();
+    Event received_event = communicationEndpoint.pollEvents();
 
     if (camera == nullptr)
         return;
@@ -50,6 +50,14 @@ void MsgController::handleMsgs()
 
     adjustParameters();
 }
+
+
+void MsgController::successfulStreamEndInform()
+{
+    Event event(EventType::streamSuccessfullyEnded);
+    communicationEndpoint.SendEvent(event);
+}
+
 
 void MsgController::adjustParameters()
 {
@@ -125,7 +133,7 @@ void MsgController::handleSingleMsgs(Event event)
             break;
 
         case EventType::stopRendering:
-            std::cout << "Stopping rendering\n";
+            std::cout << "Client requested simulation abort\n";
             if (streamEndCallback) {
                 streamEndCallback();
             }

@@ -28,8 +28,10 @@ public:
     /// </summary>
     void handleMsgs();
 
+    void successfulStreamEndInform();
+
 private:
-    ServerCommunicationEndpoint receiver;
+    ServerCommunicationEndpoint communicationEndpoint;
     graphics::Camera* camera = nullptr;
 
     std::set<EventType> activeEvents;

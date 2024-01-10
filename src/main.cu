@@ -125,9 +125,7 @@ programLoopFunction
 #else
     MsgController msgController(4322);
     msgController.setCamera(&camera);
-    msgController.setStreamEndCallback([&shouldBeRunning]() { 
-        std::cout << "Callback\n";
-        shouldBeRunning = false; });
+    msgController.setStreamEndCallback([&shouldBeRunning]() { shouldBeRunning = false; });
 #endif
 
     // MAIN LOOP HERE - dictated by glfw
@@ -183,4 +181,8 @@ programLoopFunction
         }
 #endif
     }
+
+#ifndef WINDOW_RENDER
+    msgController.successfulStreamEndInform();
+#endif
 }

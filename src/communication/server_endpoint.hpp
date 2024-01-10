@@ -81,6 +81,7 @@ public:
     Event pollEvents();
 
     bool isConnected() const;
+    void disconnect();
 
     void SendEvent(Event event) const;
 
