@@ -103,7 +103,7 @@ programLoopFunction
     VeinTriangles triangles;
     // Create vein mesh
     SingleObjectMesh veinMesh = VeinGenerator::createMesh();
-    InstancedObjectMesh sphereMesh = SphereGenerator::createMesh(5, 5, 1.0f, particleCount);
+    InstancedObjectMesh sphereMesh = SphereGenerator::createMesh(10, 10, 1.0f, particleCount);
     // Create grids
     UniformGrid particleGrid(particleCount, 20, 20, 20);
 #ifdef UNIFORM_TRIANGLES_GRID

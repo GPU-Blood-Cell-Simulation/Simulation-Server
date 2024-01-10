@@ -103,7 +103,7 @@ namespace sim
 			int modelStart = bloodCellModelStarts[i];
 			int modelSize = i + 1 == bloodCellTypeCount ? particleDistinctCellsCount - bloodCellModelStarts[i] :
 				(i == 0 ? bloodCellModelStarts[i + 1] : bloodCellModelStarts[i + 1] - bloodCellModelStarts[i]);
-
+			smallestRadiusInType[i] = std::numeric_limits<float>::max();
 			for (int j = 0; j < modelSize; ++j) {
 				for (int k = 0; k < modelSize; ++k) {
 					if (j != k) {
@@ -112,8 +112,8 @@ namespace sim
 
 						if (length < boundingSpheres[modelStart + j])
 							boundingSpheres[modelStart + j] = length;
-						if (length < smallesRadiusInType[i])
-							smallesRadiusInType[i] = length;
+						if (length < smallestRadiusInType[i])
+							smallestRadiusInType[i] = length;
 					}
 				}
 			}

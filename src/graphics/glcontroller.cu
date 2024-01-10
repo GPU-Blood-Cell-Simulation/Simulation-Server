@@ -74,15 +74,16 @@ namespace graphics
 	}
 
 
-	GLController::GLController(Mesh& veinMesh, InstancedObjectMesh& sphereMesh, sim::SimulationController& simulationController): cellSphereModel(sphereMesh, particleCount)
+	GLController::GLController(SingleObjectMesh& veinMesh, InstancedObjectMesh& sphereMesh, sim::SimulationController& simulationController): veinModel(veinMesh), cellSphereModel(sphereMesh, particleCount)
 	{
-		veinModel.addMesh(veinMesh);
 		// Register OpenGL buffer in CUDA for vein
 		HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaVeinVBOResource, veinModel.getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
 		HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaOffsetResource, cellSphereModel.getCudaOffsetBuffer(), cudaGraphicsRegisterFlagsNone));
 
 		using TypeList = mp_iota_c<bloodCellTypeCount>;
 		std::array<unsigned int, bloodCellTypeCount> VBOs;
+		std::copy(simulationController.smallestRadiusInType.begin(), simulationController.smallestRadiusInType.end(), cellSphereRadius.begin());
+		minimalRadius = *std::min_element(cellSphereRadius.begin(), cellSphereRadius.end());
 		mp_for_each<TypeList>([&](auto typeIndex)
 			{
 				std::vector<Vertex> vertices;
@@ -224,8 +225,8 @@ namespace graphics
 				solidColorSphereShader->setMatrix("model", model);
 				solidColorSphereShader->setMatrix("view", camera.getView());
 				solidColorSphereShader->setMatrix("projection", projection);
-				solidColorSphereShader->setFloat("sphereRadius", 2.0f);
-				cellSphereModel.draw(phongForwardShader.get());
+				solidColorSphereShader->setFloat("sphereRadius", minimalRadius*float(boundingSpheresCoeff)/2);
+				cellSphereModel.draw(solidColorSphereShader.get());
 			}
 			else
 			{
@@ -236,8 +237,8 @@ namespace graphics
 				using TypeList = mp_iota_c<bloodCellTypeCount>;
 				mp_for_each<TypeList>([&](auto typeIndex)
 					{
-						phongForwardShader->setVector("Diffuse", bloodCellTypeDiffuse[typeIndex]);
-						bloodCellmodel[typeIndex].draw(phongForwardShader.get());
+						solidColorShader->setVector("Diffuse", bloodCellTypeDiffuse[typeIndex]);
+						bloodCellmodel[typeIndex].draw(solidColorShader.get());
 					});
 			}
 		}
@@ -253,9 +254,9 @@ namespace graphics
 				phongForwardSphereShader->setFloat("Specular", particleSpecular);
 				phongForwardSphereShader->setFloat("Shininess", 32);
 				phongForwardSphereShader->setLighting(directionalLight);
-				phongForwardSphereShader->setFloat("sphereRadius", 2.0f);
+				phongForwardSphereShader->setFloat("sphereRadius", minimalRadius*float(boundingSpheresCoeff)/2);
 				phongForwardSphereShader->setVector("Diffuse", bloodCellTypeDiffuse[0]); /// TODO
-				cellSphereModel.draw(phongForwardShader.get());
+				cellSphereModel.draw(phongForwardSphereShader.get());
 			}
 			else
 			{
@@ -273,13 +274,6 @@ namespace graphics
 						phongForwardShader->setVector("Diffuse", bloodCellTypeDiffuse[typeIndex]);
 						bloodCellmodel[typeIndex].draw(phongForwardShader.get());
 					});
-			}
-
-			if (BLOOD_CELL_SPHERE_RENDER)
-			{
-			}
-			else
-			{
 			}
 		}
 

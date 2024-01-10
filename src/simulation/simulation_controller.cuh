@@ -30,7 +30,7 @@ namespace sim
 		/// </summary>
 		void calculateNextFrame();
 		std::array<glm::vec3, bloodCellCount> initialCellPositions;
-		std::array<float, bloodCellTypeCount> smallesRadiusInType;
+		std::array<float, bloodCellTypeCount> smallestRadiusInType;
 		float* cellModelsBoundingSpheres;
 
 	private:

@@ -14,7 +14,7 @@ uniform float sphereRadius;
 void main()
 {
     mat4 modelWithPos =  mat4(vec4(1, 0, 0, 0), vec4(0, 1, 0, 0), vec4(0, 0, 1, 0), vec4(offset, 1.0)) * model; 
-    gl_Position = projection * view * modelWithPos * vec4(aPos, 1.0);
+    gl_Position = projection * view * modelWithPos * vec4(sphereRadius*aPos, 1.0);
     Normal = mat3(transpose(inverse(modelWithPos))) * aNormal;
-    FragPos = vec3(modelWithPos * vec4(aPos, 1.0));
+    FragPos = vec3(modelWithPos * vec4(sphereRadius*aPos, 1.0));
 }

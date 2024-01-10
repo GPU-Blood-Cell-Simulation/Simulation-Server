@@ -22,7 +22,7 @@ namespace graphics
 	class GLController {
 	public:
 
-		GLController(Mesh& veinMesh, InstancedObjectMesh& sphereMesh, sim::SimulationController& simulationController);
+		GLController(SingleObjectMesh& veinMesh, InstancedObjectMesh& sphereMesh, sim::SimulationController& simulationController);
 		~GLController();
 
 		/// <summary>
@@ -53,10 +53,11 @@ namespace graphics
 		glm::mat4 projection = glm::perspective(glm::radians<float>(45.0f), static_cast<float>(windowWidth) / windowHeight, 0.1f, depth * 100);
 
 		MultipleObjectModel bloodCellmodel[bloodCellTypeCount];
-		Model veinModel;
+		SingleObjectModel veinModel;
 		InstancedModel cellSphereModel;
 
-		std::array<float, bloodCellCount> cellSphereRadius;
+		std::array<float, bloodCellTypeCount> cellSphereRadius;
+		float minimalRadius; 
 
 		DirLight directionalLight;
 
