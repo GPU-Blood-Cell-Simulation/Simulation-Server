@@ -9,7 +9,7 @@
 
 void SingleObjectModel::draw(const Shader* shader) const
 {
-    for(auto mesh : meshes)
+    for(auto&& mesh : meshes)
         mesh.draw(shader);
 }
 
@@ -40,15 +40,11 @@ unsigned int InstancedModel::getCudaOffsetBuffer()
 
 unsigned int InstancedModel::getVboBuffer(unsigned int index)
 {
-    if(index > 0)
-        throw "Index too high. Instanced model has only one mesh.";
     return mesh.getVBO();
 }
 
 unsigned int InstancedModel::getEboBuffer(unsigned int index)
 {
-    if(index > 0)
-        throw "Index too high. Instanced model has only one mesh.";
     return mesh.getEBO();
 }
 
@@ -74,7 +70,7 @@ MultipleObjectModel::MultipleObjectModel(std::vector<Vertex>&& vertices, std::ve
 
 void MultipleObjectModel::draw(const Shader* shader) const
 {
-    for (auto mesh : meshes) {
+    for (auto&& mesh : meshes) {
         mesh.draw(shader);
     }
 }

@@ -11,14 +11,11 @@ namespace SphereGenerator
 	    std::vector<Vertex> vertices;
 	    std::vector<unsigned int> indices;
 
-        // top
 	    vertices.push_back(Vertex{ {0,radius,0},{0,1,0} });
 
-	    // poziome
 	    for (int i = 0; i < parallels - 1; ++i)
 	    {
 	    	float phi = PI * float(i + 1) / float(parallels);
-	    	// pionowe
 	    	for (int j = 0; j < meridians; ++j)
 		    {
 		    	float theta = 2 * PI * float(j) / float(meridians);
