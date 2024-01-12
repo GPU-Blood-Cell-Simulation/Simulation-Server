@@ -25,6 +25,7 @@ From: nvcr.io/nvidia/cuda:12.3.1-devel-ubuntu22.04
 
     apt-get install -y libglvnd0 libgl1 libglx0 libegl1
     apt-get install -y libglu1-mesa libxi-dev libxmu-dev libglu1-mesa-dev
+    apt-get install -y libgl1-mesa-dev libegl1-mesa-dev
 
 %environment
     . /.singularity.d/env/10-docker*.sh
