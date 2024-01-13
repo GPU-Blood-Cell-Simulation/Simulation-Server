@@ -39,9 +39,10 @@ private:
 
     /* Streaming elements */
     GstElement *queueStream;
-    GstElement *x264encStream;
-    GstElement *rtph264pay;
-    GstElement *udpsink;
+    GstElement *h264encStream;
+    GstElement *h264parserStream;
+    GstElement *muxerStream;
+    GstElement *tcpsink;
 
     GstPad *teeStreamPad = NULL;
     std::vector<GLubyte> pixels;
@@ -50,8 +51,13 @@ private:
     /* Recording elements */
     GstElement *queueFile;
     GstElement *videoFlip;
+<<<<<<< HEAD
     GstElement *jpegencFile;
     GstElement *muxer;
+=======
+    GstElement *h264encFile;
+    GstElement *muxerFile;
+>>>>>>> 609a90b (TCP stream works with big latency)
     GstElement *filesink;
 
     GstPad *teeFilePad = NULL;

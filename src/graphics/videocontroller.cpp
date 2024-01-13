@@ -13,13 +13,13 @@ void VideoController::bus_error_handler(GstBus *bus, GstMessage *msg, gpointer d
 	gchar *debugTmp;
 	std::string errorSrc(GST_OBJECT_NAME(msg->src));
 	
-	gst_message_parse_error (msg, &err, &debugTmp);
+	gst_message_parse_error(msg, &err, &debugTmp);
 
 	std::string debugInfo(debugTmp);
 	std::string errorMsg(err->message);
 
-	g_error_free (err);
-	g_free (debugTmp);
+	g_error_free(err);
+	g_free(debugTmp);
 
 	throw std::runtime_error(
 		"Streaming pipeline error."
@@ -129,28 +129,22 @@ VideoController::~VideoController()
 void VideoController::SetUpStreaming(int port, const std::string &host)
 {
 	queueStream = createPipelineElement("queue", "streamQueue");
-	x264encStream = createPipelineElement("x264enc", "streamEncoder");
-	rtph264pay = createPipelineElement("rtph264pay", "payload");
-	udpsink = createPipelineElement("udpsink", "sink");
+	h264encStream = createPipelineElement("x264enc", "streamEncoder");
+	h264parserStream = createPipelineElement("h264parse", "parser");
+	muxerStream = createPipelineElement("matroskamux", "muxer");
+	tcpsink = createPipelineElement("tcpserversink", "sink");
 
-	g_object_set(G_OBJECT(udpsink),
-		"host", host.data(),
-		"port", port,
-		NULL
-	);
+	g_object_set(G_OBJECT(tcpsink), "host", host.data(), NULL);
+	g_object_set(G_OBJECT(tcpsink), "port", port, NULL);
+	g_object_set(G_OBJECT(tcpsink), "recover-policy", 3, NULL);
+  	g_object_set(G_OBJECT(tcpsink), "sync-method", 2, NULL);
 
+	g_object_set(G_OBJECT(h264encStream), "speed-preset", 1, NULL);
+	g_object_set(G_OBJECT(h264encStream), "tune", 0x00000004, NULL);
 
-	g_object_set(G_OBJECT(x264encStream),
-		"tune", 0x00000004,
-		"sliced-threads", TRUE,
-		"byte-stream", TRUE,
-		"bitrate", 2640,
-		NULL
-	);
+	gst_bin_add_many(GST_BIN(pipeline), queueStream, h264encStream, muxerStream, tcpsink, h264parserStream, NULL);
 
-	gst_bin_add_many(GST_BIN(pipeline), queueStream, x264encStream, rtph264pay, udpsink, NULL);
-
-	if (gst_element_link_many(queueStream, x264encStream, rtph264pay, udpsink, NULL) != TRUE) {
+	if (gst_element_link_many(queueStream, h264encStream, h264parserStream, muxerStream, tcpsink, NULL) != TRUE) {
 		throw std::runtime_error("Error while linking streaming elements");
 	}
 
