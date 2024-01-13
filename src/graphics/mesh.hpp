@@ -61,12 +61,6 @@ class SingleObjectMesh : public Mesh
 public:
     SingleObjectMesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices);
     SingleObjectMesh() : Mesh(std::move(std::vector<Vertex>()), std::move(std::vector<unsigned int>())) {}
-
-    /// <summary>
-    /// Calls OpenGL render pipeline for mesh data
-    /// </summary>
-    /// <param name="shader">shader passed to OpenGL pipeline</param>
-    void draw(const Shader* shader) const override;
 };
 
 /// <summary>
@@ -98,12 +92,6 @@ class MultiObjectMesh : public Mesh
 public:
     MultiObjectMesh() { objectCount = 0; };
     MultiObjectMesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<glm::vec3>& initialPositions, unsigned int objectCount);
-
-    /// <summary>
-    /// Calls OpenGL render pipeline for mesh data
-    /// </summary>
-    /// <param name="shader">shader passed to OpenGL pipeline</param>
-    void draw(const Shader* shader) const override;
     
     /// <summary>
     /// Extends initial mesh with object duplicates based on initial positions

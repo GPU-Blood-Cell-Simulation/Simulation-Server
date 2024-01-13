@@ -3,6 +3,31 @@
 #include "../../src/utilities/cuda_vec3.cuh"
 
 
+class CudaVec3Tests: public testing::TestWithParam<int /* Vector Len */> {
+public:
+    bool *device_test_result;
+
+    void SetUp() override {
+        ASSERT_EQ(cudaMalloc(&device_test_result, sizeof(bool)), cudaSuccess);
+    }
+
+    bool GetTestResult() {
+        bool host_test_result;
+        cudaMemcpy(&host_test_result, device_test_result, sizeof(bool), cudaMemcpyDeviceToHost); 
+        return host_test_result;
+    }
+
+    void TearDown() override {
+        cudaFree(device_test_result);
+    }
+};
+
+
+INSTANTIATE_TEST_CASE_P(ZeroLenCudaVector, CudaVec3Tests, testing::Values(0));
+INSTANTIATE_TEST_CASE_P(ShortCudaVector, CudaVec3Tests, testing::Range(1, 5));
+INSTANTIATE_TEST_SUITE_P(LongCudaVector, CudaVec3Tests, testing::Values(100, 500, 1000, 10000));
+
+
 __global__ void cudaVec3GetAndSetCheck(cudaVec3 vec, int n, bool* result) {
     *result = true;
     
@@ -22,20 +47,13 @@ __global__ void cudaVec3GetAndSetCheck(cudaVec3 vec, int n, bool* result) {
     }
 }
 
-TEST(CudaVec3, GetAndSet) {
-    bool h_result;
-    bool* d_result;
-    int n = 5;
+TEST_P(CudaVec3Tests, GetAndSet) {
+    int n = GetParam();
     cudaVec3 vec(n);
 
-    cudaMalloc(&d_result, sizeof(bool));
-
-    cudaVec3GetAndSetCheck<<<1, 1>>>(vec, n, d_result);
-
-    cudaMemcpy(&h_result, d_result, sizeof(bool), cudaMemcpyDeviceToHost); 
-    cudaFree(d_result);
+    cudaVec3GetAndSetCheck<<<1, 1>>>(vec, n, device_test_result);
     
-    EXPECT_TRUE(h_result);
+    EXPECT_TRUE(GetTestResult());
 }
 
 
@@ -59,20 +77,13 @@ __global__ void cudaVec3AddCheck(cudaVec3 vec, int n, bool* result) {
     }
 }
 
-TEST(CudaVec3, Addition) {
-    bool h_result;
-    bool* d_result;
-    int n = 5;
+TEST_P(CudaVec3Tests, Addition) {
+    int n = GetParam();
     cudaVec3 vec(n);
 
-    cudaMalloc(&d_result, sizeof(bool));
+    cudaVec3AddCheck<<<1, 1>>>(vec, n, device_test_result);
 
-    cudaVec3AddCheck<<<1, 1>>>(vec, n, d_result);
-
-    cudaMemcpy(&h_result, d_result, sizeof(bool), cudaMemcpyDeviceToHost); 
-    cudaFree(d_result);
-    
-    EXPECT_TRUE(h_result);
+    EXPECT_TRUE(GetTestResult());
 }
 
 
@@ -90,19 +101,12 @@ __global__ void cudaVec3IdentityCheck(cudaVec3 vec1, cudaVec3 vec2, int n, bool*
     }
 }
 
-TEST(CudaVec3, Copy) {
-    bool h_result;
-    bool* d_result;
-    int n = 5;
+TEST_P(CudaVec3Tests, Copy) {
+    int n = GetParam();
     cudaVec3 vec1(n);
     cudaVec3 vec2(vec1);
 
-    cudaMalloc(&d_result, sizeof(bool));
+    cudaVec3IdentityCheck<<<1, 1>>>(vec1, vec2, n, device_test_result);
 
-    cudaVec3IdentityCheck<<<1, 1>>>(vec1, vec2, n, d_result);
-
-    cudaMemcpy(&h_result, d_result, sizeof(bool), cudaMemcpyDeviceToHost); 
-    cudaFree(d_result);
-    
-    EXPECT_TRUE(h_result);
+    EXPECT_TRUE(GetTestResult());
 }

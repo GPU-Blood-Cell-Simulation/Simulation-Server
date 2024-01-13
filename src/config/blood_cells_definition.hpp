@@ -1,7 +1,7 @@
 #pragma once
 
 #include "blood_cell_presets.hpp"
-#include "../objects/blood_cells_def_type.hpp"
+#include "../meta_factory/blood_cells_def_type.hpp"
 
 #include <boost/mp11/list.hpp>
 
