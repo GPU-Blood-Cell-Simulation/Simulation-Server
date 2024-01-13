@@ -9,43 +9,31 @@
 
 
 /// <summary>
-/// General model class containing basic model properties
+/// Abstract model class
 /// </summary>
 class Model
 {
 public:
-	Model() {};
 
 	/// <summary>
 	/// Calls OpenGL render pipeline for underlying meshes
 	/// </summary>
 	/// <param name="shader">pointer to shader passed to the pipeline</param>
-	void draw(const Shader* shader) const;
+	virtual void draw(const Shader* shader) const = 0;
 
 	/// <summary>
 	/// Gets Vertex Buffer Object of certain mesh from model
 	/// </summary>
 	/// <param name="index">index of mesh</param>
 	/// <returns>Vertex Buffer Object</returns>
-	unsigned int getVboBuffer(unsigned int index);
+	virtual unsigned int getVboBuffer(unsigned int index) = 0;
 	
 	/// <summary>
 	/// Gets Element Buffer Array of certain mesh from model
 	/// </summary>
 	/// <param name="index">index of mesh</param>
 	/// <returns>Element Buffer Array</returns>
-	unsigned int getEboBuffer(unsigned int index);
-
-	/// <summary>
-	/// Adds external mesh to model
-	/// </summary>
-	/// <param name="mesh">new mesh</param>
-	void addMesh(Mesh& mesh);
-
-protected:
-
-	std::string directory;
-	std::vector<Mesh> meshes;
+	virtual unsigned int getEboBuffer(unsigned int index) = 0;
 };
 
 
@@ -55,13 +43,33 @@ protected:
 class InstancedModel : public Model
 {
 public:
-	InstancedModel(Mesh& mesh, unsigned int instancesCount);
+	InstancedModel(InstancedObjectMesh& mesh, int instancesCount);
+
+	void draw(const Shader* shader) const override;
+	unsigned int getVboBuffer(unsigned int index) override;
+	unsigned int getEboBuffer(unsigned int index) override;
+
 	unsigned int getCudaOffsetBuffer();
 
 protected:
-
+	InstancedObjectMesh& mesh;
 	unsigned int cudaOffsetBuffer;
 	unsigned int instancesCount;
+};
+
+class SingleObjectModel : public Model
+{
+public:
+	SingleObjectModel() {}
+	SingleObjectModel(SingleObjectMesh& mesh) { addMesh(mesh); }
+
+	void draw(const Shader* shader) const override;
+	unsigned int getVboBuffer(unsigned int index) override;
+	unsigned int getEboBuffer(unsigned int index) override;
+
+	void addMesh(SingleObjectMesh& mesh);
+protected:
+	std::vector<SingleObjectMesh> meshes;
 };
 
 /// <summary>
@@ -70,10 +78,17 @@ protected:
 class MultipleObjectModel : public Model
 {
 public:
-	MultipleObjectModel() : Model() { verticesInitialCount = objectCount = 0; }
+	MultipleObjectModel() { verticesInitialCount = objectCount = 0; }
 	MultipleObjectModel(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices, std::vector<glm::vec3>& initialPositions, unsigned int objectCount);
 
+	void draw(const Shader* shader) const override;
+	unsigned int getVboBuffer(unsigned int index) override;
+	unsigned int getEboBuffer(unsigned int index) override;
+
+	void addMesh(MultiObjectMesh& mesh);
+
 protected:
+	std::vector<MultiObjectMesh> meshes;
 	unsigned int verticesInitialCount;
 	unsigned int objectCount;
 };

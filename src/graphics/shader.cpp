@@ -138,3 +138,9 @@ VeinSolidColorShader::VeinSolidColorShader() : Shader("Shaders/veinsolidcolor.ve
 
 SpringShader::SpringShader() : Shader("Shaders/spring.vert", "Shaders/spring.frag")
 {}
+
+SpheresSolidColorShader::SpheresSolidColorShader() : Shader("Shaders/solidcolor_spheres.vert", "Shaders/solidcolor_spheres.frag")
+{}
+
+SpheresPhongForwardShader::SpheresPhongForwardShader() : Shader("Shaders/phong_forward_spheres.vert", "Shaders/phong_forward.frag")
+{}

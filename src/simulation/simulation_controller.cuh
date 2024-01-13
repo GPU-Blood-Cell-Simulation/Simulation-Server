@@ -29,7 +29,8 @@ namespace sim
 		/// Executes main simulation loop
 		/// </summary>
 		void calculateNextFrame();
-		std::vector<glm::vec3> initialCellPositions;
+		std::array<glm::vec3, bloodCellCount> initialCellPositions;
+		std::array<float, bloodCellTypeCount> smallestRadiusInType;
 		float* cellModelsBoundingSpheres;
 
 	private:
@@ -44,7 +45,7 @@ namespace sim
 
 		std::array<cudaStream_t, bloodCellTypeCount> streams;
 		curandState* devStates = 0;
-		cudaVec3 bloodCellModels{particleDistinctCellsCount};
+		cudaVec3 bloodCellModels{ particleDistinctCellsCount };
 
 		void generateBoundingSpheres();
 		void generateRandomPositions();

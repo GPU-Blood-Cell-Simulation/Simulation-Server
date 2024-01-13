@@ -104,7 +104,8 @@ namespace sim
 			int modelStart = bloodCellModelStarts[i];
 			int modelSize = i + 1 == bloodCellTypeCount ? particleDistinctCellsCount - bloodCellModelStarts[i] :
 				(i == 0 ? bloodCellModelStarts[i + 1] : bloodCellModelStarts[i + 1] - bloodCellModelStarts[i]);
-
+			
+			smallestRadiusInType[i] = std::numeric_limits<float>::max();
 			float3 center {0,0,0};
 			for (int j = 0; j < modelSize; ++j) {
 				for (int k = 0; k < modelSize; ++k) {
@@ -114,6 +115,8 @@ namespace sim
 
 						if (length < boundingSpheres[modelStart + j])
 							boundingSpheres[modelStart + j] = length;
+						if (length < smallestRadiusInType[i])
+							smallestRadiusInType[i] = length;
 					}
 				}
 				center = center + make_float3(hostModels[0][modelStart + j], hostModels[1][modelStart + j], hostModels[2][modelStart + j]);
@@ -147,7 +150,7 @@ namespace sim
 		HANDLE_ERROR(cudaMemcpy(zpos.data(), initialPositions.z, bloodCellCount * sizeof(float), cudaMemcpyDeviceToHost));
 
 		for (int i = 0; i < bloodCellCount; ++i)
-			initialCellPositions.push_back(glm::vec3(xpos[i], ypos[i], zpos[i]));
+			initialCellPositions[i] = {xpos[i], ypos[i], zpos[i]};
 
 		using IndexList = mp_iota_c<bloodCellTypeCount>;
 		mp_for_each<IndexList>([&](auto i)

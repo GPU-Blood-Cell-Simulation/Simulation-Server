@@ -66,7 +66,6 @@ SingleObjectMesh::SingleObjectMesh(std::vector<Vertex>&& vertices, std::vector<u
 void Mesh::draw(const Shader* shader) const
 {
 	// draw mesh
-	auto obj = vertices;
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);

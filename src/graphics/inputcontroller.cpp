@@ -55,6 +55,9 @@ namespace graphics
 			case GLFW_KEY_B:
 				BLOOD_CELL_SPRINGS_RENDER = !BLOOD_CELL_SPRINGS_RENDER;
 				break;
+			case GLFW_KEY_N:
+				BLOOD_CELL_SPHERE_RENDER = !BLOOD_CELL_SPHERE_RENDER;
+				break;
 			}
 		}
 		else if (action == GLFW_RELEASE)
