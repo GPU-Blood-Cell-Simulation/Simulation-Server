@@ -140,7 +140,6 @@ void ServerCommunicationEndpoint::disconnect()
 void ServerCommunicationEndpoint::SendEvent(Event event) const
 {
     if (!isConnected()) {
-        std::cout << "Not connected - cannot send message\n";
         return;
     }
 

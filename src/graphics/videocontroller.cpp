@@ -130,8 +130,8 @@ void VideoController::SetUpStreaming(int port, const std::string &host)
 {
 	queueStream = createPipelineElement("queue", "streamQueue");
 	h264encStream = createPipelineElement("x264enc", "streamEncoder");
-	h264parserStream = createPipelineElement("h264parse", "parser");
-	muxerStream = createPipelineElement("matroskamux", "muxer");
+	// h264parserStream = createPipelineElement("h264parse", "parser");
+	// muxerStream = createPipelineElement("rtph264pay", "muxer");
 	tcpsink = createPipelineElement("tcpserversink", "sink");
 
 	g_object_set(G_OBJECT(tcpsink), "host", host.data(), NULL);
@@ -139,12 +139,20 @@ void VideoController::SetUpStreaming(int port, const std::string &host)
 	g_object_set(G_OBJECT(tcpsink), "recover-policy", 3, NULL);
   	g_object_set(G_OBJECT(tcpsink), "sync-method", 2, NULL);
 
+	g_object_set(G_OBJECT(tcpsink), "unit-format", GST_FORMAT_TIME, NULL);
+	g_object_set(G_OBJECT(tcpsink), "units-max", 100, NULL);
+	g_object_set(G_OBJECT(tcpsink), "units-soft-max", 70, NULL);
+
 	g_object_set(G_OBJECT(h264encStream), "speed-preset", 1, NULL);
 	g_object_set(G_OBJECT(h264encStream), "tune", 0x00000004, NULL);
+	g_object_set(G_OBJECT(h264encStream), "sliced-threads", TRUE, NULL);
+	g_object_set(G_OBJECT(h264encStream), "byte-stream", TRUE, NULL);
 
-	gst_bin_add_many(GST_BIN(pipeline), queueStream, h264encStream, muxerStream, tcpsink, h264parserStream, NULL);
+	g_object_set(G_OBJECT(queueStream), "max-size-time", 100, NULL);
 
-	if (gst_element_link_many(queueStream, h264encStream, h264parserStream, muxerStream, tcpsink, NULL) != TRUE) {
+	gst_bin_add_many(GST_BIN(pipeline), queueStream, h264encStream, /*muxerStream,*/ tcpsink, /*h264parserStream,*/ NULL);
+
+	if (gst_element_link_many(queueStream, h264encStream, /*h264parserStream, muxerStream,*/ tcpsink, NULL) != TRUE) {
 		throw std::runtime_error("Error while linking streaming elements");
 	}
 

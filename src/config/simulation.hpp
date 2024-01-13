@@ -1,6 +1,6 @@
 #pragma once
 
-inline constexpr int maxFrames = 600;
+inline constexpr int maxFrames = 1000; //20000;
 inline constexpr int maxCudaStreams = 16;
 inline constexpr float dt = 0.008;
 inline constexpr bool useBloodFlow = 1;
