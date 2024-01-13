@@ -149,6 +149,7 @@ void VideoController::SetUpStreaming(int port, const std::string &host)
 	g_object_set(G_OBJECT(h264encStream), "byte-stream", TRUE, NULL);
 
 	g_object_set(G_OBJECT(queueStream), "max-size-time", 100, NULL);
+	g_object_set(G_OBJECT(queueStream), "silent", TRUE, NULL);
 
 	gst_bin_add_many(GST_BIN(pipeline), queueStream, h264encStream, /*muxerStream,*/ tcpsink, /*h264parserStream,*/ NULL);
 

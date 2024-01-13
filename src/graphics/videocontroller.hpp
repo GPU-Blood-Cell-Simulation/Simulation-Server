@@ -51,13 +51,8 @@ private:
     /* Recording elements */
     GstElement *queueFile;
     GstElement *videoFlip;
-<<<<<<< HEAD
     GstElement *jpegencFile;
     GstElement *muxer;
-=======
-    GstElement *h264encFile;
-    GstElement *muxerFile;
->>>>>>> 609a90b (TCP stream works with big latency)
     GstElement *filesink;
 
     GstPad *teeFilePad = NULL;
