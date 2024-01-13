@@ -5,6 +5,7 @@ inline constexpr int maxCudaStreams = 16;
 inline constexpr float dt = 0.008;
 inline constexpr bool useBloodFlow = 1;
 inline constexpr bool enableReactionForce = 1;
+inline constexpr bool enableBigCellsBrake = 1;
 
 inline constexpr int cellWidth = 30;
 inline constexpr int cellHeight = 30;

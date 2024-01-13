@@ -14,6 +14,8 @@ class BloodCells
 
 public:
 	Particles particles;
+	cudaVec3 particleCenters;
+	float* initialRadiuses;
 	float* dev_springGraph;
 
 	BloodCells();
