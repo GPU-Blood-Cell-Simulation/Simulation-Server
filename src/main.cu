@@ -63,7 +63,9 @@ int main()
     
     VideoController streamingController;
     streamingController.SetUpStreaming(4321, "127.0.0.1");
-    streamingController.SetUpRecording("BloodFlow.mov");
+
+    if (saveVideoToFile)
+        streamingController.SetUpRecording(videoFileName);
     streamingController.StartPlayback();
 #endif
 
