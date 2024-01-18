@@ -135,6 +135,11 @@ void VideoController::SetUpStreaming(int port, const std::string &host)
 		"port", port,
 		NULL);
 
+	g_object_set(G_OBJECT(x264encStream), "speed-preset", 1, NULL);
+	g_object_set(G_OBJECT(x264encStream), "tune", 0x00000004, NULL);
+	g_object_set(G_OBJECT(x264encStream), "sliced-threads", TRUE, NULL);
+	g_object_set(G_OBJECT(x264encStream), "byte-stream", TRUE, NULL);
+
 	gst_bin_add_many(GST_BIN(pipeline), queueStream, x264encStream, rtph264pay, udpsink, NULL);
 
 	if (gst_element_link_many(queueStream, x264encStream, rtph264pay, udpsink, NULL) != TRUE) {
@@ -172,6 +177,11 @@ void VideoController::SetUpRecording(const std::string &file_name)
 
 	// rotate image horizontally
 	g_object_set(G_OBJECT(videoFlip), "video-direction", 5, NULL);
+
+	g_object_set(G_OBJECT(x264encFile), "speed-preset", 1, NULL);
+	g_object_set(G_OBJECT(x264encFile), "tune", 0x00000004, NULL);
+	g_object_set(G_OBJECT(x264encFile), "sliced-threads", TRUE, NULL);
+	g_object_set(G_OBJECT(x264encFile), "byte-stream", TRUE, NULL);
 
 	gst_bin_add_many(GST_BIN(pipeline), queueFile, videoFlip, x264encFile, muxer, filesink, NULL);
 
