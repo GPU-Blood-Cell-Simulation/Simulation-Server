@@ -68,7 +68,7 @@ namespace sim
 	/// Executes triangle collision check in sorrounding grid cells
 	/// </summary>
 	template<int xMin, int xMax, int yMin, int yMax, int zMin, int zMax>
-	__device__ bool calculateSideCollisions(float3 position, ray& r, float3& reflectionVector, VeinTriangles& triangles, UniformGrid& triangleGrid)
+	__device__ bool calculateSideCollisions(int gpuId, float3 position, ray& r, float3& reflectionVector, VeinTriangles& triangles, UniformGrid& triangleGrid)
 	{
 		unsigned int cellId = triangleGrid.calculateCellId(position);
 
@@ -82,10 +82,10 @@ namespace sim
 				for (int z = zMin; z <= zMax; z++)
 				{
 					int neighborCellId = cellId + z * triangleGrid.cellCountX * triangleGrid.cellCountY + y * triangleGrid.cellCountX + x;
-					for (int i = triangleGrid.gridCellStarts[neighborCellId]; i <= triangleGrid.gridCellEnds[neighborCellId]; i++)
+					for (int i = triangleGrid.gridCellStarts[gpuId][neighborCellId]; i <= triangleGrid.gridCellEnds[gpuId][neighborCellId]; i++)
 					{
 						// triangle vectices and edges
-						unsigned int triangleId = triangleGrid.particleIds[i];
+						unsigned int triangleId = triangleGrid.particleIds[gpuId][i];
 						float3 v0 = triangles.positions.get(triangles.getIndex(triangleId, vertex0));
 						float3 v1 = triangles.positions.get(triangles.getIndex(triangleId, vertex1));
 						float3 v2 = triangles.positions.get(triangles.getIndex(triangleId, vertex2));
@@ -103,7 +103,7 @@ namespace sim
 	}
 
 	 template<typename T>
-	 __global__ void detectVeinCollisionsAndPropagateForces(BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel,
+	 __global__ void detectVeinCollisionsAndPropagateForces(int gpuId, BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel,
 		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
 	/// <summary>
@@ -118,7 +118,7 @@ namespace sim
 	/// <param name="particlesStart">index shift for particle data</param>
 	/// <returns></returns>
 	template<>
-	 __global__ void detectVeinCollisionsAndPropagateForces<NoGrid>(BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
+	 __global__ void detectVeinCollisionsAndPropagateForces<NoGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
 		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
 
 	 /// <summary>
@@ -133,7 +133,7 @@ namespace sim
 	 /// <param name="particlesStart">index shift for particle data</param>
 	 /// <returns></returns>
 	template<>
-	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
+	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
 		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
 
 }

@@ -15,12 +15,12 @@ VeinNeighbors::VeinNeighbors()
     for (auto&& pair : data)
     {   
         // Copy neighbor indices
-        HANDLE_ERROR(cudaMalloc((void**)&pair.ids, veinPositionCount * sizeof(int)));
-        HANDLE_ERROR(cudaMemcpy(pair.ids, hostNeighbors[i].data(), veinPositionCount * sizeof(int), cudaMemcpyHostToDevice));
+        CUDACHECK(cudaMalloc((void**)&pair.ids, veinPositionCount * sizeof(int)));
+        CUDACHECK(cudaMemcpy(pair.ids, hostNeighbors[i].data(), veinPositionCount * sizeof(int), cudaMemcpyHostToDevice));
 
         // Copy spring lengths
-        HANDLE_ERROR(cudaMalloc((void**)&pair.springs, veinPositionCount * sizeof(float)));
-        HANDLE_ERROR(cudaMemcpy(pair.springs, hostSprings[i].data(), veinPositionCount * sizeof(float), cudaMemcpyHostToDevice));
+        CUDACHECK(cudaMalloc((void**)&pair.springs, veinPositionCount * sizeof(float)));
+        CUDACHECK(cudaMemcpy(pair.springs, hostSprings[i].data(), veinPositionCount * sizeof(float), cudaMemcpyHostToDevice));
         i++;
     }
 }
@@ -37,8 +37,8 @@ VeinNeighbors::~VeinNeighbors()
 
     for (auto& [ids, springs] : data)
     {
-        HANDLE_ERROR(cudaFree(ids));
-        HANDLE_ERROR(cudaFree(springs));
+        CUDACHECK(cudaFree(ids));
+        CUDACHECK(cudaFree(springs));
     }
         
 }

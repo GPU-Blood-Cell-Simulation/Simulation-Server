@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 project(SimulationServer LANGUAGES C CXX CUDA)
 
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
 option(WINDOW_RENDERING "Switches between window rendering and streaming mode" ON)
+option(MULTI_GPU "Whether the simulation should run on 4 gpus" ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CUDA_STANDARD 17)
@@ -56,6 +59,28 @@ set(LIBS
 #
 # Program mode specific options
 #
+if (MULTI_GPU)
+  #
+  # Multiple gpus
+  #
+  find_package(MPI REQUIRED)
+  find_package(NCCL REQUIRED)
+  if (NCCL_FOUND)
+      add_definitions(-DUSE_NCCL)
+      include_directories(SYSTEM ${NCCL_INCLUDE_DIR} ${MPI_INCLUDE_PATH})
+  endif ()
+
+  set(LIBS
+    ${LIBS}
+    ${MPI_LIBRARIES}
+    ${NCCL_LIBRARY}
+  )
+  
+  add_definitions( -DMULTI_GPU)
+
+endif()
+
+
 if(WINDOW_RENDERING)
   #
   # Window rendering

@@ -2,6 +2,11 @@
 
 #include "base_grid.cuh"
 #include "../objects/particles.cuh"
+#include "../utilities/host_device_array.cuh"
+
+#ifdef MULTI_GPU
+#include <nccl.h>
+#endif
 
 /// <summary>
 /// Represents a grid of uniform cell size
@@ -10,6 +15,7 @@ class UniformGrid : public BaseGrid<UniformGrid>
 {
 private:
 	bool isCopy = false;
+	int gpuId;
 
 public:
 
@@ -22,12 +28,12 @@ public:
 	int cellCount;
 	int objectCount;
 
-	int* gridCellIds = 0;
-	int* particleIds = 0;
-	int* gridCellStarts = 0;
-	int* gridCellEnds = 0;
+	HostDeviceArray<int*, gpuCount> gridCellIds;
+	HostDeviceArray<int*, gpuCount> particleIds;
+	HostDeviceArray<int*, gpuCount> gridCellStarts;
+	HostDeviceArray<int*, gpuCount> gridCellEnds;
 
-	UniformGrid(const int objectCount, int cellWidth, int cellHeight, int cellDepth);
+	UniformGrid(int gpuId, int objectCount, int cellWidth, int cellHeight, int cellDepth);
 	UniformGrid(const UniformGrid& other);
 	~UniformGrid();
 
@@ -56,4 +62,6 @@ public:
 	/// <param name="positions">object position</param>
 	/// <returns>cell id</returns>
 	__device__ int calculateCellId(float3 position);
+
+	void broadcast(ncclComm_t* comms, cudaStream_t* streams);
 };

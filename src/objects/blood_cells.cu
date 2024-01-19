@@ -14,9 +14,9 @@ constexpr float NO_SPRING = 0;
 
 BloodCells::BloodCells(): particleCenters(bloodCellCount)
 {
-	HANDLE_ERROR(cudaMalloc(&dev_springGraph, sizeof(float) * totalGraphSize));
-	HANDLE_ERROR(cudaMemcpy(dev_springGraph, springGraph.data(), sizeof(float) * totalGraphSize, cudaMemcpyHostToDevice));
-	HANDLE_ERROR(cudaMalloc(&initialRadiuses, sizeof(float)*particleDistinctCellsCount));
+	CUDACHECK(cudaMalloc(&dev_springGraph, sizeof(float) * totalGraphSize));
+	CUDACHECK(cudaMemcpy(dev_springGraph, springGraph.data(), sizeof(float) * totalGraphSize, cudaMemcpyHostToDevice));
+	CUDACHECK(cudaMalloc(&initialRadiuses, sizeof(float)*particleDistinctCellsCount));
 }
 
 BloodCells::BloodCells(const BloodCells& other) : isCopy(true), particles(other.particles), dev_springGraph(other.dev_springGraph), particleCenters(other.particleCenters), initialRadiuses(other.initialRadiuses) {}
@@ -25,7 +25,7 @@ BloodCells::~BloodCells()
 {
 	if (!isCopy)
 	{
-		HANDLE_ERROR(cudaFree(dev_springGraph));
+		CUDACHECK(cudaFree(dev_springGraph));
 	}
 }
 
@@ -122,7 +122,7 @@ void BloodCells::gatherForcesFromNeighbors(const std::array<cudaStream_t, bloodC
 		calculateBloodCellsCenters<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellStart>
 			<<<threads.blocks, threads.threadsPerBlock, 0, streams[i]>>>(*this);
 	});
-	HANDLE_ERROR(cudaDeviceSynchronize());
+	CUDACHECK(cudaDeviceSynchronize());
 	
 	// gather forces
 	mp_for_each<IndexList>([&](auto i)

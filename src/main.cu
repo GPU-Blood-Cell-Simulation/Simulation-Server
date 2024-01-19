@@ -16,9 +16,15 @@
 #include <curand_kernel.h>
 #include <iostream> // for debugging purposes
 #include <sstream>
+#include <thread>
+
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+
+#ifdef MULTI_GPU
+#include <nccl.h>
+#endif
 
 
 #ifdef WINDOW_RENDER
@@ -54,7 +60,7 @@ programLoopFunction;
 int main()
 {
     // Choose which GPU to run on, change this on a multi-GPU system.
-    HANDLE_ERROR(cudaSetDevice(0));
+    CUDACHECK(cudaSetDevice(0));
 
 #ifdef WINDOW_RENDER
     WindowController windowController;
@@ -88,7 +94,11 @@ int main()
 #endif
 
     // Cleanup
-    HANDLE_ERROR(cudaDeviceReset());
+    for (int i = 0; i < gpuCount; i++)
+    {
+        CUDACHECK(cudaSetDevice(i));
+        CUDACHECK(cudaDeviceReset());
+    }
 
     return 0;
 }
@@ -97,6 +107,19 @@ int main()
 
 programLoopFunction
 {
+    // NCCL
+    #ifdef MULTI_GPU
+    cudaStream_t streams[4];
+    for (int i = 0; i < gpuCount; i++)
+    {
+        CUDACHECK(cudaStreamCreate(&streams[i]));
+    }  
+
+    ncclComm_t comms[gpuCount];
+    int devs[4] = { 0, 1, 2, 3 };
+    NCCLCHECK(ncclCommInitAll(comms, gpuCount, devs));
+    #endif
+
     int frameCount = 0;
     // Create blood cells
     BloodCells bloodCells;
@@ -107,9 +130,9 @@ programLoopFunction
     SingleObjectMesh veinMesh = VeinGenerator::createMesh();
     InstancedObjectMesh sphereMesh = SphereGenerator::createMesh(10, 10, 1.0f, particleCount);
     // Create grids
-    UniformGrid particleGrid(particleCount, 20, 20, 20);
+    UniformGrid particleGrid(0, particleCount, cellWidth, cellHeight, cellDepth);
 #ifdef UNIFORM_TRIANGLES_GRID
-    UniformGrid triangleCentersGrid(triangleCount, 10, 10, 10);
+    UniformGrid triangleCentersGrid(0, triangleCount, cellWidth, cellHeight, cellDepth);
 #else
     NoGrid triangleCentersGrid;
 #endif
@@ -132,17 +155,46 @@ programLoopFunction
     bool shouldBeRunning = true;
     while (shouldBeRunning)
     {
+        // Calculate grids
+#ifdef MULTI_GPU
+        std::thread g1thread([&](){
+            particleGrid.calculateGrid(bloodCells.particles, particleCount);
+        });
+        std::thread g2thread([&](){
+            triangleCentersGrid.calculateGrid(triangles.centers.x, triangles.centers.y, triangles.centers.z, triangleCount);
+        });
+#else
+        particleGrid.calculateGrid(bloodCells.particles, particleCount);
+        triangleCentersGrid.calculateGrid(triangles.centers.x, triangles.centers.y, triangles.centers.z, triangleCount);
+#endif
+
+        cudaSetDevice(0);
+        
         // Clear 
         glClearColor(1.00f, 0.75f, 0.80f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Calculate particle positions using CUDA
-        simulationController.calculateNextFrame();
         // Pass positions to OpenGL
         glController.calculateTriangles(triangles);
         glController.calculatePositions(bloodCells.particles.positions);
 
         glController.draw(camera);
+
+#ifdef MULTI_GPU
+        // Join grid threads
+        g1thread.join();
+        g2thread.join();
+
+        // Broadcast grid data
+        particleGrid.broadcast(comms, streams);
+        triangleCentersGrid.broadcast(comms, streams);
+#endif
+
+        // Calculate particle positions using CUDA
+        simulationController.calculateNextFrame();
+        simulationController.propagateAll();
+
+        
 
 #ifdef WINDOW_RENDER // graphical render
 
@@ -180,4 +232,13 @@ programLoopFunction
         shouldBeRunning = frameCount++ < maxFrames;
 #endif
     }
+
+    // Cleanup
+    #ifdef MULTI_GPU
+    for(int i = 0; i < gpuCount; i++)
+    {
+        ncclCommDestroy(comms[i]);
+        cudaStreamDestroy(streams[i]);
+    }     
+    #endif
 }

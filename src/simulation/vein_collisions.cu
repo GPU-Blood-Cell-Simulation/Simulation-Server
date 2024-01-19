@@ -61,7 +61,7 @@ namespace sim
 	}
 
 	template<>
-	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
+	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
 		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
 		int particleId = particlesStart + blockDim.x * blockIdx.x + threadIdx.x;
@@ -72,15 +72,6 @@ namespace sim
 		float3 velocity = bloodCells.particles.velocities.get(particleId);
 		float3 initialVelocity = velocity;
 		float3 pos = bloodCells.particles.positions.get(particleId);
-
-		// TEST
-		//float3 velocity = velocity + float3{ 0, 0.1f , 0 };
-		//return;
-
-
-		// TODO: is there a faster way to calculate this?
-		/*if (velocity.x != 0 && velocity.y != 0 && velocity.z != 0)
-			goto set_particle_values;*/
 		
 		float3 velocityDir = normalize(velocity);
 
@@ -106,45 +97,45 @@ namespace sim
 				{
 					if (zId < 1)
 					{
-						collisionDetected = calculateSideCollisions<0, 1, 0, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<0, 1, 0, 1, 0, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else if (zId > triangleGrid.cellCountZ - 2)
 					{
-						collisionDetected = calculateSideCollisions<0, 1, 0, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<0, 1, 0, 1, -1, 0>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else
 					{
-						collisionDetected = calculateSideCollisions<0, 1, 0, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<0, 1, 0, 1, -1, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 				}
 				else if (yId > triangleGrid.cellCountY - 2)
 				{
 					if (zId < 1)
 					{
-						collisionDetected = calculateSideCollisions<0, 1, -1, 0, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<0, 1, -1, 0, 0, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else if (zId > triangleGrid.cellCountZ - 2)
 					{
-						collisionDetected = calculateSideCollisions<0, 1, -1, 0, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<0, 1, -1, 0, -1, 0>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else
 					{
-						collisionDetected = calculateSideCollisions<0, 1, -1, 0, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<0, 1, -1, 0, -1, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 				}
 				else
 				{
 					if (zId < 1)
 					{
-						collisionDetected = calculateSideCollisions<0, 1, -1, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<0, 1, -1, 1, 0, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else if (zId > triangleGrid.cellCountZ - 2)
 					{
-						collisionDetected = calculateSideCollisions<0, 1, -1, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<0, 1, -1, 1, -1, 0>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else
 					{
-						collisionDetected = calculateSideCollisions<0, 1, -1, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<0, 1, -1, 1, -1, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 				}
 			}
@@ -154,45 +145,45 @@ namespace sim
 				{
 					if (zId < 1)
 					{
-						collisionDetected = calculateSideCollisions<-1, 0, 0, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 0, 0, 1, 0, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else if (zId > triangleGrid.cellCountZ - 2)
 					{
-						collisionDetected = calculateSideCollisions<-1, 0, 0, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 0, 0, 1, -1, 0>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else
 					{
-						collisionDetected = calculateSideCollisions<-1, 0, 0, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 0, 0, 1, -1, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 				}
 				else if (yId > triangleGrid.cellCountY - 2)
 				{
 					if (zId < 1)
 					{
-						collisionDetected = calculateSideCollisions<-1, 0, -1, 0, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 0, 0, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else if (zId > triangleGrid.cellCountZ - 2)
 					{
-						collisionDetected = calculateSideCollisions<-1, 0, -1, 0, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 0, -1, 0>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else
 					{
-						collisionDetected = calculateSideCollisions<-1, 0, -1, 0, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 0, -1, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 				}
 				else
 				{
 					if (zId < 1)
 					{
-						collisionDetected = calculateSideCollisions<-1, 0, -1, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 1, 0, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else if (zId > triangleGrid.cellCountZ - 2)
 					{
-						collisionDetected = calculateSideCollisions<-1, 0, -1, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 1, -1, 0>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else
 					{
-						collisionDetected = calculateSideCollisions<-1, 0, -1, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 0, -1, 1, -1, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 				}
 			}
@@ -202,45 +193,45 @@ namespace sim
 				{
 					if (zId < 1)
 					{
-						collisionDetected = calculateSideCollisions<-1, 1, 0, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 1, 0, 1, 0, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else if (zId > triangleGrid.cellCountZ - 2)
 					{
-						collisionDetected = calculateSideCollisions<-1, 1, 0, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 1, 0, 1, -1, 0>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else
 					{
-						collisionDetected = calculateSideCollisions<-1, 1, 0, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 1, 0, 1, -1, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 				}
 				else if (yId > triangleGrid.cellCountY - 2)
 				{
 					if (zId < 1)
 					{
-						collisionDetected = calculateSideCollisions<-1, 1, -1, 0, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 0, 0, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else if (zId > triangleGrid.cellCountZ - 2)
 					{
-						collisionDetected = calculateSideCollisions<-1, 1, -1, 0, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 0, -1, 0>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else
 					{
-						collisionDetected = calculateSideCollisions<-1, 1, -1, 0, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 0, -1, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 				}
 				else
 				{
 					if (zId < 1)
 					{
-						collisionDetected = calculateSideCollisions<-1, 1, -1, 1, 0, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 1, 0, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else if (zId > triangleGrid.cellCountZ - 2)
 					{
-						collisionDetected = calculateSideCollisions<-1, 1, -1, 1, -1, 0>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 1, -1, 0>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 					else
 					{
-						collisionDetected = calculateSideCollisions<-1, 1, -1, 1, -1, 1>(pos, r, reflectedVelociy, triangles, triangleGrid);
+						collisionDetected = calculateSideCollisions<-1, 1, -1, 1, -1, 1>(gpuId, pos, r, reflectedVelociy, triangles, triangleGrid);
 					}
 				}
 			}
@@ -292,7 +283,7 @@ namespace sim
 	}
 
 	template<>
-	 __global__ void detectVeinCollisionsAndPropagateForces<NoGrid>(BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
+	 __global__ void detectVeinCollisionsAndPropagateForces<NoGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
 		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	 {
 	 	int particleId = blockDim.x * blockIdx.x + threadIdx.x;

@@ -34,7 +34,7 @@ void VeinTriangles::calculateCenters(int blocks, int threadsPerBlock)
 VeinTriangles::VeinTriangles()
 {
 	// allocate
-	HANDLE_ERROR(cudaMalloc((void**)&indices, 3 * triangleCount * sizeof(int)));
+	CUDACHECK(cudaMalloc((void**)&indices, 3 * triangleCount * sizeof(int)));
 
 	std::vector<float> vx(vertexCount);
 	std::vector<float> vy(vertexCount);
@@ -49,10 +49,10 @@ VeinTriangles::VeinTriangles()
 		});
 
 	// copy
-	HANDLE_ERROR(cudaMemcpy(indices, veinIndices.data(), veinIndexCount* sizeof(int), cudaMemcpyHostToDevice));
-	HANDLE_ERROR(cudaMemcpy(positions.x, vx.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
-	HANDLE_ERROR(cudaMemcpy(positions.y, vy.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
-	HANDLE_ERROR(cudaMemcpy(positions.z, vz.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
+	CUDACHECK(cudaMemcpy(indices, veinIndices.data(), veinIndexCount* sizeof(int), cudaMemcpyHostToDevice));
+	CUDACHECK(cudaMemcpy(positions.x, vx.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
+	CUDACHECK(cudaMemcpy(positions.y, vy.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
+	CUDACHECK(cudaMemcpy(positions.z, vz.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
 
 	// centers
 	int threadsPerBlock = triangleCount > 1024 ? 1024 : triangleCount;
@@ -68,7 +68,7 @@ VeinTriangles::~VeinTriangles()
 {
 	if (!isCopy)
 	{
-		HANDLE_ERROR(cudaFree(indices));
+		CUDACHECK(cudaFree(indices));
 	}
 }
 

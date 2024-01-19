@@ -29,6 +29,7 @@ namespace sim
 		/// Executes main simulation loop
 		/// </summary>
 		void calculateNextFrame();
+		void propagateAll();
 		std::array<glm::vec3, bloodCellCount> initialCellPositions;
 		std::array<float, bloodCellTypeCount> smallestRadiusInType;
 		float* cellModelsBoundingSpheres;
