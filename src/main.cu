@@ -98,6 +98,7 @@ int main()
 programLoopFunction
 {
     int frameCount = 0;
+    bool shouldBeRunning = true;
     // Create blood cells
     BloodCells bloodCells;
 
@@ -126,10 +127,10 @@ programLoopFunction
 #else
     MsgController msgController(4322);
     msgController.setCamera(&camera);
+    msgController.setStreamEndCallback([&shouldBeRunning]() { shouldBeRunning = false; });
 #endif
 
     // MAIN LOOP HERE - dictated by glfw
-    bool shouldBeRunning = true;
     while (shouldBeRunning)
     {
         // Clear 
@@ -177,7 +178,13 @@ programLoopFunction
         streamingController.SendFrame();
         msgController.handleMsgs();
 
-        shouldBeRunning = frameCount++ < maxFrames;
+        if (++frameCount > maxFrames) {
+            shouldBeRunning = false;
+        }
 #endif
     }
+
+#ifndef WINDOW_RENDER
+    msgController.successfulStreamEndInform();
+#endif
 }
