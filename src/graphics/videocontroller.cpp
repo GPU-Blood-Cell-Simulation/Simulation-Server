@@ -57,6 +57,11 @@ VideoController::VideoController():
 
 	/* Add pipeline error callback */
 	gst_bus_add_signal_watch(bus);
+	if (!bus) {
+        gst_object_unref(pipeline);
+		throw std::runtime_error("Cannot get a pipeline bus");
+    }
+
   	g_signal_connect(bus, "message::error", G_CALLBACK(bus_error_handler), NULL);
 
 	gst_bin_add_many(GST_BIN(pipeline), appsrc, convert, tee, NULL);
