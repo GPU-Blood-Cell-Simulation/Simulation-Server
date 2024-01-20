@@ -2,13 +2,12 @@
 
 #include "../config/graphics.hpp"
 #include <stdexcept>
-#include <iostream>
 
 
 int VideoController::numberOfInstances = 0;
 
 
-static void bus_error_handler(GstBus *bus, GstMessage *msg, gpointer data)
+void VideoController::bus_error_handler(GstBus *bus, GstMessage *msg, gpointer data)
 {
 	GError *err;
 	gchar *debugTmp;
@@ -101,7 +100,6 @@ GstElement *VideoController::createPipelineElement(const std::string& factoryNam
 
 VideoController::~VideoController()
 {
-	// TODO: check playing state
 	EndPlayback();
 
 	if (teeStreamPad != NULL) {
@@ -133,12 +131,17 @@ void VideoController::SetUpStreaming(int port, const std::string &host)
 	g_object_set(G_OBJECT(udpsink),
 		"host", host.data(),
 		"port", port,
-		NULL);
+		NULL
+	);
 
-	g_object_set(G_OBJECT(x264encStream), "speed-preset", 1, NULL);
-	g_object_set(G_OBJECT(x264encStream), "tune", 0x00000004, NULL);
-	g_object_set(G_OBJECT(x264encStream), "sliced-threads", TRUE, NULL);
-	g_object_set(G_OBJECT(x264encStream), "byte-stream", TRUE, NULL);
+
+	g_object_set(G_OBJECT(x264encStream),
+		"tune", 0x00000004,
+		"sliced-threads", TRUE,
+		"byte-stream", TRUE,
+		"bitrate", 2640,
+		NULL
+	);
 
 	gst_bin_add_many(GST_BIN(pipeline), queueStream, x264encStream, rtph264pay, udpsink, NULL);
 
@@ -165,7 +168,7 @@ void VideoController::SetUpRecording(const std::string &file_name)
 
 	queueFile = createPipelineElement("queue", "fileQueue");
 	videoFlip = createPipelineElement("videoflip", "videoFlip");
-	x264encFile = createPipelineElement("x264enc", "fileEncoder");
+	jpegencFile = createPipelineElement("jpegenc", "jpegenc");
 	muxer = createPipelineElement("qtmux", "qtmux");
 	filesink = createPipelineElement("filesink", "filesink");
 
@@ -178,14 +181,9 @@ void VideoController::SetUpRecording(const std::string &file_name)
 	// rotate image horizontally
 	g_object_set(G_OBJECT(videoFlip), "video-direction", 5, NULL);
 
-	g_object_set(G_OBJECT(x264encFile), "speed-preset", 1, NULL);
-	g_object_set(G_OBJECT(x264encFile), "tune", 0x00000004, NULL);
-	g_object_set(G_OBJECT(x264encFile), "sliced-threads", TRUE, NULL);
-	g_object_set(G_OBJECT(x264encFile), "byte-stream", TRUE, NULL);
+	gst_bin_add_many(GST_BIN(pipeline), queueFile, videoFlip, jpegencFile, muxer, filesink, NULL);
 
-	gst_bin_add_many(GST_BIN(pipeline), queueFile, videoFlip, x264encFile, muxer, filesink, NULL);
-
-	if (gst_element_link_many(queueFile, videoFlip, x264encFile, muxer, filesink, NULL) != TRUE) {
+	if (gst_element_link_many(queueFile, videoFlip, jpegencFile, muxer, filesink, NULL) != TRUE) {
 		throw std::runtime_error("Error while linking file elements");
 	}
 
@@ -252,10 +250,8 @@ void VideoController::SendFrame()
 {
 	GstBuffer *buffer;
 
-	//std::cout << "glReadPixel\n";
 	glReadPixels(0, 0, windowWidth, windowHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
 
-	//std::cout << "bew wrapped buffer\n";
 	buffer = gst_buffer_new_wrapped_full(GST_MEMORY_FLAG_LAST, (gpointer)(pixels.data()), pixels.size(), 0, pixels.size(), NULL, NULL );
 
 	GST_BUFFER_PTS(buffer) = timestamp;
@@ -263,13 +259,9 @@ void VideoController::SendFrame()
 
 	timestamp += GST_BUFFER_DURATION(buffer);
 
-	//std::cout << "push buffer\n";
 	if (gst_app_src_push_buffer((GstAppSrc*)appsrc, buffer) != GST_FLOW_OK) {
 		throw std::runtime_error("Error while pushing data to buffer");
 	}
 
-	//std::cout << "g main iteration\n";
 	g_main_context_iteration(g_main_context_default(),FALSE);
-
-	//std::cout << "End\n";
 }

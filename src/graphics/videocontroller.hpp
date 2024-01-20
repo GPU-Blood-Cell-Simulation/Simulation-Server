@@ -8,7 +8,7 @@
 #include <string>
 
 /// <summary>
-/// Controlls visualization's streaming and recording 
+/// Controls visualization's streaming and recording 
 /// </summary>
 class VideoController
 {
@@ -50,7 +50,7 @@ private:
     /* Recording elements */
     GstElement *queueFile;
     GstElement *videoFlip;
-    GstElement *x264encFile;
+    GstElement *jpegencFile;
     GstElement *muxer;
     GstElement *filesink;
 
@@ -58,4 +58,6 @@ private:
     GstPad *mp4muxRequestPad = NULL;
 
     static GstElement *createPipelineElement(const std::string& factoryName, const std::string& name);
+
+    static void bus_error_handler(GstBus *bus, GstMessage *msg, gpointer data);
 };
