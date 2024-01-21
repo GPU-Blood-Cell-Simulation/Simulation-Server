@@ -2,6 +2,7 @@
 
 #include "../config/blood_cells_definition.hpp"
 #include "../config/simulation.hpp"
+#include "multi_gpu.hpp"
 
 #include <array>
 #include <boost/mp11/algorithm.hpp>
@@ -326,10 +327,9 @@ inline constexpr auto springGraphGenerator = []()
 /// </summary>
 inline constexpr auto springGraph = springGraphGenerator();
 
-inline constexpr int gpuCount =
-#ifdef MULTI_GPU
-	4;
-#else
-	1;
-#endif
+inline const auto bloodCellGpuSizes = gpuSplitSizeGenerator(bloodCellCount);
+inline const auto bloodCellGpuOffsets = gpuSplitOffsetGenerator(bloodCellCount);
+
+inline const auto particleGpuSizes = gpuSplitSizeGenerator(particleCount);
+inline const auto particleGpuOffsets = gpuSplitOffsetGenerator(particleCount);
 

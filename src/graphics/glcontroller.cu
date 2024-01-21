@@ -207,7 +207,7 @@ namespace graphics
 		float* vboPtr = (float*)mapResourceAndGetPointer(cudaVeinVBOResource);
 		int threadsPerBlock = triangles.vertexCount > 1024 ? 1024 : triangles.vertexCount;
 		int blocks = (triangles.vertexCount + threadsPerBlock - 1) / threadsPerBlock;
-		calculateTriangleVerticesKernel << <blocks, threadsPerBlock >> > (vboPtr, triangles.positions, triangles.vertexCount);
+		calculateTriangleVerticesKernel << <blocks, threadsPerBlock >> > (vboPtr, triangles.positions[0], triangles.vertexCount);
 		CUDACHECK(cudaPeekAtLastError());
 		cudaDeviceSynchronize();
 		CUDACHECK(cudaGraphicsUnmapResources(1, &cudaVeinVBOResource, 0));

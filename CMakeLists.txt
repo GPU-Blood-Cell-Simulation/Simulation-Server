@@ -3,8 +3,8 @@ project(SimulationServer LANGUAGES C CXX CUDA)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(WINDOW_RENDERING "Switches between window rendering and streaming mode" ON)
-option(MULTI_GPU "Whether the simulation should run on 4 gpus" ON)
+option(WINDOW_RENDERING "Switches between window rendering and streaming mode" OFF)
+option(MULTI_GPU "Whether the simulation should run on multiple gpus" ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CUDA_STANDARD 17)
@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 IF(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 if(NOT DEFINED CMAKE_CUDA_ARCHITECTURES)

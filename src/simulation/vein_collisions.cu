@@ -61,25 +61,26 @@ namespace sim
 	}
 
 	template<>
-	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
+	__global__ void detectVeinCollisions<UniformGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
 		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
 		int particleId = particlesStart + blockDim.x * blockIdx.x + threadIdx.x;
 
 		if (particleId >= particleCount)
 			return;
-
-		float3 velocity = bloodCells.particles.velocities.get(particleId);
-		float3 initialVelocity = velocity;
-		float3 pos = bloodCells.particles.positions.get(particleId);
+		
+		float3 velocity = bloodCells.particles.velocities[gpuId].get(particleId);
+		float3 pos = bloodCells.particles.positions[gpuId].get(particleId);
+		if(gpuId > 0)
+		{
+			printf(" %f ", pos);
+			//return; //DEBUG
+		}
 		
 		float3 velocityDir = normalize(velocity);
 
 		ray r(pos, velocityDir);
 		float3 reflectedVelociy = make_float3(0, 0, 0);
-
-		modifyVelocityIfPositionOutOfBounds(pos,  pos + 0.5f * dt * (velocity + initialVelocity), velocity, velocityDir);
-		physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
 		
 		// TODO: fix this
 		bool collisionDetected = false;
@@ -87,7 +88,7 @@ namespace sim
 		unsigned int xId = static_cast<unsigned int>((pos.x - minX) / triangleGrid.cellWidth);
 		unsigned int yId = static_cast<unsigned int>((pos.y - minY) / triangleGrid.cellHeight);
 		unsigned int zId = static_cast<unsigned int>((pos.z - minZ) / triangleGrid.cellDepth);
-
+		
 		{
 			// Check all corner cases and call the appropriate function specialization
 			// Ugly but fast
@@ -245,28 +246,28 @@ namespace sim
 				if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
 				{
 					physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared,
-						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces);
+						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces[gpuId]);
 					if constexpr (enableReactionForce)
 					{
-						float3 F = bloodCells.particles.forces.get(particleId);
+						float3 F = bloodCells.particles.forces[gpuId].get(particleId);
 						float3 responseForce = -1.0f*dot(F, r.normal)*r.normal/dot(r.normal, r.normal);
-						bloodCells.particles.forces.add(particleId, responseForce);
+						bloodCells.particles.forces[gpuId].add(particleId, responseForce);
 					}
 				}
 
 				float speed = length(velocity);
 				velocity = velocity_collision_damping * speed * reflectedVelociy;
-				bloodCells.particles.velocities.set(particleId, velocity);
+				bloodCells.particles.velocities[gpuId].set(particleId, velocity);
 
 				// handle vein on collision
 				float3 ds = vein_collision_force_intensity * velocityDir;
-				unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
-				unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
-				unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
+				unsigned int vertexIndex0 = triangles.getIndex(gpuId, r.objectIndex, vertex0);
+				unsigned int vertexIndex1 = triangles.getIndex(gpuId, r.objectIndex, vertex1);
+				unsigned int vertexIndex2 = triangles.getIndex(gpuId, r.objectIndex, vertex2);
 
-				float3 v0 = triangles.positions.get(vertexIndex0);
-				float3 v1 = triangles.positions.get(vertexIndex1);
-				float3 v2 = triangles.positions.get(vertexIndex2);
+				float3 v0 = triangles.positions[gpuId].get(vertexIndex0);
+				float3 v1 = triangles.positions[gpuId].get(vertexIndex1);
+				float3 v2 = triangles.positions[gpuId].get(vertexIndex2);
 
 				float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
 
@@ -274,16 +275,15 @@ namespace sim
 				// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
 				// Here we probably should use atomicAdd. - Hubert
 				// move triangle a bit
-				triangles.forces.add(vertexIndex0, baricentric.x * ds);
-				triangles.forces.add(vertexIndex1, baricentric.y * ds);
-				triangles.forces.add(vertexIndex2, baricentric.z * ds);
+				triangles.forces[gpuId].add(vertexIndex0, baricentric.x * ds);
+				triangles.forces[gpuId].add(vertexIndex1, baricentric.y * ds);
+				triangles.forces[gpuId].add(vertexIndex2, baricentric.z * ds);
 			}
 		}
-		return;
 	}
 
 	template<>
-	 __global__ void detectVeinCollisionsAndPropagateForces<NoGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
+	 __global__ void detectVeinCollisions<NoGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
 		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	 {
 	 	int particleId = blockDim.x * blockIdx.x + threadIdx.x;
@@ -292,17 +292,13 @@ namespace sim
 	 		return;
 
 	 	// propagate force into velocities
-	 	float3 F = bloodCells.particles.forces.get(particleId);
-	 	float3 velocity = bloodCells.particles.velocities.get(particleId);
-	 	float3 initialVelocity = velocity;
-	 	float3 pos = bloodCells.particles.positions.get(particleId);
+	 	float3 F = bloodCells.particles.forces[gpuId].get(particleId);
+	 	float3 velocity = bloodCells.particles.velocities[gpuId].get(particleId);
+	 	float3 pos = bloodCells.particles.positions[gpuId].get(particleId);
 
 	 	velocity = velocity + dt * F;
 	 	float3 velocityDir = normalize(velocity);
 		
-		modifyVelocityIfPositionOutOfBounds(pos, pos + 0.5f * dt * (velocity + initialVelocity), velocity, velocityDir);
-	 	physics::propagateForcesInParticles(particleId, bloodCells, velocity, initialVelocity);
-
 	 	{
 	 		ray r(pos, velocityDir);
 	 		float3 reflectedVelociy = make_float3(0, 0, 0);
@@ -312,9 +308,9 @@ namespace sim
 	 		{
 	 			constexpr float EPS = 1e-7f;
 	 			// triangle vectices and edges
-	 			float3 v0 = triangles.positions.get(triangles.getIndex(triangleId, vertex0));
-	 			float3 v1 = triangles.positions.get(triangles.getIndex(triangleId, vertex1));
-	 			float3 v2 = triangles.positions.get(triangles.getIndex(triangleId, vertex2));
+	 			float3 v0 = triangles.positions[gpuId].get(triangles.getIndex(gpuId, triangleId, vertex0));
+	 			float3 v1 = triangles.positions[gpuId].get(triangles.getIndex(gpuId, triangleId, vertex1));
+	 			float3 v2 = triangles.positions[gpuId].get(triangles.getIndex(gpuId, triangleId, vertex2));
 	 			const float3 edge1 = v1 - v0;
 	 			const float3 edge2 = v2 - v0;
 
@@ -345,27 +341,27 @@ namespace sim
 	 			if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
 	 			{
 	 				physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared, particleId,
-	 					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces);
+	 					boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], 0.5f, bloodCells.particles.forces[gpuId]);
 	 				if constexpr (enableReactionForce)
 					{
-						float3 F = bloodCells.particles.forces.get(particleId);
+						float3 F = bloodCells.particles.forces[gpuId].get(particleId);
 						float3 responseForce = -1.0f*dot(F, r.normal)*r.normal/dot(r.normal, r.normal);
-						bloodCells.particles.forces.add(particleId, responseForce);
+						bloodCells.particles.forces[gpuId].add(particleId, responseForce);
 					}
 				}
 	 			float speed = length(velocity);
 	 			velocity = velocity_collision_damping * speed * reflectedVelociy;
-	 			bloodCells.particles.velocities.set(particleId, velocity);
+	 			bloodCells.particles.velocities[gpuId].set(particleId, velocity);
 
 	 			// handle vein on collision
 	 			float3 ds = 0.1f * velocityDir;
-	 			unsigned int vertexIndex0 = triangles.getIndex(r.objectIndex, vertex0);
-	 			unsigned int vertexIndex1 = triangles.getIndex(r.objectIndex, vertex1);
-	 			unsigned int vertexIndex2 = triangles.getIndex(r.objectIndex, vertex2);
+	 			unsigned int vertexIndex0 = triangles.getIndex(gpuId, r.objectIndex, vertex0);
+	 			unsigned int vertexIndex1 = triangles.getIndex(gpuId, r.objectIndex, vertex1);
+	 			unsigned int vertexIndex2 = triangles.getIndex(gpuId, r.objectIndex, vertex2);
 
-	 			float3 v0 = triangles.positions.get(vertexIndex0);
-	 			float3 v1 = triangles.positions.get(vertexIndex1);
-	 			float3 v2 = triangles.positions.get(vertexIndex2);
+	 			float3 v0 = triangles.positions[gpuId].get(vertexIndex0);
+	 			float3 v1 = triangles.positions[gpuId].get(vertexIndex1);
+	 			float3 v2 = triangles.positions[gpuId].get(vertexIndex2);
 
 	 			float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
 
@@ -373,79 +369,10 @@ namespace sim
 	 			// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
 	 			// Here we probably should use atomicAdd. - Hubert
 	 			// move triangle a bit
-	 			triangles.forces.add(vertexIndex0, baricentric.x * ds);
-	 			triangles.forces.add(vertexIndex1, baricentric.y * ds);
-	 			triangles.forces.add(vertexIndex2, baricentric.z * ds);
+	 			triangles.forces[gpuId].add(vertexIndex0, baricentric.x * ds);
+	 			triangles.forces[gpuId].add(vertexIndex1, baricentric.y * ds);
+	 			triangles.forces[gpuId].add(vertexIndex2, baricentric.z * ds);
 	 		}
 	 	}
 	 }
-
-	// because floats cannot be template parameters
-	// I have put fixed boundary parameters inside this function: 
-	// (xMin=0, xMax=width, xMin=0.15*height, yMax=0.85*height, zMin=0, zMax=depth)
-	// Keep in mind that yMin, yMax values are strictly bounded due to
-	// position of our vein in cubical space (lower and upper vein bounds are at 0.1 and 0.9 of height)
-	// (I took 0.05 margin to support situation of intensified falling out of bloodCells at the both ends of vein)
-	// these values might have been changed in the future !
-	__device__ bool modifyVelocityIfPositionOutOfBounds(float3& position, float3 newPosition, float3& velocity, float3 normalizedVelocity)
-	{
-		// experimental value
-		// I had one situation of "Position out of bounds" log from calculateCellId function
-		// when EPS was 0.001f
-		constexpr float EPS = 0.01f;
-
-		//float3 newPosition = position + dt * velocity;
-
-		if (newPosition.x < minX + EPS) {
-
-			float dx = minX + EPS - newPosition.x;
-			float takeBackLength = dx / normalizedVelocity.x;
-			position = position - takeBackLength * normalizedVelocity;
-			velocity.x *= -1*vein_boundaries_velocity_damping;
-			return true;
-		}
-		else if (newPosition.x > maxX - EPS) {
-
-			float dx = newPosition.x - maxX + EPS;
-			float takeBackLength = dx / normalizedVelocity.x;
-			position = position - takeBackLength * normalizedVelocity;
-			velocity.x *= -1*vein_boundaries_velocity_damping;
-			return true;
-		}
-
-		if (newPosition.y < minY + EPS) {
-
-			float dy = minY + EPS - newPosition.y;
-			float takeBackLength = dy / normalizedVelocity.y;
-			position = position - takeBackLength * normalizedVelocity;
-			velocity.y *= -1*vein_boundaries_velocity_damping;
-			return true;
-		}
-		else if (newPosition.y > maxY - EPS) {
-
-			float dy = newPosition.y - maxY + EPS;
-			float takeBackLength = dy / normalizedVelocity.y;
-			position = position - takeBackLength * normalizedVelocity;
-			velocity.y *= -1*vein_boundaries_velocity_damping;
-			return true;
-		}
-
-		if (newPosition.z < minZ + EPS) {
-
-			float dz = minZ + EPS - newPosition.z;
-			float takeBackLength = dz / normalizedVelocity.z;
-			position = position - takeBackLength * normalizedVelocity;
-			velocity.z *= -1*vein_boundaries_velocity_damping;
-			return true;
-		}
-		else if (newPosition.z > maxZ - EPS) {
-
-			float dz = newPosition.z - maxZ + EPS;
-			float takeBackLength = dz / normalizedVelocity.z;
-			position = position - takeBackLength * normalizedVelocity;
-			velocity.z *= -1*vein_boundaries_velocity_damping;
-			return true;
-		}
-		return false;
-	}
 }

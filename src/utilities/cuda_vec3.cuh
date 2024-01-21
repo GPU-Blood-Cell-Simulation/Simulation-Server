@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tuple>
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
@@ -17,7 +19,8 @@
 /// </summary>
 class cudaVec3
 {
-	bool isCopy = false;
+	bool isCopy = true;
+	int gpuId = 0;
 
 public:
 	float* x = 0;
@@ -25,8 +28,13 @@ public:
 	float* z = 0;
 
 	// allocated on host
-	cudaVec3(int n);
+	cudaVec3() = default;
+	cudaVec3(int n, int gpuId = 0);
+	cudaVec3(std::pair<int, int> pair);
+
 	cudaVec3(const cudaVec3& other);
+	cudaVec3& operator=(const cudaVec3& other);
+
 	~cudaVec3();
 
 	/// <summary>

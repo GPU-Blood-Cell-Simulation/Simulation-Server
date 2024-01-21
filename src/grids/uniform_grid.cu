@@ -16,6 +16,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
+
 #define max(a,b) ( a > b ? a : b)
 #define min(a,b) ( a > b ? b : a)
 
@@ -88,7 +89,7 @@ UniformGrid::UniformGrid(int gpuId, int objectCount, int cellWidth, int cellHeig
 	cellCount(cellCountX * cellCountY * cellCountZ)
 {
 	for (int i = 0; i < gpuCount; i++)
-	{
+	{	
 		CUDACHECK(cudaSetDevice(i));
 
 		CUDACHECK(cudaMalloc((void**)&(gridCellIds[i]), objectCount * sizeof(int)));
@@ -96,8 +97,10 @@ UniformGrid::UniformGrid(int gpuId, int objectCount, int cellWidth, int cellHeig
 
 		CUDACHECK(cudaMalloc((void**)&(gridCellStarts[i]), cellCount * sizeof(int)));
 		CUDACHECK(cudaMalloc((void**)&(gridCellEnds[i]), cellCount * sizeof(int)));
+
+		CUDACHECK(cudaDeviceSynchronize());
 	}
-	
+	CUDACHECK(cudaSetDevice(0));
 }
 
 UniformGrid::UniformGrid(const UniformGrid& other) : isCopy(true), gridCellIds(other.gridCellIds), particleIds(other.particleIds),
@@ -123,7 +126,7 @@ UniformGrid::~UniformGrid()
 	}
 }
 
-void UniformGrid::calculateGrid(const float* positionX, const float* positionY, const float* positionZ, int objectCount)
+void UniformGrid::calculateGrid(const cudaVec3& positions, int objectCount)
 {
 	CUDACHECK(cudaSetDevice(gpuId));
 
@@ -134,7 +137,7 @@ void UniformGrid::calculateGrid(const float* positionX, const float* positionY, 
 
 	// 1. Calculate cell id for every particle and store as pair (cell id, particle id) in two buffers
 	calculateCellIdKernel << <blocks, threadsPerBlock >> >
-		(positionX, positionY, positionZ, gridCellIds[gpuId], particleIds[gpuId], objectCount, cellWidth, cellHeight, cellDepth);
+		(positions.x, positions.y, positions.z, gridCellIds[gpuId], particleIds[gpuId], objectCount, cellWidth, cellHeight, cellDepth);
 
 	// 2. Sort particle ids by cell id
 
@@ -146,9 +149,9 @@ void UniformGrid::calculateGrid(const float* positionX, const float* positionY, 
 	// 3. Find the start and end of every cell
 
 	calculateStartAndEndOfCellKernel << <blocks, threadsPerBlock >> >
-		(positionX, positionY, positionZ, gridCellIds[gpuId], particleIds[gpuId], gridCellStarts[gpuId], gridCellEnds[gpuId], objectCount);
+		(positions.x, positions.y, positions.z, gridCellIds[gpuId], particleIds[gpuId], gridCellStarts[gpuId], gridCellEnds[gpuId], objectCount);
 
-	cudaDeviceSynchronize();
+	CUDACHECK(cudaDeviceSynchronize());
 }
 
 __device__ int UniformGrid::calculateCellId(float3 position)
@@ -156,27 +159,17 @@ __device__ int UniformGrid::calculateCellId(float3 position)
 	return calculateIdForCell(position.x, position.y, position.z, cellWidth, cellHeight, cellDepth);
 }
 
-void UniformGrid::broadcast(ncclComm_t* comms, cudaStream_t* streams)
+#ifdef MULTI_GPU
+void UniformGrid::broadcastGrid(ncclComm_t* comms, cudaStream_t* streams)
 {
-	auto commitNcclBroadcast = [&](HostDeviceArray<int*, gpuCount>& array)
-	{
-		NCCLCHECK(ncclGroupStart());
-		for (int i = 0; i < gpuCount; i++)
-		{
-			NCCLCHECK(ncclBroadcast((const void*) array[i], (void*) array[i], objectCount, ncclInt, gpuCount, comms[i], streams[i]));
-		}
-		NCCLCHECK(ncclGroupEnd());
+	using namespace nccl;
 
-		// Synchronize
-		for (int i = 0; i < gpuCount; i++)
-		{
-			CUDACHECK(cudaSetDevice(i));
-			CUDACHECK(cudaStreamSynchronize(streams[i]));
-		}
-	};
-	
-	commitNcclBroadcast(gridCellIds);
-	commitNcclBroadcast(particleIds);
-	commitNcclBroadcast(gridCellStarts);
-	commitNcclBroadcast(gridCellEnds);
+	NCCLCHECK(ncclGroupStart());
+	broadcast(gridCellIds, objectCount, ncclInt, comms, streams);
+	broadcast(particleIds, objectCount, ncclInt, comms, streams);
+	broadcast(gridCellStarts, cellCount, ncclInt, comms, streams);
+	broadcast(gridCellEnds, cellCount, ncclInt, comms, streams);
+	NCCLCHECK(ncclGroupEnd());
+	sync(streams);
 }
+#endif

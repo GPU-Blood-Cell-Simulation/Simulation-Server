@@ -2,12 +2,15 @@
 
 #include "../meta_factory/vein_factory.hpp"
 
+#include <iostream>
+
 /// <summary>
 /// Represents multiple pairs of arrays on gpu. Uses RAII to handle memory management
 /// </summary>
 class VeinNeighbors
 {
-	bool isCopy = false;
+	bool isCopy = true;
+	int gpuId = 0;
 
 public:
 
@@ -20,7 +23,11 @@ public:
 	pair data[veinVertexMaxNeighbors];
 
 	// allocated on host
-	VeinNeighbors();
+	VeinNeighbors() = default;
+	VeinNeighbors(int gpuId);
+
 	VeinNeighbors(const VeinNeighbors& other);
+	VeinNeighbors& operator=(const VeinNeighbors& other);
+
 	~VeinNeighbors();
 };

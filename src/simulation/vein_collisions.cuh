@@ -86,9 +86,9 @@ namespace sim
 					{
 						// triangle vectices and edges
 						unsigned int triangleId = triangleGrid.particleIds[gpuId][i];
-						float3 v0 = triangles.positions.get(triangles.getIndex(triangleId, vertex0));
-						float3 v1 = triangles.positions.get(triangles.getIndex(triangleId, vertex1));
-						float3 v2 = triangles.positions.get(triangles.getIndex(triangleId, vertex2));
+						float3 v0 = triangles.positions[gpuId].get(triangles.getIndex(gpuId, triangleId, vertex0));
+						float3 v1 = triangles.positions[gpuId].get(triangles.getIndex(gpuId, triangleId, vertex1));
+						float3 v2 = triangles.positions[gpuId].get(triangles.getIndex(gpuId, triangleId, vertex2));
 
 						if (!realCollisionDetection(v0, v1, v2, r, reflectionVector))
 							continue;
@@ -103,7 +103,7 @@ namespace sim
 	}
 
 	 template<typename T>
-	 __global__ void detectVeinCollisionsAndPropagateForces(int gpuId, BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel,
+	 __global__ void detectVeinCollisions(int gpuId, BloodCells bloodCells,  T triangleGrid, float* boundingSpheresModel,
 		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
 	/// <summary>
@@ -118,7 +118,7 @@ namespace sim
 	/// <param name="particlesStart">index shift for particle data</param>
 	/// <returns></returns>
 	template<>
-	 __global__ void detectVeinCollisionsAndPropagateForces<NoGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
+	 __global__ void detectVeinCollisions<NoGrid>(int gpuId, BloodCells bloodCells,  NoGrid triangleGrid, float* boundingSpheresModel,
 		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
 
 	 /// <summary>
@@ -133,7 +133,7 @@ namespace sim
 	 /// <param name="particlesStart">index shift for particle data</param>
 	 /// <returns></returns>
 	template<>
-	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
+	__global__ void detectVeinCollisions<UniformGrid>(int gpuId, BloodCells bloodCells,  UniformGrid triangleGrid, float* boundingSpheresModel,
 		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
 
 }

@@ -21,16 +21,16 @@ namespace sim
 	/// <param name="particleId2">second particle id</param>
 	/// <param name="radius">first particle radius</param>
 	/// <returns></returns>
-	__device__ inline void detectCollision(BloodCells& bloodCells, float3 position1, float3 velocity1, int particleId1, int particleId2, float radius)
+	__device__ inline void detectCollision(int gpuId, BloodCells& bloodCells, float3 position1, float3 velocity1, int particleId1, int particleId2, float radius)
 	{
-		float3 position2 = bloodCells.particles.positions.get(particleId2);
+		float3 position2 = bloodCells.particles.positions[gpuId].get(particleId2);
 		float3 relativePosition = position1 - position2;
 		float distanceSquared = length_squared(relativePosition);
 
 		if (distanceSquared <= radius * radius && distanceSquared >= 0.0001f)
 		{
-			float3 relativeVelocity = velocity1 - bloodCells.particles.velocities.get(particleId2);
-			physics::addResilientForceOnCollision(relativePosition, relativeVelocity, distanceSquared, radius, particleId1, 0.5f, bloodCells.particles.forces);
+			float3 relativeVelocity = velocity1 - bloodCells.particles.velocities[gpuId].get(particleId2);
+			physics::addResilientForceOnCollision(relativePosition, relativeVelocity, distanceSquared, radius, particleId1, 0.5f, bloodCells.particles.forces[gpuId]);
 		}
 	}
 
@@ -68,7 +68,7 @@ namespace sim
 						// one particular iteration (0,0,0) differently than the others
 						if (particleId == secondParticleId)
 							continue;
-						detectCollision(bloodCells, p1, v1, particleId, secondParticleId, boundingSpheresModel[boundingModelIndex]);
+						detectCollision(gpuId, bloodCells, p1, v1, particleId, secondParticleId, boundingSpheresModel[boundingModelIndex]);
 					}
 				}
 			}
@@ -78,7 +78,7 @@ namespace sim
 
 	// Should have been a deleted function but CUDA doesn't like it
 	template<typename T>
-	__global__ void calculateParticleCollisions(int gpuId, BloodCells bloodCells, T grid, float* boundingSpheresModel,int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
+	__global__ void calculateParticleCollisions(int gpuId, BloodCells bloodCells, T grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
 	/// <summary>
 	/// Calculate collisions between particles using UniformGrid
@@ -99,13 +99,13 @@ namespace sim
 
 		int particleId = grid.particleIds[gpuId][id];
 
-		float3 p1 = bloodCells.particles.positions.get(particleId);
-		float3 v1 = bloodCells.particles.velocities.get(particleId);
+		float3 p1 = bloodCells.particles.positions[gpuId].get(particleId);
+		float3 v1 = bloodCells.particles.velocities[gpuId].get(particleId);
 
 		int cellId = grid.gridCellIds[gpuId][id];
-		int xId = static_cast<int>((bloodCells.particles.positions.x[particleId] - minX) / grid.cellWidth);
-		int yId = static_cast<int>((bloodCells.particles.positions.y[particleId] - minY) / grid.cellHeight);
-		int zId = static_cast<int>((bloodCells.particles.positions.z[particleId] - minZ) / grid.cellDepth);
+		int xId = static_cast<int>((bloodCells.particles.positions[gpuId].x[particleId] - minX) / grid.cellWidth);
+		int yId = static_cast<int>((bloodCells.particles.positions[gpuId].y[particleId] - minY) / grid.cellHeight);
+		int zId = static_cast<int>((bloodCells.particles.positions[gpuId].z[particleId] - minZ) / grid.cellDepth);
 		
 		// Check all corner cases and call the appropriate function specialization
 		// Ugly but fast
@@ -274,8 +274,8 @@ namespace sim
 	 	if (id >= particleCount)
 	 		return;
 
-	 	float3 p1 = bloodCells.particles.positions.get(id);
-	 	float3 v1 = bloodCells.particles.positions.get(id);
+	 	float3 p1 = bloodCells.particles.positions[gpuId].get(id);
+	 	float3 v1 = bloodCells.particles.positions[gpuId].get(id);
 
 	 	// Naive implementation
 	 	for (int i = 0; i < particleCount; i++)
@@ -284,7 +284,7 @@ namespace sim
 	 			continue;
 
 	 		// if to use in the future, last argument should be changed
-	 		detectCollision(bloodCells, p1, v1, id, i, 0.0f);
+	 		detectCollision(gpuId, bloodCells, p1, v1, id, i, 0.0f);
 	 	}
 	 }
 }

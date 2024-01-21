@@ -5,8 +5,9 @@
 #include "../utilities/host_device_array.cuh"
 
 #ifdef MULTI_GPU
-#include <nccl.h>
+#include "../utilities/nccl_operations.cuh"
 #endif
+
 
 /// <summary>
 /// Represents a grid of uniform cell size
@@ -42,19 +43,7 @@ public:
 	/// </summary>
 	/// <param name="particles">simulation particles</param>
 	/// <param name="objectCount">number of particles</param>
-	inline void calculateGrid(const Particles& particles, int objectCount)
-	{
-		calculateGrid(particles.positions.x, particles.positions.y, particles.positions.z, objectCount);
-	}
-
-	/// <summary>
-	/// Recalculate grid basing on objects positions
-	/// </summary>
-	/// <param name="positionX">device buffer of X's of positions</param>
-	/// <param name="positionY">device buffer of Y's of positions</param>
-	/// <param name="positionZ">device buffer of Z's of positions</param>
-	/// <param name="objectCount">number of objects</param>
-	void calculateGrid(const float* positionX, const float* positionY, const float* positionZ, int objectCount);
+	void calculateGrid(const cudaVec3& positions, int objectCount);
 
 	/// <summary>
 	/// Calculate grid cell id from object position
@@ -63,5 +52,7 @@ public:
 	/// <returns>cell id</returns>
 	__device__ int calculateCellId(float3 position);
 
-	void broadcast(ncclComm_t* comms, cudaStream_t* streams);
+	#ifdef MULTI_GPU
+	void broadcastGrid(ncclComm_t* comms, cudaStream_t* streams);
+	#endif
 };
