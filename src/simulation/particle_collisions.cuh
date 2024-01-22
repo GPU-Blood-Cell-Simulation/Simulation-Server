@@ -31,7 +31,7 @@ namespace sim
 		if (distanceSquared <= minDistance*minDistance && distanceSquared >= 0.0001f)
 		{
 			float3 relativeVelocity = velocity1 - bloodCells.particles.velocities.get(particleId2);
-			physics::addResilientForceOnCollision(relativePosition, relativeVelocity, distanceSquared, radius, particleId1, 0.5f, bloodCells.particles.forces);
+			physics::addResilientForceOnCollision(relativePosition, relativeVelocity, distanceSquared, radius, particleId1, 0.2f, bloodCells.particles.forces);
 		}
 	}
 
@@ -72,7 +72,7 @@ namespace sim
 
 						int secondModelIndex = bloodCellmodelStart + (secondParticleId - particlesStart) % particlesInBloodCell;
 						// int modelIndex = bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell;
-						detectCollision(bloodCells, p1, v1, particleId, secondParticleId, boundingSpheresModel[boundingModelIndex], boundingSpheresModel[boundingModelIndex]);
+						detectCollision(bloodCells, p1, v1, particleId, secondParticleId, boundingSpheresModel[boundingModelIndex], boundingSpheresModel[secondModelIndex]);
 					}
 				}
 			}
