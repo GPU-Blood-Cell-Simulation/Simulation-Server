@@ -179,8 +179,8 @@ inline constexpr int veinEndingRadiusCount = mp_size<VeinEndingRadii>::value;
 static_assert(veinEndingCenterCount == veinEndingRadiusCount, "Ill-formed vein ednings");
 
 
-inline const auto verticesGpuSizes = gpuSplitSizeGenerator(veinPositionCount);
-inline const auto verticesGpuOffsets = gpuSplitOffsetGenerator(veinPositionCount);
+inline const auto verticesGpuStarts = gpuSplitStartGenerator(veinPositionCount);
+inline const auto verticesGpuEnds = gpuSplitEndGenerator(veinPositionCount);
 
-inline const auto trianglesGpuSizes = gpuSplitSizeGenerator(triangleCount);
-inline const auto trianglesGpuOffsets = gpuSplitOffsetGenerator(triangleCount);
+inline const auto trianglesGpuStarts = gpuSplitStartGenerator(triangleCount);
+inline const auto trianglesGpuEnds = gpuSplitEndGenerator(triangleCount);

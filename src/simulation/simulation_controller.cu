@@ -13,7 +13,6 @@
 #include <limits>
 #include <thread>
 
-#include <iostream>
 
 #define INITIAL_VELOCITY_RANDOM
 
@@ -249,11 +248,14 @@ namespace sim
 			std::visit([&](auto&& g1, auto&& g2)
 			{
 				// Propagate triangle forces into neighbors
-				triangles.gatherForcesFromNeighbors(gpuId, veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
+				static CudaThreads veinVerticesGpuThreads(verticesGpuEnds[gpuId] - verticesGpuStarts[gpuId]);
+				triangles.gatherForcesFromNeighbors(gpuId, verticesGpuStarts[gpuId], verticesGpuEnds[gpuId],
+				 	veinVerticesGpuThreads.blocks, veinVerticesGpuThreads.threadsPerBlock);
 				CUDACHECK(cudaDeviceSynchronize());
 
 				// Propagate particle forces into neighbors
-				bloodCells.gatherForcesFromNeighbors(gpuId, streams[gpuId]);
+				bloodCells.gatherForcesFromNeighbors(gpuId, bloodCellGpuStarts[gpuId], bloodCellGpuEnds[gpuId],
+					particleGpuStarts[gpuId], particleGpuEnds[gpuId], streams[gpuId]);
 				CUDACHECK(cudaDeviceSynchronize());
 
 				// Detect particle collisions
@@ -266,7 +268,8 @@ namespace sim
 
 						CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
 						calculateParticleCollisions<< < threads.blocks, threads.threadsPerBlock, 0, streams[gpuId][i] >> > 
-							(gpuId, bloodCells, *g1, cellModelsBoundingSpheres[gpuId], BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart);
+							(gpuId, particleGpuStarts[gpuId], particleGpuEnds[gpuId],
+							bloodCells, *g1, cellModelsBoundingSpheres[gpuId], BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart);
 					});
 				CUDACHECK(cudaDeviceSynchronize());
 
@@ -279,8 +282,10 @@ namespace sim
 						constexpr int bloodCellModelSizesStarts = bloodCellModelStarts[i];
 
 						CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
+						
 						detectVeinCollisions<< <  threads.blocks, threads.threadsPerBlock, 0, streams[gpuId][i] >> > 
-							(gpuId, bloodCells,  *g2, cellModelsBoundingSpheres[gpuId], BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart);
+							(gpuId, particleGpuStarts[gpuId], particleGpuEnds[gpuId], 
+							bloodCells, triangles, *g2, cellModelsBoundingSpheres[gpuId], BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart);
 					});
 				CUDACHECK(cudaDeviceSynchronize());
 				
@@ -310,15 +315,11 @@ namespace sim
 
 		// Propagate forces -> velocities, velocities -> positions for particles
 		bloodCells.propagateForcesIntoPositions(bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock);
-		CUDACHECK(cudaPeekAtLastError());
+		CUDACHECK(cudaDeviceSynchronize());
 
 		// Propagate forces -> velocities, velocities -> positions for vein triangles
 		triangles.propagateForcesIntoPositions(veinVerticesThreads.blocks, veinVerticesThreads.threadsPerBlock);
-		CUDACHECK(cudaPeekAtLastError());
-
-		// Recalculate triangles centers
-		triangles.calculateCenters(veinTrianglesThreads.blocks, veinTrianglesThreads.threadsPerBlock);
-		CUDACHECK(cudaPeekAtLastError());
+		CUDACHECK(cudaDeviceSynchronize());
 
 		if constexpr (useBloodFlow)
 		{

@@ -59,15 +59,12 @@ programLoopFunction;
 
 int main()
 {
-    std::cout << "start\n";
     // Choose main GPU
     CUDACHECK(cudaSetDevice(0));
 
 #ifdef WINDOW_RENDER
-    std::cout << "window render\n";
     WindowController windowController;
 #else
-    std::cout << "no window\n";
     OffscreenController offscreenController;
     
     VideoController streamingController;
@@ -102,7 +99,6 @@ int main()
         CUDACHECK(cudaSetDevice(i));
         CUDACHECK(cudaDeviceReset());
     }
-
     return 0;
 }
 
@@ -112,7 +108,6 @@ programLoopFunction
 {
     // NCCL
     #ifdef MULTI_GPU
-    std::cout << "nccl\n";
     cudaStream_t streams[gpuCount];
     for (int i = 0; i < gpuCount; i++)
     {
@@ -162,21 +157,23 @@ programLoopFunction
     while (shouldBeRunning)
     {
         // Calculate grids
-// #ifdef MULTI_GPU
-
+#ifdef MULTI_GPU
         bloodCells.broadcastParticles(comms, streams);
         triangles.broadcastPositionsAndVelocities(comms, streams);
-//         std::cout << "start grids";
-//         std::thread g1thread([&](){
-//             particleGrid.calculateGrid(bloodCells.particles.positions, particleCount);
-//         });
-//         std::thread g2thread([&](){
-//             triangleCentersGrid.calculateGrid(triangles.centers, triangleCount);
-//         });
-// #else
+        std::thread g1thread([&](){
+            particleGrid.calculateGrid(bloodCells.particles.positions[particleGridGpu], particleCount);
+        });
+        std::thread g2thread([&](){
+            // Recalculate triangles centers
+            static CudaThreads threads(triangleCount);
+            triangles.calculateCenters(threads.blocks, threads.threadsPerBlock);
+            // Calculate grid
+            triangleCentersGrid.calculateGrid(triangles.centers, triangleCount);
+        });
+#else
         particleGrid.calculateGrid(bloodCells.particles.positions[particleGridGpu], particleCount);
         triangleCentersGrid.calculateGrid(triangles.centers, triangleCount);
-// #endif        
+#endif        
         // Clear 
         glClearColor(1.00f, 0.75f, 0.80f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -189,8 +186,8 @@ programLoopFunction
 
 #ifdef MULTI_GPU
         // Join grid threads
-        // g1thread.join();
-        // g2thread.join();
+        g1thread.join();
+        g2thread.join();
 
         // Broadcast grid data
         particleGrid.broadcastGrid(comms, streams);

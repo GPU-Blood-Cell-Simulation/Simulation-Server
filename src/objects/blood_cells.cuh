@@ -40,7 +40,8 @@ public:
 	/// <summary>
 	/// Perform gathering forces contribution from neighbour particles for every particle
 	/// </summary>
-	void gatherForcesFromNeighbors(int gpuId, const std::array<cudaStream_t, bloodCellTypeCount>& streams);
+	void gatherForcesFromNeighbors(int gpuId, int bloodCellGpuStart, int bloodCellGpuEnd,
+		int particleGpuStart, int particleGpuEnd, const std::array<cudaStream_t, bloodCellTypeCount>& streams);
 
 	void propagateForcesIntoPositions(int blocks, int threadsPerBlock);
 

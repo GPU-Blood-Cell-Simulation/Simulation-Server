@@ -78,7 +78,7 @@ namespace sim
 
 	// Should have been a deleted function but CUDA doesn't like it
 	template<typename T>
-	__global__ void calculateParticleCollisions(int gpuId, BloodCells bloodCells, T grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
+	__global__ void calculateParticleCollisions(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, T grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
 	/// <summary>
 	/// Calculate collisions between particles using UniformGrid
@@ -91,10 +91,10 @@ namespace sim
 	/// <param name="particlesStart">index shift for particle data</param>
 	/// <returns></returns>
 	template<>
-	__global__ void calculateParticleCollisions<UniformGrid>(int gpuId, BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
+	__global__ void calculateParticleCollisions<UniformGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
 		int id = particlesStart + blockIdx.x * blockDim.x + threadIdx.x;
-		if (id >= particleCount)
+		if (id < gpuStart || id >= gpuEnd)
 			return;
 
 		int particleId = grid.particleIds[gpuId][id];
@@ -268,7 +268,7 @@ namespace sim
 	/// <param name="particlesStart">index shift for particle data</param>
 	/// <returns></returns>
 	 template<>
-	 __global__ void calculateParticleCollisions<NoGrid>(int gpuId, BloodCells bloodCells, NoGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
+	 __global__ void calculateParticleCollisions<NoGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, NoGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	 {
 	 	int id = blockIdx.x * blockDim.x + threadIdx.x;
 	 	if (id >= particleCount)

@@ -327,9 +327,9 @@ inline constexpr auto springGraphGenerator = []()
 /// </summary>
 inline constexpr auto springGraph = springGraphGenerator();
 
-inline const auto bloodCellGpuSizes = gpuSplitSizeGenerator(bloodCellCount);
-inline const auto bloodCellGpuOffsets = gpuSplitOffsetGenerator(bloodCellCount);
+inline const auto bloodCellGpuStarts = gpuSplitStartGenerator(bloodCellCount);
+inline const auto bloodCellGpuEnds = gpuSplitEndGenerator(bloodCellCount);
 
-inline const auto particleGpuSizes = gpuSplitSizeGenerator(particleCount);
-inline const auto particleGpuOffsets = gpuSplitOffsetGenerator(particleCount);
+inline const auto particleGpuStarts = gpuSplitStartGenerator(particleCount);
+inline const auto particleGpuEnds = gpuSplitEndGenerator(particleCount);
 

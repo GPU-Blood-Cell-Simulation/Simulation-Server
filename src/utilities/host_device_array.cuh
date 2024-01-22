@@ -25,7 +25,7 @@ private:
     using pair_ = std::pair<int, int>;
 
     template <size_t >
-    using T_ = T;
+    using int_ = int;
     
 public:
     using DataType = T;
@@ -37,7 +37,7 @@ public:
     __host__ HostDeviceArray(pair_<Is>... args, typename std::enable_if<std::is_same<U, cudaVec3>::value>::type* = 0) : data{args...} { }
 
     template<typename U = T>
-    __host__ HostDeviceArray(T_<Is>... args, typename std::enable_if<!std::is_same<U, cudaVec3>::value>::type* = 0) : data{args...} { }
+    __host__ HostDeviceArray(int_<Is>... args, typename std::enable_if<!std::is_same<U, cudaVec3>::value>::type* = 0) : data{args...} { }
     
     __host__ constexpr HostDeviceArray(const HostDeviceArray& other)
     {

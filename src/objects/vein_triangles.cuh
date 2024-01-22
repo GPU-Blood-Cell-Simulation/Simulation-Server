@@ -60,7 +60,7 @@ public:
 
 	HostDeviceArray<unsigned int*, gpuCount> indices;
 
-	cudaVec3 centers{ triangleCount };
+	cudaVec3 centers{ triangleCount, veinGridGpu };
 
 	VeinTriangles();
 	VeinTriangles(const VeinTriangles& other);
@@ -74,7 +74,7 @@ public:
 		return indices[gpuId][3 * triangleIndex + vertexIndex];
 	}
 
-	void gatherForcesFromNeighbors(int gpuId, int blocks, int threadsPerBlock);
+	void gatherForcesFromNeighbors(int gpuId, int gpuStart, int gpuEnd, int blocks, int threadsPerBlock);
 	void propagateForcesIntoPositions(int blocks, int threadsPerBlock);
 
 	void calculateCenters(int blocks, int threadsPerBlock);
@@ -87,10 +87,4 @@ public:
 private:
 	bool isCopy = false;
 
-	// !!! STILL NOT IMPLEMENTED !!!
-	// __device__ inline void atomicAdd(int triangleIndex, VertexIndex vertexIndex, float3 value)
-	// {
-	// 	int index = indices[3 * triangleIndex + vertexIndex];
-	// 	positions.atomicAddVec3(index, value);
-	// }
 };

@@ -7,7 +7,6 @@
 #include "../utilities/cuda_threads.hpp"
 
 #include <vector>
-#include <iostream>
 
 #include "cuda_runtime.h"
 
@@ -42,7 +41,7 @@ BloodCells::~BloodCells()
 }
 
 template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int bloodCellStart>
-__global__ static void calculateBloodCellsCenters(int gpuId, BloodCells bloodCells)
+__global__ static void calculateBloodCellsCenters(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells)
 {
 	int relativeCellIndex = blockIdx.x * blockDim.x + threadIdx.x;
 	if(relativeCellIndex >= bloodCellCount)
@@ -62,10 +61,10 @@ __global__ static void calculateBloodCellsCenters(int gpuId, BloodCells bloodCel
 /// Adjust the force acting on every particle based on the forces applied to its neighbors connected by springs
 /// </summary>
 template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int bloodCellStart, int bloodCellModelStart, int springGraphStart>
-__global__ static void gatherForcesKernel(int gpuId, BloodCells bloodCells)
+__global__ static void gatherForcesKernel(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells)
 {
 	int indexInType = blockIdx.x * blockDim.x + threadIdx.x;
-	if (indexInType >= particlesInBloodCell * bloodCellCount)
+	if (indexInType >= particlesInBloodCell * bloodCellCount || indexInType < gpuStart || indexInType >= gpuEnd)
 		return;
 
 	int indexInCell = indexInType % particlesInBloodCell;
@@ -119,7 +118,8 @@ __global__ static void gatherForcesKernel(int gpuId, BloodCells bloodCells)
 #endif
 }
 
-void BloodCells::gatherForcesFromNeighbors(int gpuId, const std::array<cudaStream_t, bloodCellTypeCount>& streams)
+void BloodCells::gatherForcesFromNeighbors(int gpuId, int bloodCellGpuStart, int bloodCellGpuEnd,
+	int particleGpuStart, int particleGpuEnd, const std::array<cudaStream_t, bloodCellTypeCount>& streams)
 {
 	using IndexList = mp_iota_c<bloodCellTypeCount>;
 	
@@ -132,7 +132,7 @@ void BloodCells::gatherForcesFromNeighbors(int gpuId, const std::array<cudaStrea
 
 		static CudaThreads threads(BloodCellDefinition::count);
 		calculateBloodCellsCenters<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellStart>
-			<<<threads.blocks, threads.threadsPerBlock, 0, streams[i]>>>(gpuId, *this);
+			<<<threads.blocks, threads.threadsPerBlock, 0, streams[i]>>>(gpuId, bloodCellGpuStart, bloodCellGpuEnd, *this);
 	});
 	CUDACHECK(cudaDeviceSynchronize());
 	
@@ -147,7 +147,7 @@ void BloodCells::gatherForcesFromNeighbors(int gpuId, const std::array<cudaStrea
 
 			CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
 			gatherForcesKernel<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellStart, bloodCellModelStart, graphStart>
-				<< <threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (gpuId, *this);
+				<< <threads.blocks, threads.threadsPerBlock, 0, streams[i] >> > (gpuId, particleGpuStart, particleGpuEnd, *this);
 		});
 }
 

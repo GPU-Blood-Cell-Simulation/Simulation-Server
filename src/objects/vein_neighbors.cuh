@@ -2,7 +2,6 @@
 
 #include "../meta_factory/vein_factory.hpp"
 
-#include <iostream>
 
 /// <summary>
 /// Represents multiple pairs of arrays on gpu. Uses RAII to handle memory management

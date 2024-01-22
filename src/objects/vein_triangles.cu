@@ -28,7 +28,10 @@ __global__ void calculateCentersKernel(cudaVec3 positions, unsigned int* indices
 
 void VeinTriangles::calculateCenters(int blocks, int threadsPerBlock)
 {
-	calculateCentersKernel << <blocks, threadsPerBlock >> > (positions[0], indices[0], centers, triangleCount);
+	CUDACHECK(cudaSetDevice(veinGridGpu));
+	calculateCentersKernel << <blocks, threadsPerBlock >> > (positions[veinGridGpu], indices[veinGridGpu], centers, triangleCount);
+	CUDACHECK(cudaDeviceSynchronize());
+	CUDACHECK(cudaSetDevice(0));
 }
 
 VeinTriangles::VeinTriangles()
@@ -48,16 +51,16 @@ VeinTriangles::VeinTriangles()
 	
 	for (int i = 0; i < gpuCount; i++)
 	{
-		cudaSetDevice(i);
+		CUDACHECK(cudaSetDevice(i));
 		// allocate
-		CUDACHECK(cudaMalloc((void**)&(indices[i]), 3 * triangleCount * sizeof(int)));
+		CUDACHECK(cudaMalloc((void**)&(indices[i]), veinIndexCount * sizeof(int)));
 		// copy
 		CUDACHECK(cudaMemcpy(positions[i].x, vx.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
 		CUDACHECK(cudaMemcpy(positions[i].y, vy.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
 		CUDACHECK(cudaMemcpy(positions[i].z, vz.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
 		CUDACHECK(cudaMemcpy(indices[i], veinIndices.data(), veinIndexCount * sizeof(int), cudaMemcpyHostToDevice));
 	}
-	cudaSetDevice(0);
+	CUDACHECK(cudaSetDevice(0));
 
 	// centers
 	int threadsPerBlock = triangleCount > 1024 ? 1024 : triangleCount;
@@ -67,18 +70,17 @@ VeinTriangles::VeinTriangles()
 
 VeinTriangles::VeinTriangles(const VeinTriangles& other) : isCopy(true),
 positions(other.positions), velocities(other.velocities), forces(other.forces), indices(other.indices), centers(other.centers), neighbors(other.neighbors)
-{
-	//std::cout << "triangles copy\n";
-}
+{}
 
 VeinTriangles::~VeinTriangles()
 {
-	if (!isCopy)
+	if (isCopy)
+		return;
+
+	for (int i = 0; i < gpuCount; i++)
 	{
-		for (int i = 0; i < gpuCount; i++)
-		{
-			CUDACHECK(cudaFree(indices[i]));
-		}
+		CUDACHECK(cudaSetDevice(i));
+		CUDACHECK(cudaFree(indices[i]));
 	}
 	CUDACHECK(cudaSetDevice(0));
 }
@@ -121,10 +123,10 @@ void VeinTriangles::propagateForcesIntoPositions(int blocks, int threadsPerBlock
 /// <param name="force">Vertex force vector</param>horizontalLayers
 /// <param name="tempForceBuffer">Temporary buffer necessary to synchronize</param>
 /// <returns></returns>
-__global__ static void gatherForcesKernel(int gpuId, VeinTriangles triangles)
+__global__ static void gatherForcesKernel(int gpuId, int gpuStart, int gpuEnd, VeinTriangles triangles)
 {
 	int id = blockDim.x * blockIdx.x + threadIdx.x;
-	if (id >= triangles.vertexCount)
+	if (id < gpuStart || id >= gpuEnd)
 		return;
 
 	float springLength = 0;
@@ -134,7 +136,6 @@ __global__ static void gatherForcesKernel(int gpuId, VeinTriangles triangles)
 	float3 vertexPosition = triangles.positions[gpuId].get(id);
 	float3 vertexVelocity = triangles.velocities[gpuId].get(id);
 	float3 vertexForce = { 0,0,0 };
-	//printf("test: %i \n", triangles.neighbors[gpuId].data[0].ids[id]);
 
 	// For each possible neighbor check if we are attached by a spring
 	#pragma unroll
@@ -143,8 +144,7 @@ __global__ static void gatherForcesKernel(int gpuId, VeinTriangles triangles)
 		int neighborId = neighborIds[id];
 		if (neighborId != -1)
 		{
-		 	springLength = springLengths[id];
-			//printf("neighborId: %f\n", neighborId);		
+		 	springLength = springLengths[id];		
 		 	neighborPosition = triangles.positions[gpuId].get(neighborId);
 		 	springForce = physics::springMassForceWithDampingForVein(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities[gpuId].get(neighborId), springLength);
 		 	vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
@@ -156,10 +156,9 @@ __global__ static void gatherForcesKernel(int gpuId, VeinTriangles triangles)
 /// <summary>
 /// Gather forces from neighboring vertices, synchronize and then update forces for each vertex
 /// </summary>
-void VeinTriangles::gatherForcesFromNeighbors(int gpuId, int blocks, int threadsPerBlock)
+void VeinTriangles::gatherForcesFromNeighbors(int gpuId, int gpuStart, int gpuEnd, int blocks, int threadsPerBlock)
 {
-	// ERROR HERE
-	//gatherForcesKernel << <blocks, threadsPerBlock >> > (gpuId, *this);
+	gatherForcesKernel << <blocks, threadsPerBlock >> > (gpuId, gpuStart, gpuEnd, *this);
 	CUDACHECK(cudaDeviceSynchronize());
 }
 

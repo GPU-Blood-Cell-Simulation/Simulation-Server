@@ -61,21 +61,16 @@ namespace sim
 	}
 
 	template<>
-	__global__ void detectVeinCollisions<UniformGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
+	__global__ void detectVeinCollisions<UniformGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
 		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
 		int particleId = particlesStart + blockDim.x * blockIdx.x + threadIdx.x;
 
-		if (particleId >= particleCount)
+		if (particleId < gpuStart || particleId >= gpuEnd)
 			return;
 		
 		float3 velocity = bloodCells.particles.velocities[gpuId].get(particleId);
 		float3 pos = bloodCells.particles.positions[gpuId].get(particleId);
-		if(gpuId > 0)
-		{
-			printf(" %f ", pos);
-			//return; //DEBUG
-		}
 		
 		float3 velocityDir = normalize(velocity);
 
@@ -283,7 +278,7 @@ namespace sim
 	}
 
 	template<>
-	 __global__ void detectVeinCollisions<NoGrid>(int gpuId, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
+	 __global__ void detectVeinCollisions<NoGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
 		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	 {
 	 	int particleId = blockDim.x * blockIdx.x + threadIdx.x;

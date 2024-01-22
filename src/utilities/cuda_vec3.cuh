@@ -5,15 +5,6 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
-//for __syncthreads()
-//#ifndef __CUDACC_RTC__ 
-//#define __CUDACC_RTC__
-//#endif // !(__CUDACC_RTC__)
-////for atomicAdd
-//#ifndef __CUDACC__
-//#define __CUDACC__
-//#endif // !__CUDACC__
-
 /// <summary>
 /// Represents 3 float vectors on gpu. Uses RAII to handle memory management
 /// </summary>
@@ -71,13 +62,5 @@ public:
 		x[index] += v.x;
 		y[index] += v.y;
 		z[index] += v.z;
-	}
-
-	/// !!! STILL NOT IMPLEMENTED !!!
-	__device__ inline void atomicAddVec3(int index, float3 v)
-	{
-		/*atomicAdd(&x[index], v.x);
-		atomicAdd(&y[index], v.z);
-		atomicAdd(&z[index], v.y);*/
 	}
 };
