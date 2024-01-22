@@ -23,8 +23,8 @@ public:
 	HostDeviceArray<cudaVec3, gpuCount> particleCenters { // GPU_COUNT_DEPENDENT
 		{bloodCellCount, 0},
 		{bloodCellCount, 1},
-		{bloodCellCount, 2}//,
-		//{bloodCellCount, 3}
+		{bloodCellCount, 2},
+		{bloodCellCount, 3}
 	};
 	#else
 	HostDeviceArray<cudaVec3, gpuCount> particleCenters {{bloodCellCount, 0}};
@@ -49,6 +49,8 @@ public:
 	void broadcastParticles(ncclComm_t* comms, cudaStream_t* streams);
 	void reduceForces(ncclComm_t* comms, cudaStream_t* streams);
 	#endif
+
+	void debug(int gpuId, int start);
 };
 
 #endif

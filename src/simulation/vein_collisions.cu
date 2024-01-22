@@ -62,11 +62,11 @@ namespace sim
 
 	template<>
 	__global__ void detectVeinCollisions<UniformGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
-		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
+		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
 		int particleId = particlesStart + blockDim.x * blockIdx.x + threadIdx.x;
-		if (particleId < gpuStart || particleId >= gpuEnd)
-			return;			
+		if (particleId < gpuStart || particleId >= gpuEnd || particleId >= particlesStart + bloodCellsOfType * particlesInBloodCell)
+			return;
 
 		float3 velocity = bloodCells.particles.velocities[gpuId].get(particleId);
 		float3 pos = bloodCells.particles.positions[gpuId].get(particleId);
@@ -253,8 +253,9 @@ namespace sim
 				}
 
 				float speed = length(velocity);
-				velocity = velocity_collision_damping * speed * reflectedVelociy;
-				bloodCells.particles.velocities[gpuId].set(particleId, velocity);
+				// Account for division by gpuCount after ncclReduce
+				float3 dv = gpuCount * (velocity_collision_damping * speed * reflectedVelociy - velocity);
+				bloodCells.particles.velocities[gpuId].add(particleId, dv);
 
 				// handle vein on collision
 				float3 ds = vein_collision_force_intensity * velocityDir;
@@ -281,12 +282,11 @@ namespace sim
 
 	template<>
 	 __global__ void detectVeinCollisions<NoGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
-		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
+		 int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	 {
-	 	int particleId = blockDim.x * blockIdx.x + threadIdx.x;
-
-	 	if (particleId >= particleCount)
-	 		return;
+	 	int particleId = particlesStart + blockDim.x * blockIdx.x + threadIdx.x;
+		if (particleId < gpuStart || particleId >= gpuEnd || particleId >= particlesStart + bloodCellsOfType * particlesInBloodCell)
+			return;
 
 	 	// propagate force into velocities
 	 	float3 F = bloodCells.particles.forces[gpuId].get(particleId);

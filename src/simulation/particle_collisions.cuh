@@ -78,7 +78,8 @@ namespace sim
 
 	// Should have been a deleted function but CUDA doesn't like it
 	template<typename T>
-	__global__ void calculateParticleCollisions(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, T grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
+	__global__ void calculateParticleCollisions(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, T grid, float* boundingSpheresModel,
+		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
 	/// <summary>
 	/// Calculate collisions between particles using UniformGrid
@@ -91,10 +92,11 @@ namespace sim
 	/// <param name="particlesStart">index shift for particle data</param>
 	/// <returns></returns>
 	template<>
-	__global__ void calculateParticleCollisions<UniformGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
+	__global__ void calculateParticleCollisions<UniformGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, UniformGrid grid, float* boundingSpheresModel,
+	int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
 		int id = particlesStart + blockIdx.x * blockDim.x + threadIdx.x;
-		if (id < gpuStart || id >= gpuEnd)
+		if (id < gpuStart || id >= gpuEnd || id >= particlesStart + bloodCellsOfType * particlesInBloodCell)
 			return;
 
 		int particleId = grid.particleIds[gpuId][id];
@@ -267,24 +269,25 @@ namespace sim
 	/// <param name="bloodCellmodelStart">index shift for blood cell model</param>
 	/// <param name="particlesStart">index shift for particle data</param>
 	/// <returns></returns>
-	 template<>
-	 __global__ void calculateParticleCollisions<NoGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, NoGrid grid, float* boundingSpheresModel, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
-	 {
-	 	int id = blockIdx.x * blockDim.x + threadIdx.x;
-	 	if (id >= particleCount)
-	 		return;
+	template<>
+	 __global__ void calculateParticleCollisions<NoGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, NoGrid grid, float* boundingSpheresModel,
+	int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
+	{
+	int id = particlesStart + blockIdx.x * blockDim.x + threadIdx.x;
+	if (id < gpuStart || id >= gpuEnd || id >= particlesStart + bloodCellsOfType * particlesInBloodCell)
+		return;
 
-	 	float3 p1 = bloodCells.particles.positions[gpuId].get(id);
-	 	float3 v1 = bloodCells.particles.positions[gpuId].get(id);
+	float3 p1 = bloodCells.particles.positions[gpuId].get(id);
+	float3 v1 = bloodCells.particles.positions[gpuId].get(id);
 
-	 	// Naive implementation
-	 	for (int i = 0; i < particleCount; i++)
-	 	{
-	 		if (id == i)
-	 			continue;
+	// Naive implementation
+	for (int i = 0; i < particleCount; i++)
+	{
+		if (id == i)
+			continue;
 
-	 		// if to use in the future, last argument should be changed
-	 		detectCollision(gpuId, bloodCells, p1, v1, id, i, 0.0f);
-	 	}
-	 }
+		// if to use in the future, last argument should be changed
+		detectCollision(gpuId, bloodCells, p1, v1, id, i, 0.0f);
+	}
+	}
 }

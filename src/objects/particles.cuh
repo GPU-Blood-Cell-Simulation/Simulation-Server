@@ -13,20 +13,20 @@ struct Particles
 	HostDeviceArray<cudaVec3, gpuCount> positions { //GPU_COUNT_DEPENDENT
 		{particleCount, 0},
 		{particleCount, 1}, 
-		{particleCount, 2}//,
-		//{particleCount, 3}
+		{particleCount, 2},
+		{particleCount, 3}
 	};
 	HostDeviceArray<cudaVec3, gpuCount> velocities { //GPU_COUNT_DEPENDENT
 		{particleCount, 0},
 		{particleCount, 1}, 
-		{particleCount, 2}//,
-		//{particleCount, 3}
+		{particleCount, 2},
+		{particleCount, 3}
 	};
 	HostDeviceArray<cudaVec3, gpuCount> forces { //GPU_COUNT_DEPENDENT
 		{particleCount, 0},
 		{particleCount, 1}, 
-		{particleCount, 2}//,
-		//{particleCount, 3}
+		{particleCount, 2},
+		{particleCount, 3}
 	};
 	#else
 	HostDeviceArray<cudaVec3, gpuCount> positions {{particleCount, 0}};

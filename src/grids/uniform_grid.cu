@@ -165,10 +165,10 @@ void UniformGrid::broadcastGrid(ncclComm_t* comms, cudaStream_t* streams)
 	using namespace nccl;
 
 	NCCLCHECK(ncclGroupStart());
-	broadcast(gridCellIds, objectCount, ncclInt, comms, streams);
-	broadcast(particleIds, objectCount, ncclInt, comms, streams);
-	broadcast(gridCellStarts, cellCount, ncclInt, comms, streams);
-	broadcast(gridCellEnds, cellCount, ncclInt, comms, streams);
+	broadcast(gridCellIds, objectCount, ncclInt, comms, streams, gpuId);
+	broadcast(particleIds, objectCount, ncclInt, comms, streams, gpuId);
+	broadcast(gridCellStarts, cellCount, ncclInt, comms, streams, gpuId);
+	broadcast(gridCellEnds, cellCount, ncclInt, comms, streams, gpuId);
 	NCCLCHECK(ncclGroupEnd());
 	sync(streams);
 }

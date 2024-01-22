@@ -24,15 +24,15 @@ namespace nccl
     }
 
     template<typename T>
-    inline void broadcast(T& data, int size, ncclDataType_t type, ncclComm_t* comms, cudaStream_t* streams)
+    inline void broadcast(T& data, int size, ncclDataType_t type, ncclComm_t* comms, cudaStream_t* streams, int root = 0)
     {
         for (int i = 0; i < gpuCount; i++)
         {
             if constexpr (std::is_same<typename T::DataType, cudaVec3>::value)
             {
-                NCCLCHECK(ncclBroadcast((const void*)data[i].x, (void*)data[i].x, size, type, 0, comms[i], streams[i]));
-                NCCLCHECK(ncclBroadcast((const void*)data[i].y, (void*)data[i].y, size, type, 0, comms[i], streams[i]));
-                NCCLCHECK(ncclBroadcast((const void*)data[i].z, (void*)data[i].z, size, type, 0, comms[i], streams[i]));
+                NCCLCHECK(ncclBroadcast((const void*)data[i].x, (void*)data[i].x, size, type, root, comms[i], streams[i]));
+                NCCLCHECK(ncclBroadcast((const void*)data[i].y, (void*)data[i].y, size, type, root, comms[i], streams[i]));
+                NCCLCHECK(ncclBroadcast((const void*)data[i].z, (void*)data[i].z, size, type, root, comms[i], streams[i]));
             }
             else
             {

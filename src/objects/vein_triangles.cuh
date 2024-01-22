@@ -30,23 +30,23 @@ public:
 	HostDeviceArray<cudaVec3, gpuCount> positions { // GPU_COUNT_DEPENDENT
 		{vertexCount, 0},
 		{vertexCount, 1},
-		{vertexCount, 2}//,
-		//{vertexCount, 3}
+		{vertexCount, 2},
+		{vertexCount, 3}
 	};
 	HostDeviceArray<cudaVec3, gpuCount> velocities { // GPU_COUNT_DEPENDENT
 		{vertexCount, 0},
 		{vertexCount, 1},
-		{vertexCount, 2}//,
-		//{vertexCount, 3}
+		{vertexCount, 2},
+		{vertexCount, 3}
 	};
 	HostDeviceArray<cudaVec3, gpuCount> forces{ // GPU_COUNT_DEPENDENT
 		{vertexCount, 0},
 		{vertexCount, 1},
-		{vertexCount, 2}//,
-		//{vertexCount, 3}
+		{vertexCount, 2},
+		{vertexCount, 3}
 	};	
 
-	HostDeviceArray<VeinNeighbors, gpuCount> neighbors {0, 1, 2}; // GPU_COUNT_DEPENDENT
+	HostDeviceArray<VeinNeighbors, gpuCount> neighbors {0, 1, 2, 3}; // GPU_COUNT_DEPENDENT
 
 	#else
 

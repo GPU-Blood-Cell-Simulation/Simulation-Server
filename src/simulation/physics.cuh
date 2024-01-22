@@ -137,10 +137,10 @@ namespace physics
 		float3 tangentialVelocity = relativeVelocity - dot(relativeVelocity, relativeDirection) * relativeDirection;
 
 		float3 springForce = -collisionSpringCoeff * (radius * 2 - sqrtf(distanceSquared)) * relativeDirection;
-		float3 damplingForce = collisionDampingCoeff * relativeVelocity;
+		float3 dampingForce = collisionDampingCoeff * relativeVelocity;
 		float3 shearForce = collistionShearCoeff * tangentialVelocity;
 
 		// Uncoalesced writes - area for optimization
-		forces.add(particleId, intensityCoefficient * (springForce + damplingForce + shearForce));
+		forces.add(particleId, intensityCoefficient * (springForce + dampingForce + shearForce));
 	}
 }

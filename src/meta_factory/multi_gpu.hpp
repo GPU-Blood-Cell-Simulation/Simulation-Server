@@ -2,9 +2,9 @@
 
 #ifdef MULTI_GPU
     //GPU_COUNT_DEPENDENT
-	inline constexpr int gpuCount = 3;
-	inline constexpr int particleGridGpu = 1;
-	inline constexpr int veinGridGpu = 2;
+	inline constexpr int gpuCount = 4;
+	inline constexpr int particleGridGpu = 0;
+	inline constexpr int veinGridGpu = 0;
 #else
 	inline constexpr int gpuCount = 1;
 	inline constexpr int particleGridGpu = 0;

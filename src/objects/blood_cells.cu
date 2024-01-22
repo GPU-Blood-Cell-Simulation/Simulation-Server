@@ -45,9 +45,11 @@ template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int b
 __global__ static void calculateBloodCellsCenters(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells)
 {
 	int relativeCellIndex = blockIdx.x * blockDim.x + threadIdx.x;
-	if(relativeCellIndex >= bloodCellCount)
-		return;	
+
 	int realCellIndex = bloodCellStart + relativeCellIndex;
+	if (realCellIndex < gpuStart || realCellIndex >= gpuEnd || relativeCellIndex >= bloodCellCount)
+		return;
+
 	int firstParticleIndex = particlesStart + relativeCellIndex * particlesInBloodCell;
 	float3 center = make_float3(0,0,0);
 	for(int id = 0; id < particlesInBloodCell; ++id)
@@ -65,7 +67,7 @@ template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int b
 __global__ static void gatherForcesKernel(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells)
 {
 	int indexInType = blockIdx.x * blockDim.x + threadIdx.x;
-	if (indexInType >= particlesInBloodCell * bloodCellCount || indexInType < gpuStart || indexInType >= gpuEnd)
+	if (indexInType < gpuStart || indexInType >= gpuEnd || indexInType >= particlesInBloodCell * bloodCellCount)
 		return;
 
 	int indexInCell = indexInType % particlesInBloodCell;
@@ -111,8 +113,6 @@ __global__ static void gatherForcesKernel(int gpuId, int gpuStart, int gpuEnd, B
 	newForce = newForce + physics::accumulateEnvironmentForcesForParticles(velocity, length(radius)/initialRadius);
 
 #ifdef USE_RUNGE_KUTTA_FOR_PARTICLE
-	//bloodCells.particles.positions.add(realIndex, newPosition);
-	//bloodCells.particles.velocities.add(realIndex, newVelocity);
 	bloodCells.particles.forces[gpuId].set(realIndex, (initialForce + newForce)/6.0f);
 #else
 	bloodCells.particles.forces[gpuId].set(realIndex, (initialForce + newForce) / 2);
@@ -159,7 +159,8 @@ __global__ void propagateParticleForcesKernel(Particles particles)
 		return;
 
 	float3 F = particles.forces[0].get(particleId);
-	float3 initialVelocity = particles.velocities[0].get(particleId);
+	// Divide to account for duplication due to ncclReduce
+	float3 initialVelocity = particles.velocities[0].get(particleId) / gpuCount;
 	// propagate particle forces into velocities
 	float3 velocity = initialVelocity + dt * F;
 	particles.velocities[0].set(particleId, velocity);
@@ -207,30 +208,13 @@ void BloodCells::broadcastParticles(ncclComm_t* comms, cudaStream_t* streams)
 	CUDACHECK(cudaSetDevice(0));
 }
 
-__global__ void debugKernel(int gpuId, Particles particles)
-{
-	int particleId = particleCount - 1 - blockIdx.x * blockDim.x + threadIdx.x;
-
-	printf("force gpu:%d, %f ", gpuId, particles.forces[gpuId].get(particleId).x);
-}
-
 void BloodCells::reduceForces(ncclComm_t* comms, cudaStream_t* streams)
-{
-	cudaSetDevice(2);
-	debugKernel<<<1, 400>>>(2, particles);
-	cudaDeviceSynchronize();
-	std::cout << "\n---------------------------\n";
-	
+{	
 	NCCLCHECK(ncclGroupStart());
 	reduce(particles.forces, particleCount, ncclFloat, comms, streams);
+	reduce(particles.velocities, particleCount, ncclFloat, comms, streams);
 	NCCLCHECK(ncclGroupEnd());
 	sync(streams);
 	cudaDeviceSynchronize();
-
-	
-	// cudaSetDevice(0);
-	// debugKernel<<<1, 20>>>(0, particles);
-	// cudaDeviceSynchronize();
-
 }
 #endif

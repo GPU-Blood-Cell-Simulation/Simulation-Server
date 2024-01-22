@@ -117,7 +117,6 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells, curandState* state
 {
 	int indexInType = blockDim.x * blockIdx.x + threadIdx.x;
 
-	//printf("%d\n", indexInType);
 	if (indexInType >= bloodCellsCount * particlesInBloodCell)
 		return;
 
@@ -179,7 +178,5 @@ void HandleVeinEnd(BloodCells& cells, curandState* devStates, const std::array<c
 			else if constexpr (syncType == blockSync)
 				handleVeinEndsBlockSync<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellModelStarts[i]>
 				<< <blocksCnt, threadsPerBlock, 0, streams[i] >> > (cells, devStates, bloodCellModels);
-			// else
-			// 	static_assert(false, "Unknown synchronization type");
 		});
 }

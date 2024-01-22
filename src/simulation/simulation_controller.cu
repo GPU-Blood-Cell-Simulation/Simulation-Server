@@ -248,9 +248,10 @@ namespace sim
 		static auto calculate = [&](int gpuId)
 		{
 			CUDACHECK(cudaSetDevice(gpuId));
+
 			std::visit([&](auto&& g1, auto&& g2)
 			{
-				// Propagate triangle forces into neighbors
+				// Propagate triangle forces into neighbors				
 				triangles.gatherForcesFromNeighbors(gpuId, verticesGpuStarts[gpuId], verticesGpuEnds[gpuId],
 				 	veinTrianglesThreads.blocks, veinTrianglesThreads.threadsPerBlock);
 				CUDACHECK(cudaDeviceSynchronize());
@@ -271,7 +272,8 @@ namespace sim
 						CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
 						calculateParticleCollisions<< < threads.blocks, threads.threadsPerBlock, 0, streams[gpuId][i] >> > 
 							(gpuId, particleGpuStarts[gpuId], particleGpuEnds[gpuId],
-							bloodCells, *g1, cellModelsBoundingSpheres[gpuId], BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart);
+							bloodCells, *g1, cellModelsBoundingSpheres[gpuId],
+							BloodCellDefinition::count, BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart);
 					});
 				CUDACHECK(cudaDeviceSynchronize());
 
@@ -284,11 +286,10 @@ namespace sim
 						constexpr int bloodCellModelSizesStarts = bloodCellModelStarts[i];
 
 						CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
-						// if (gpuId > 0)
-						// 	std::cout << "launch kernel\n";
 						detectVeinCollisions<< <  threads.blocks, threads.threadsPerBlock, 0, streams[gpuId][i] >> > 
 							(gpuId, particleGpuStarts[gpuId], particleGpuEnds[gpuId], 
-							bloodCells, triangles, *g2, cellModelsBoundingSpheres[gpuId], BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart);
+							bloodCells, triangles, *g2, cellModelsBoundingSpheres[gpuId],
+							BloodCellDefinition::count, BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart);
 					});
 				CUDACHECK(cudaDeviceSynchronize());
 				
@@ -305,7 +306,6 @@ namespace sim
 		{
 			threads[i].join();
 		}
-		CUDACHECK(cudaSetDevice(0));
 #else
 		calculate(0);
 #endif
@@ -314,8 +314,6 @@ namespace sim
 
 	void SimulationController::propagateAll()
 	{
-		cudaSetDevice(0);
-
 		// Propagate forces -> velocities, velocities -> positions for particles
 		bloodCells.propagateForcesIntoPositions(bloodCellsThreads.blocks, bloodCellsThreads.threadsPerBlock);
 		CUDACHECK(cudaDeviceSynchronize());
@@ -327,9 +325,8 @@ namespace sim
 		if constexpr (useBloodFlow)
 		{
 			HandleVeinEnd(bloodCells, devStates, streams[0], bloodCellModels);
-			CUDACHECK(cudaPeekAtLastError());
+			CUDACHECK(cudaDeviceSynchronize());
 		}
 
-		cudaDeviceSynchronize();
 	}
 }

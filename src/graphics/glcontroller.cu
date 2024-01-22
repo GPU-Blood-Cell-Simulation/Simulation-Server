@@ -20,19 +20,6 @@
 
 namespace graphics
 {
-	// __global__ void calculateOffsetsKernel(float* devCudaOffsetBuffer, cudaVec3 positions)
-	// {
-	// 	int id = blockIdx.x * blockDim.x + threadIdx.x;
-	// 	if (id >= particleCount)
-	// 		return;
-		
-	// 	//printf("[%d] x=%.5f, y=%.5f, z=%.5f\n", id, positions.x[id], positions.y[id], positions.z[id]);
-	// 	devCudaOffsetBuffer[3 * id] = positions.x[id];
-	// 	devCudaOffsetBuffer[3 * id + 1] = positions.y[id];
-	// 	devCudaOffsetBuffer[3 * id + 2] = positions.z[id];
-
-	// }
-
 	template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int bloodCellTypeStart>
 	__global__ void calculatePositionsKernel(float* devCudaPositionsVertices, float* devCudaPositionsOffsets, cudaVec3 positions)
 	{

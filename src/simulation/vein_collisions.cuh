@@ -92,9 +92,9 @@ namespace sim
 		return false;
 	}
 
-	 template<typename T>
-	 __global__ void detectVeinCollisions(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel,
-		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
+	template<typename T>
+	__global__ void detectVeinCollisions(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel,
+		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
 	/// <summary>
 	/// Main kernel to detect collisions with triangles
@@ -108,8 +108,8 @@ namespace sim
 	/// <param name="particlesStart">index shift for particle data</param>
 	/// <returns></returns>
 	template<>
-	 __global__ void detectVeinCollisions<NoGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
-		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
+	__global__ void detectVeinCollisions<NoGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
+		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
 
 	 /// <summary>
 	 /// Main kernel to detect collisions with triangles
@@ -124,6 +124,6 @@ namespace sim
 	 /// <returns></returns>
 	template<>
 	__global__ void detectVeinCollisions<UniformGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
-		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
+		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
 
 }

@@ -116,7 +116,7 @@ programLoopFunction
     }  
 
     ncclComm_t comms[gpuCount];
-    int devs[gpuCount] = { 0, 1, 2 }; // GPU_COUNT_DEPENDENT
+    int devs[gpuCount] = { 0, 1, 2, 3}; // GPU_COUNT_DEPENDENT
     NCCLCHECK(ncclCommInitAll(comms, gpuCount, devs));
     cudaSetDevice(0);
     #endif
@@ -199,9 +199,10 @@ programLoopFunction
         simulationController.calculateNextFrame();
 
 #ifdef MULTI_GPU
-        // Multi gpu reduction - merge forces calculated on separate devices 
+        // Multi gpu reduction - merge forces calculated on separate devices
         bloodCells.reduceForces(comms, streams);
         triangles.reduceForces(comms, streams);
+
 #endif
         // Propagate forces into velocities and positions
         simulationController.propagateAll();     
