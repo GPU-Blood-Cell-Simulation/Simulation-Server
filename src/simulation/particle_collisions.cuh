@@ -31,7 +31,7 @@ namespace sim
 		if (distanceSquared <= minDistance*minDistance && distanceSquared >= 0.0001f)
 		{
 			float3 relativeVelocity = velocity1 - bloodCells.particles.velocities.get(particleId2);
-			physics::addResilientForceOnCollision(relativePosition, relativeVelocity, distanceSquared, radius, particleId1, 0.2f, bloodCells.particles.forces);
+			physics::addResilientForceOnCollision(relativePosition, relativeVelocity, distanceSquared, radius, particleId1, 0.35f, bloodCells.particles.forces);
 		}
 	}
 
