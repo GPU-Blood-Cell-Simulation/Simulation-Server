@@ -36,7 +36,7 @@ namespace nccl
             }
             else
             {
-                NCCLCHECK(ncclBroadcast((const void*)data[i], (void*)data[i], size, type, 0, comms[i], streams[i]));
+                NCCLCHECK(ncclBroadcast((const void*)data[i], (void*)data[i], size, type, root, comms[i], streams[i]));
             }  
         }   
     }

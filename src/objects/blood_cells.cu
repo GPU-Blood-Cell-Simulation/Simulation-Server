@@ -67,11 +67,11 @@ template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int b
 __global__ static void gatherForcesKernel(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells)
 {
 	int indexInType = blockIdx.x * blockDim.x + threadIdx.x;
-	if (indexInType < gpuStart || indexInType >= gpuEnd || indexInType >= particlesInBloodCell * bloodCellCount)
+	int realIndex = particlesStart + indexInType;
+	if (realIndex < gpuStart || realIndex >= gpuEnd || indexInType >= particlesInBloodCell * bloodCellCount)
 		return;
 
 	int indexInCell = indexInType % particlesInBloodCell;
-	int realIndex = particlesStart + indexInType;
 	int cellRealIndex = bloodCellStart + indexInType / particlesInBloodCell;
 
 	float3 position = bloodCells.particles.positions[gpuId].get(realIndex);

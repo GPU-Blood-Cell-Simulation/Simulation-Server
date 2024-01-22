@@ -49,8 +49,6 @@ public:
 	void broadcastParticles(ncclComm_t* comms, cudaStream_t* streams);
 	void reduceForces(ncclComm_t* comms, cudaStream_t* streams);
 	#endif
-
-	void debug(int gpuId, int start);
 };
 
 #endif

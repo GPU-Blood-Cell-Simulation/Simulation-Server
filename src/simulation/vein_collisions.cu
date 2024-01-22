@@ -240,8 +240,6 @@ namespace sim
 				// handle particle on collision
 				if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
 				{
-					// if (gpuId > 0)
-					// 	printf("gpu: %d, particle: %d", gpuId, particleId);
 					physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared,
 						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces[gpuId]);
 					if constexpr (enableReactionForce)
