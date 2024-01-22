@@ -122,6 +122,7 @@ programLoopFunction
     #endif
 
     int frameCount = 0;
+    bool shouldBeRunning = true;
     // Create blood cells
     BloodCells bloodCells;
 
@@ -150,11 +151,11 @@ programLoopFunction
 #else
     MsgController msgController(4322);
     msgController.setCamera(&camera);
+    msgController.setStreamEndCallback([&shouldBeRunning]() { shouldBeRunning = false; });
 #endif
 
     std::cout << "started rendering...\n";
     // MAIN LOOP HERE - dictated by glfw
-    bool shouldBeRunning = true;
     while (shouldBeRunning)
     {
         // Calculate grids
@@ -239,18 +240,24 @@ programLoopFunction
         // Send data to client
         streamingController.SendFrame();
         msgController.handleMsgs();
-
-        //std::cout << frameCount << "\n";
-        shouldBeRunning = frameCount++ < maxFrames;
 #endif
+        //std::cout << frameCount << "\n";
+        if (++frameCount > maxFrames) {
+            shouldBeRunning = false;
+        }
     }
+    
     std::cout << "finished rendering\n";
-    // Cleanup
-    #ifdef MULTI_GPU
+#ifndef WINDOW_RENDER
+    msgController.successfulStreamEndInform();
+#endif
+        
+  
+#ifdef MULTI_GPU
     for(int i = 0; i < gpuCount; i++)
     {
         ncclCommDestroy(comms[i]);
         cudaStreamDestroy(streams[i]);
-    }     
-    #endif
+    }
+#endif
 }
