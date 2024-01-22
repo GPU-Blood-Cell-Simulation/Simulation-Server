@@ -152,6 +152,7 @@ programLoopFunction
     msgController.setCamera(&camera);
 #endif
 
+    std::cout << "started rendering...\n";
     // MAIN LOOP HERE - dictated by glfw
     bool shouldBeRunning = true;
     while (shouldBeRunning)
@@ -238,11 +239,11 @@ programLoopFunction
         streamingController.SendFrame();
         msgController.handleMsgs();
 
-        std::cout << frameCount << "\n";
+        //std::cout << frameCount << "\n";
         shouldBeRunning = frameCount++ < maxFrames;
 #endif
     }
-
+    std::cout << "finished rendering\n";
     // Cleanup
     #ifdef MULTI_GPU
     for(int i = 0; i < gpuCount; i++)

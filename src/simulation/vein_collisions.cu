@@ -65,10 +65,9 @@ namespace sim
 		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart)
 	{
 		int particleId = particlesStart + blockDim.x * blockIdx.x + threadIdx.x;
-
 		if (particleId < gpuStart || particleId >= gpuEnd)
-			return;
-		
+			return;			
+
 		float3 velocity = bloodCells.particles.velocities[gpuId].get(particleId);
 		float3 pos = bloodCells.particles.positions[gpuId].get(particleId);
 		
@@ -80,6 +79,7 @@ namespace sim
 		// TODO: fix this
 		bool collisionDetected = false;
 		unsigned int cellId = triangleGrid.calculateCellId(pos);
+
 		unsigned int xId = static_cast<unsigned int>((pos.x - minX) / triangleGrid.cellWidth);
 		unsigned int yId = static_cast<unsigned int>((pos.y - minY) / triangleGrid.cellHeight);
 		unsigned int zId = static_cast<unsigned int>((pos.z - minZ) / triangleGrid.cellDepth);
@@ -240,6 +240,8 @@ namespace sim
 				// handle particle on collision
 				if (distanceSquared > veinImpactMinimalForceDistance * veinImpactMinimalForceDistance)
 				{
+					// if (gpuId > 0)
+					// 	printf("gpu: %d, particle: %d", gpuId, particleId);
 					physics::addResilientForceOnCollision(relativePosition, velocity, distanceSquared,
 						boundingSpheresModel[bloodCellmodelStart + (particleId - particlesStart) % particlesInBloodCell], particleId, 0.5f, bloodCells.particles.forces[gpuId]);
 					if constexpr (enableReactionForce)

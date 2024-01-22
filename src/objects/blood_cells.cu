@@ -7,6 +7,7 @@
 #include "../utilities/cuda_threads.hpp"
 
 #include <vector>
+#include <iostream>
 
 #include "cuda_runtime.h"
 
@@ -206,11 +207,30 @@ void BloodCells::broadcastParticles(ncclComm_t* comms, cudaStream_t* streams)
 	CUDACHECK(cudaSetDevice(0));
 }
 
+__global__ void debugKernel(int gpuId, Particles particles)
+{
+	int particleId = particleCount - 1 - blockIdx.x * blockDim.x + threadIdx.x;
+
+	printf("force gpu:%d, %f ", gpuId, particles.forces[gpuId].get(particleId).x);
+}
+
 void BloodCells::reduceForces(ncclComm_t* comms, cudaStream_t* streams)
 {
+	cudaSetDevice(2);
+	debugKernel<<<1, 400>>>(2, particles);
+	cudaDeviceSynchronize();
+	std::cout << "\n---------------------------\n";
+	
 	NCCLCHECK(ncclGroupStart());
 	reduce(particles.forces, particleCount, ncclFloat, comms, streams);
 	NCCLCHECK(ncclGroupEnd());
 	sync(streams);
+	cudaDeviceSynchronize();
+
+	
+	// cudaSetDevice(0);
+	// debugKernel<<<1, 20>>>(0, particles);
+	// cudaDeviceSynchronize();
+
 }
 #endif

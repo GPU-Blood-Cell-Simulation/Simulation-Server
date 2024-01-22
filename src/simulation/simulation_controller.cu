@@ -13,6 +13,7 @@
 #include <limits>
 #include <thread>
 
+#include <iostream>
 
 #define INITIAL_VELOCITY_RANDOM
 
@@ -49,9 +50,11 @@ namespace sim
 		{
 			for (int j = 0; j < bloodCellTypeCount; j++)
 			{
+				CUDACHECK(cudaSetDevice(i));
 				CUDACHECK(cudaStreamCreate(&streams[i][j]));
 			}
 		}
+		CUDACHECK(cudaSetDevice(0));
 		// Set up random seeds
 		CUDACHECK(cudaMalloc(&devStates, particleCount * sizeof(curandState)));
 		srand(static_cast<unsigned int>(time(0)));
@@ -248,9 +251,8 @@ namespace sim
 			std::visit([&](auto&& g1, auto&& g2)
 			{
 				// Propagate triangle forces into neighbors
-				static CudaThreads veinVerticesGpuThreads(verticesGpuEnds[gpuId] - verticesGpuStarts[gpuId]);
 				triangles.gatherForcesFromNeighbors(gpuId, verticesGpuStarts[gpuId], verticesGpuEnds[gpuId],
-				 	veinVerticesGpuThreads.blocks, veinVerticesGpuThreads.threadsPerBlock);
+				 	veinTrianglesThreads.blocks, veinTrianglesThreads.threadsPerBlock);
 				CUDACHECK(cudaDeviceSynchronize());
 
 				// Propagate particle forces into neighbors
@@ -282,7 +284,8 @@ namespace sim
 						constexpr int bloodCellModelSizesStarts = bloodCellModelStarts[i];
 
 						CudaThreads threads(BloodCellDefinition::count * BloodCellDefinition::particlesInCell);
-						
+						// if (gpuId > 0)
+						// 	std::cout << "launch kernel\n";
 						detectVeinCollisions<< <  threads.blocks, threads.threadsPerBlock, 0, streams[gpuId][i] >> > 
 							(gpuId, particleGpuStarts[gpuId], particleGpuEnds[gpuId], 
 							bloodCells, triangles, *g2, cellModelsBoundingSpheres[gpuId], BloodCellDefinition::particlesInCell, bloodCellModelSizesStarts, particlesStart);

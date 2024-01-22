@@ -10,19 +10,19 @@
 struct Particles
 {
 	#ifdef MULTI_GPU
-	HostDeviceArray<cudaVec3, gpuCount> positions {
+	HostDeviceArray<cudaVec3, gpuCount> positions { //GPU_COUNT_DEPENDENT
 		{particleCount, 0},
 		{particleCount, 1}, 
 		{particleCount, 2}//,
 		//{particleCount, 3}
 	};
-	HostDeviceArray<cudaVec3, gpuCount> velocities {
+	HostDeviceArray<cudaVec3, gpuCount> velocities { //GPU_COUNT_DEPENDENT
 		{particleCount, 0},
 		{particleCount, 1}, 
 		{particleCount, 2}//,
 		//{particleCount, 3}
 	};
-	HostDeviceArray<cudaVec3, gpuCount> forces {
+	HostDeviceArray<cudaVec3, gpuCount> forces { //GPU_COUNT_DEPENDENT
 		{particleCount, 0},
 		{particleCount, 1}, 
 		{particleCount, 2}//,

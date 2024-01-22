@@ -1,6 +1,7 @@
 #pragma once
 
 #ifdef MULTI_GPU
+    //GPU_COUNT_DEPENDENT
 	inline constexpr int gpuCount = 3;
 	inline constexpr int particleGridGpu = 1;
 	inline constexpr int veinGridGpu = 2;
@@ -19,7 +20,7 @@ inline constexpr auto gpuSplitStartGenerator = [](int size)
 	for (int i = 0; i < gpuCount; i++)
 	{
 		ret[i] = accumulated;
-		accumulated += i * size / gpuCount;
+		accumulated += size / gpuCount;
 	}
 
     return ret;
@@ -32,13 +33,10 @@ inline constexpr auto gpuSplitEndGenerator = [](int size)
 	int accumulated = 0;
 	for (int i = 0; i < gpuCount - 1; i++)
 	{
-        accumulated += i * size / gpuCount;
-		ret[i] = i * size / gpuCount;		
+        accumulated += size / gpuCount;
+		ret[i] = accumulated;		
 	}
-	if (gpuCount > 1)
-	{
-		ret[gpuCount- 1] = size;
-	}
+	ret[gpuCount - 1] = size;
 
     return ret;
 };

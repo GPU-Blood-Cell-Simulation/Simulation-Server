@@ -62,13 +62,13 @@ namespace sim
 	{
 		unsigned int cellId = triangleGrid.calculateCellId(position);
 
-#pragma unroll
+		#pragma unroll
 		for (int x = xMin; x <= xMax; x++)
 		{
-#pragma unroll	
+			#pragma unroll	
 			for (int y = yMin; y <= yMax; y++)
 			{
-#pragma unroll
+				#pragma unroll
 				for (int z = zMin; z <= zMax; z++)
 				{
 					int neighborCellId = cellId + z * triangleGrid.cellCountX * triangleGrid.cellCountY + y * triangleGrid.cellCountX + x;
