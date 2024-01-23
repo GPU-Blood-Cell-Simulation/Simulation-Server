@@ -4,7 +4,9 @@
 #include <cstdlib>
 
 #include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+#ifdef MULTI_GPU
+#include "nccl.h"
+#endif
 
 
 /// <summary>
@@ -13,17 +15,23 @@
 /// <param name="err">cuda error</param>
 /// <param name="file">file name</param>
 /// <param name="line">line in file</param>
-static void HandleError(cudaError_t err, const char* file, int line);
+#define CUDACHECK(cmd) do {                         \
+  cudaError_t err = cmd;                            \
+  if (err != cudaSuccess) {                         \
+    printf("Failed: Cuda error %s:%d '%s'\n",       \
+        __FILE__,__LINE__,cudaGetErrorString(err)); \
+    exit(EXIT_FAILURE);                             \
+  }                                                 \
+} while(0)
 
-static void HandleError(cudaError_t err, const char* file, int line)
-{
-    if (err != cudaSuccess)
-    {
-        printf("%s in %s at line %d\n", cudaGetErrorString(err),
-            file, line);
-        cudaDeviceSynchronize();
-        exit(EXIT_FAILURE);
-    }
-}
 
-#define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ));
+#ifdef MULTI_GPU
+#define NCCLCHECK(cmd) do {                         \
+  ncclResult_t res = cmd;                           \
+  if (res != ncclSuccess) {                         \
+    printf("Failed, NCCL error %s:%d '%s'\n",       \
+        __FILE__,__LINE__,ncclGetErrorString(res)); \
+    exit(EXIT_FAILURE);                             \
+  }                                                 \
+} while(0);
+#endif

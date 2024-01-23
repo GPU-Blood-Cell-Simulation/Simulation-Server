@@ -2,6 +2,7 @@
 
 #include "../config/simulation.hpp"
 #include "../config/vein_definition.hpp"
+#include "multi_gpu.hpp"
 #include "../utilities/constexpr_vec.hpp"
 #include <algorithm>
 #include <cmath>
@@ -176,3 +177,10 @@ inline auto calculateSpringLengths = []()
 inline constexpr int veinEndingCenterCount = mp_size<VeinEndingCenters>::value;
 inline constexpr int veinEndingRadiusCount = mp_size<VeinEndingRadii>::value;
 static_assert(veinEndingCenterCount == veinEndingRadiusCount, "Ill-formed vein ednings");
+
+
+inline const auto verticesGpuStarts = gpuSplitStartGenerator(veinPositionCount);
+inline const auto verticesGpuEnds = gpuSplitEndGenerator(veinPositionCount);
+
+inline const auto trianglesGpuStarts = gpuSplitStartGenerator(triangleCount);
+inline const auto trianglesGpuEnds = gpuSplitEndGenerator(triangleCount);

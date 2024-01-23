@@ -6,6 +6,7 @@
 #include "../objects/blood_cells.cuh"
 #include "../objects/vein_triangles.cuh"
 #include "../utilities/cuda_threads.hpp"
+#include "../utilities/host_device_array.cuh"
 
 #include <curand.h>
 #include <curand_kernel.h>
@@ -13,6 +14,7 @@
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+
 
 namespace sim
 {
@@ -29,9 +31,10 @@ namespace sim
 		/// Executes main simulation loop
 		/// </summary>
 		void calculateNextFrame();
+		void propagateAll();
 		std::array<glm::vec3, bloodCellCount> initialCellPositions;
 		std::array<float, bloodCellTypeCount> smallestRadiusInType;
-		float* cellModelsBoundingSpheres;
+		HostDeviceArray<float*, gpuCount> cellModelsBoundingSpheres;
 
 	private:
 		BloodCells& bloodCells;
@@ -43,7 +46,7 @@ namespace sim
 		CudaThreads veinVerticesThreads;
 		CudaThreads veinTrianglesThreads;
 
-		std::array<cudaStream_t, bloodCellTypeCount> streams;
+		std::array<cudaStream_t, bloodCellTypeCount> streams[gpuCount];
 		curandState* devStates = 0;
 		cudaVec3 bloodCellModels{ particleDistinctCellsCount };
 

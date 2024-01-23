@@ -3,6 +3,7 @@
 #include "../simulation/physics.cuh"
 #include "../meta_factory/vein_factory.hpp"
 #include "../utilities/cuda_vec3.cuh"
+#include "../utilities/host_device_array.cuh"
 #include "../utilities/math.cuh"
 #include "../utilities/vertex_index_enum.hpp"
 #include "vein_neighbors.cuh"
@@ -13,22 +14,53 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
+#ifdef MULTI_GPU
+#include "../utilities/nccl_operations.cuh"
+#endif
+
 /// <summary>
 /// Vein triangles
 /// </summary>
 class VeinTriangles
 {
 public:
-	const int vertexCount = veinPositionCount;
+	static constexpr int vertexCount = veinPositionCount;
 
-	cudaVec3 positions{ vertexCount };
-	cudaVec3 velocities{ vertexCount };
-	cudaVec3 forces{ vertexCount };
+	#ifdef MULTI_GPU
+	HostDeviceArray<cudaVec3, gpuCount> positions { // GPU_COUNT_DEPENDENT
+		{vertexCount, 0},
+		{vertexCount, 1},
+		{vertexCount, 2},
+		{vertexCount, 3}
+	};
+	HostDeviceArray<cudaVec3, gpuCount> velocities { // GPU_COUNT_DEPENDENT
+		{vertexCount, 0},
+		{vertexCount, 1},
+		{vertexCount, 2},
+		{vertexCount, 3}
+	};
+	HostDeviceArray<cudaVec3, gpuCount> forces{ // GPU_COUNT_DEPENDENT
+		{vertexCount, 0},
+		{vertexCount, 1},
+		{vertexCount, 2},
+		{vertexCount, 3}
+	};	
 
-	unsigned int* indices;
-	cudaVec3 centers{ triangleCount };
+	HostDeviceArray<VeinNeighbors, gpuCount> neighbors {0, 1, 2, 3}; // GPU_COUNT_DEPENDENT
 
-	VeinNeighbors neighbors;
+	#else
+
+	HostDeviceArray<cudaVec3, gpuCount> positions {{vertexCount, 0}};
+	HostDeviceArray<cudaVec3, gpuCount> velocities {{vertexCount, 0}};
+	HostDeviceArray<cudaVec3, gpuCount> forces {{vertexCount, 0}};
+
+	HostDeviceArray<VeinNeighbors, gpuCount> neighbors {0};
+
+	#endif
+
+	HostDeviceArray<unsigned int*, gpuCount> indices;
+
+	cudaVec3 centers{ triangleCount, veinGridGpu };
 
 	VeinTriangles();
 	VeinTriangles(const VeinTriangles& other);
@@ -37,23 +69,22 @@ public:
 	/// <summary>
 	/// device funtion to get triangle vertex absolute index
 	/// </summary>
-	__device__ inline unsigned int getIndex(int triangleIndex, VertexIndex vertexIndex) const
+	__device__ inline unsigned int getIndex(int gpuId, int triangleIndex, VertexIndex vertexIndex) const
 	{
-		return indices[3 * triangleIndex + vertexIndex];
+		return indices[gpuId][3 * triangleIndex + vertexIndex];
 	}
 
-	void gatherForcesFromNeighbors(int blocks, int threadsPerBlock);
+	void gatherForcesFromNeighbors(int gpuId, int gpuStart, int gpuEnd, int blocks, int threadsPerBlock);
 	void propagateForcesIntoPositions(int blocks, int threadsPerBlock);
 
 	void calculateCenters(int blocks, int threadsPerBlock);
 
+#ifdef MULTI_GPU
+	void broadcastPositionsAndVelocities(ncclComm_t* comms, cudaStream_t* streams);
+	void reduceForces(ncclComm_t* comms, cudaStream_t* streams);
+#endif
+
 private:
 	bool isCopy = false;
 
-	// !!! STILL NOT IMPLEMENTED !!!
-	__device__ inline void atomicAdd(int triangleIndex, VertexIndex vertexIndex, float3 value)
-	{
-		int index = indices[3 * triangleIndex + vertexIndex];
-		positions.atomicAddVec3(index, value);
-	}
 };
