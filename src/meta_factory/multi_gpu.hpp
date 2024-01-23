@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #ifdef MULTI_GPU
     //GPU_COUNT_DEPENDENT
 	inline constexpr int gpuCount = 4;

@@ -3,8 +3,8 @@ project(SimulationServer LANGUAGES C CXX CUDA)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(WINDOW_RENDERING "Switches between window rendering and streaming mode" OFF)
-option(MULTI_GPU "Whether the simulation should run on multiple gpus" ON)
+option(WINDOW_RENDERING "Switches between window rendering and streaming mode" ON)
+option(MULTI_GPU "Whether the simulation should run on multiple gpus" OFF)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CUDA_STANDARD 17)
