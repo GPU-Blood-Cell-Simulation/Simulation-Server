@@ -55,40 +55,30 @@ namespace sim
 	__device__ float3 calculateBaricentric(float3 point, float3 v0, float3 v1, float3 v2);
 
 	/// <summary>
-	/// Handles situation of position out of defined bounds
-	/// </summary>
-	/// <param name="position">previous position</param>
-	/// <param name="newPosition">new position</param>
-	/// <param name="velocity">particle velocity</param>
-	/// <param name="normalizedVelocity">normalized particle velocity</param>
-	/// <returns>if new position was out of bound</returns>
-	__device__ bool modifyVelocityIfPositionOutOfBounds(float3& position, float3 newPosition, float3& velocity, float3 normalizedVelocity);
-
-	/// <summary>
 	/// Executes triangle collision check in sorrounding grid cells
 	/// </summary>
 	template<int xMin, int xMax, int yMin, int yMax, int zMin, int zMax>
-	__device__ bool calculateSideCollisions(float3 position, ray& r, float3& reflectionVector, VeinTriangles& triangles, UniformGrid& triangleGrid)
+	__device__ bool calculateSideCollisions(int gpuId, float3 position, ray& r, float3& reflectionVector, VeinTriangles& triangles, UniformGrid& triangleGrid)
 	{
 		unsigned int cellId = triangleGrid.calculateCellId(position);
 
-#pragma unroll
+		#pragma unroll
 		for (int x = xMin; x <= xMax; x++)
 		{
-#pragma unroll	
+			#pragma unroll	
 			for (int y = yMin; y <= yMax; y++)
 			{
-#pragma unroll
+				#pragma unroll
 				for (int z = zMin; z <= zMax; z++)
 				{
 					int neighborCellId = cellId + z * triangleGrid.cellCountX * triangleGrid.cellCountY + y * triangleGrid.cellCountX + x;
-					for (int i = triangleGrid.gridCellStarts[neighborCellId]; i <= triangleGrid.gridCellEnds[neighborCellId]; i++)
+					for (int i = triangleGrid.gridCellStarts[gpuId][neighborCellId]; i <= triangleGrid.gridCellEnds[gpuId][neighborCellId]; i++)
 					{
 						// triangle vectices and edges
-						unsigned int triangleId = triangleGrid.particleIds[i];
-						float3 v0 = triangles.positions.get(triangles.getIndex(triangleId, vertex0));
-						float3 v1 = triangles.positions.get(triangles.getIndex(triangleId, vertex1));
-						float3 v2 = triangles.positions.get(triangles.getIndex(triangleId, vertex2));
+						unsigned int triangleId = triangleGrid.particleIds[gpuId][i];
+						float3 v0 = triangles.positions[gpuId].get(triangles.getIndex(gpuId, triangleId, vertex0));
+						float3 v1 = triangles.positions[gpuId].get(triangles.getIndex(gpuId, triangleId, vertex1));
+						float3 v2 = triangles.positions[gpuId].get(triangles.getIndex(gpuId, triangleId, vertex2));
 
 						if (!realCollisionDetection(v0, v1, v2, r, reflectionVector))
 							continue;
@@ -102,9 +92,9 @@ namespace sim
 		return false;
 	}
 
-	 template<typename T>
-	 __global__ void detectVeinCollisionsAndPropagateForces(BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel,
-		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
+	template<typename T>
+	__global__ void detectVeinCollisions(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, T triangleGrid, float* boundingSpheresModel,
+		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart) {}
 
 	/// <summary>
 	/// Main kernel to detect collisions with triangles
@@ -118,8 +108,8 @@ namespace sim
 	/// <param name="particlesStart">index shift for particle data</param>
 	/// <returns></returns>
 	template<>
-	 __global__ void detectVeinCollisionsAndPropagateForces<NoGrid>(BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
-		 int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
+	__global__ void detectVeinCollisions<NoGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
+		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
 
 	 /// <summary>
 	 /// Main kernel to detect collisions with triangles
@@ -133,7 +123,7 @@ namespace sim
 	 /// <param name="particlesStart">index shift for particle data</param>
 	 /// <returns></returns>
 	template<>
-	__global__ void detectVeinCollisionsAndPropagateForces<UniformGrid>(BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
-		int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
+	__global__ void detectVeinCollisions<UniformGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
+		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
 
 }

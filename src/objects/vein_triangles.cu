@@ -28,14 +28,14 @@ __global__ void calculateCentersKernel(cudaVec3 positions, unsigned int* indices
 
 void VeinTriangles::calculateCenters(int blocks, int threadsPerBlock)
 {
-	calculateCentersKernel << <blocks, threadsPerBlock >> > (positions, indices, centers, triangleCount);
+	CUDACHECK(cudaSetDevice(veinGridGpu));
+	calculateCentersKernel << <blocks, threadsPerBlock >> > (positions[veinGridGpu], indices[veinGridGpu], centers, triangleCount);
+	CUDACHECK(cudaDeviceSynchronize());
+	CUDACHECK(cudaSetDevice(0));
 }
 
 VeinTriangles::VeinTriangles()
 {
-	// allocate
-	HANDLE_ERROR(cudaMalloc((void**)&indices, 3 * triangleCount * sizeof(int)));
-
 	std::vector<float> vx(vertexCount);
 	std::vector<float> vy(vertexCount);
 	std::vector<float> vz(vertexCount);
@@ -48,11 +48,19 @@ VeinTriangles::VeinTriangles()
 			vz[iter++] = v.z;
 		});
 
-	// copy
-	HANDLE_ERROR(cudaMemcpy(indices, veinIndices.data(), veinIndexCount* sizeof(int), cudaMemcpyHostToDevice));
-	HANDLE_ERROR(cudaMemcpy(positions.x, vx.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
-	HANDLE_ERROR(cudaMemcpy(positions.y, vy.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
-	HANDLE_ERROR(cudaMemcpy(positions.z, vz.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
+	
+	for (int i = 0; i < gpuCount; i++)
+	{
+		CUDACHECK(cudaSetDevice(i));
+		// allocate
+		CUDACHECK(cudaMalloc((void**)&(indices[i]), veinIndexCount * sizeof(int)));
+		// copy
+		CUDACHECK(cudaMemcpy(positions[i].x, vx.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
+		CUDACHECK(cudaMemcpy(positions[i].y, vy.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
+		CUDACHECK(cudaMemcpy(positions[i].z, vz.data(), vertexCount * sizeof(float), cudaMemcpyHostToDevice));
+		CUDACHECK(cudaMemcpy(indices[i], veinIndices.data(), veinIndexCount * sizeof(int), cudaMemcpyHostToDevice));
+	}
+	CUDACHECK(cudaSetDevice(0));
 
 	// centers
 	int threadsPerBlock = triangleCount > 1024 ? 1024 : triangleCount;
@@ -60,16 +68,21 @@ VeinTriangles::VeinTriangles()
 	calculateCenters(triangleCount > 1024 ? 1024 : triangleCount, std::ceil(static_cast<float>(triangleCount) / threadsPerBlock));
 }
 
-VeinTriangles::VeinTriangles(const VeinTriangles& other) : isCopy(true), vertexCount(other.vertexCount),
+VeinTriangles::VeinTriangles(const VeinTriangles& other) : isCopy(true),
 positions(other.positions), velocities(other.velocities), forces(other.forces), indices(other.indices), centers(other.centers), neighbors(other.neighbors)
 {}
 
 VeinTriangles::~VeinTriangles()
 {
-	if (!isCopy)
+	if (isCopy)
+		return;
+
+	for (int i = 0; i < gpuCount; i++)
 	{
-		HANDLE_ERROR(cudaFree(indices));
+		CUDACHECK(cudaSetDevice(i));
+		CUDACHECK(cudaFree(indices[i]));
 	}
+	CUDACHECK(cudaSetDevice(0));
 }
 
 __global__ void propagateForcesIntoPositionsKernel(VeinTriangles triangles)
@@ -80,13 +93,10 @@ __global__ void propagateForcesIntoPositionsKernel(VeinTriangles triangles)
 		return;
 
 	// propagate forces into velocities
-	triangles.velocities.add(vertex, dt * triangles.forces.get(vertex));
+	triangles.velocities[0].add(vertex, dt * triangles.forces[0].get(vertex));
 
 	// propagate velocities into positions
-	triangles.positions.add(vertex, dt * triangles.velocities.get(vertex));
-
-	// zero forces
-	triangles.forces.set(vertex, make_float3(0, 0, 0));
+	triangles.positions[0].add(vertex, dt * triangles.velocities[0].get(vertex));
 }
 
 /// <summary>
@@ -95,6 +105,15 @@ __global__ void propagateForcesIntoPositionsKernel(VeinTriangles triangles)
 void VeinTriangles::propagateForcesIntoPositions(int blocks, int threadsPerBlock)
 {
 	propagateForcesIntoPositionsKernel << <blocks, threadsPerBlock >> > (*this);
+
+	for (int i = 0; i < gpuCount; i++)
+	{
+		CUDACHECK(cudaSetDevice(i));
+		CUDACHECK(cudaMemset(forces[i].x, 0, vertexCount * sizeof(float)));
+		CUDACHECK(cudaMemset(forces[i].y, 0, vertexCount * sizeof(float)));
+		CUDACHECK(cudaMemset(forces[i].z, 0, vertexCount * sizeof(float)));
+	}
+	CUDACHECK(cudaSetDevice(0));
 }
 
 
@@ -104,40 +123,74 @@ void VeinTriangles::propagateForcesIntoPositions(int blocks, int threadsPerBlock
 /// <param name="force">Vertex force vector</param>horizontalLayers
 /// <param name="tempForceBuffer">Temporary buffer necessary to synchronize</param>
 /// <returns></returns>
-__global__ static void gatherForcesKernel(VeinTriangles triangles)
+__global__ static void gatherForcesKernel(int gpuId, int gpuStart, int gpuEnd, VeinTriangles triangles)
 {
 	int id = blockDim.x * blockIdx.x + threadIdx.x;
-	if (id >= triangles.vertexCount)
+	if (id < gpuStart || id >= gpuEnd)
 		return;
 
-	float springLength;
-	float springForce;
+	float springLength = 0;
+	float springForce = 0;
 	float3 neighborPosition;
 
-	float3 vertexPosition = triangles.positions.get(id);
-	float3 vertexVelocity = triangles.velocities.get(id);
+	float3 vertexPosition = triangles.positions[gpuId].get(id);
+	float3 vertexVelocity = triangles.velocities[gpuId].get(id);
 	float3 vertexForce = { 0,0,0 };
 
 	// For each possible neighbor check if we are attached by a spring
 	#pragma unroll
-	for (auto& [neighborIds, springLengths] : triangles.neighbors.data)
+	for (auto&& [neighborIds, springLengths] : triangles.neighbors[gpuId].data)
 	{
 		int neighborId = neighborIds[id];
 		if (neighborId != -1)
 		{
-			springLength = springLengths[id];			
-			neighborPosition = triangles.positions.get(neighborId);
-			springForce = physics::springMassForceWithDampingForVein(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities.get(neighborId), springLength);
-			vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);	
+		 	springLength = springLengths[id];		
+		 	neighborPosition = triangles.positions[gpuId].get(neighborId);
+		 	springForce = physics::springMassForceWithDampingForVein(vertexPosition, neighborPosition, vertexVelocity, triangles.velocities[gpuId].get(neighborId), springLength);
+		 	vertexForce = vertexForce + springForce * normalize(neighborPosition - vertexPosition);
 		}
 	}	
-	triangles.forces.add(id, vertexForce);
+	triangles.forces[gpuId].add(id, vertexForce);
 }
 
 /// <summary>
 /// Gather forces from neighboring vertices, synchronize and then update forces for each vertex
 /// </summary>
-void VeinTriangles::gatherForcesFromNeighbors(int blocks, int threadsPerBlock)
+void VeinTriangles::gatherForcesFromNeighbors(int gpuId, int gpuStart, int gpuEnd, int blocks, int threadsPerBlock)
 {
-	gatherForcesKernel << <blocks, threadsPerBlock >> > (*this);
+	gatherForcesKernel << <blocks, threadsPerBlock >> > (gpuId, gpuStart, gpuEnd, *this);
+	CUDACHECK(cudaDeviceSynchronize());
 }
+
+#ifdef MULTI_GPU
+
+using namespace nccl;
+
+void VeinTriangles::broadcastPositionsAndVelocities(ncclComm_t* comms, cudaStream_t* streams)
+{
+	// Broadcast positions
+	NCCLCHECK(ncclGroupStart());
+	broadcast(positions, vertexCount, ncclFloat, comms, streams);
+	broadcast(velocities, vertexCount, ncclFloat, comms, streams);
+	NCCLCHECK(ncclGroupEnd());
+	// Manually zeroing forces on each gpu is cheaper than broadcasting them
+	for (int i = 0; i < gpuCount; i++)
+	{
+		CUDACHECK(cudaSetDevice(i));
+		CUDACHECK(cudaMemset(forces[i].x, 0, vertexCount * sizeof(float)));
+		CUDACHECK(cudaMemset(forces[i].y, 0, vertexCount * sizeof(float)));
+		CUDACHECK(cudaMemset(forces[i].z, 0, vertexCount * sizeof(float)));
+
+		CUDACHECK(cudaStreamSynchronize(streams[i]));
+	}
+	CUDACHECK(cudaSetDevice(0));
+}
+
+void VeinTriangles::reduceForces(ncclComm_t* comms, cudaStream_t* streams)
+{
+	NCCLCHECK(ncclGroupStart());
+	reduce(forces, vertexCount, ncclFloat, comms, streams);
+	NCCLCHECK(ncclGroupEnd());
+	sync(streams);
+}
+#endif

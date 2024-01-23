@@ -2,6 +2,12 @@
 
 #include "base_grid.cuh"
 #include "../objects/particles.cuh"
+#include "../utilities/host_device_array.cuh"
+
+#ifdef MULTI_GPU
+#include "../utilities/nccl_operations.cuh"
+#endif
+
 
 /// <summary>
 /// Represents a grid of uniform cell size
@@ -10,6 +16,7 @@ class UniformGrid : public BaseGrid<UniformGrid>
 {
 private:
 	bool isCopy = false;
+	int gpuId;
 
 public:
 
@@ -22,12 +29,12 @@ public:
 	int cellCount;
 	int objectCount;
 
-	int* gridCellIds = 0;
-	int* particleIds = 0;
-	int* gridCellStarts = 0;
-	int* gridCellEnds = 0;
+	HostDeviceArray<int*, gpuCount> gridCellIds;
+	HostDeviceArray<int*, gpuCount> particleIds;
+	HostDeviceArray<int*, gpuCount> gridCellStarts;
+	HostDeviceArray<int*, gpuCount> gridCellEnds;
 
-	UniformGrid(const int objectCount, int cellWidth, int cellHeight, int cellDepth);
+	UniformGrid(int gpuId, int objectCount, int cellWidth, int cellHeight, int cellDepth);
 	UniformGrid(const UniformGrid& other);
 	~UniformGrid();
 
@@ -36,19 +43,7 @@ public:
 	/// </summary>
 	/// <param name="particles">simulation particles</param>
 	/// <param name="objectCount">number of particles</param>
-	inline void calculateGrid(const Particles& particles, int objectCount)
-	{
-		calculateGrid(particles.positions.x, particles.positions.y, particles.positions.z, objectCount);
-	}
-
-	/// <summary>
-	/// Recalculate grid basing on objects positions
-	/// </summary>
-	/// <param name="positionX">device buffer of X's of positions</param>
-	/// <param name="positionY">device buffer of Y's of positions</param>
-	/// <param name="positionZ">device buffer of Z's of positions</param>
-	/// <param name="objectCount">number of objects</param>
-	void calculateGrid(const float* positionX, const float* positionY, const float* positionZ, int objectCount);
+	void calculateGrid(const cudaVec3& positions, int objectCount);
 
 	/// <summary>
 	/// Calculate grid cell id from object position
@@ -56,4 +51,8 @@ public:
 	/// <param name="positions">object position</param>
 	/// <returns>cell id</returns>
 	__device__ int calculateCellId(float3 position);
+
+	#ifdef MULTI_GPU
+	void broadcastGrid(ncclComm_t* comms, cudaStream_t* streams);
+	#endif
 };

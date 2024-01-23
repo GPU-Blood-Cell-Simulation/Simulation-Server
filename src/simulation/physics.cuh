@@ -137,39 +137,10 @@ namespace physics
 		float3 tangentialVelocity = relativeVelocity - dot(relativeVelocity, relativeDirection) * relativeDirection;
 
 		float3 springForce = -collisionSpringCoeff * (radius * 2 - sqrtf(distanceSquared)) * relativeDirection;
-		float3 damplingForce = collisionDampingCoeff * relativeVelocity;
+		float3 dampingForce = collisionDampingCoeff * relativeVelocity;
 		float3 shearForce = collistionShearCoeff * tangentialVelocity;
 
 		// Uncoalesced writes - area for optimization
-		forces.add(particleId, intensityCoefficient * (springForce + damplingForce + shearForce));
-	}
-
-	/// <summary>
-	/// Propagates forces in blood cell particle
-	/// </summary>
-	/// <param name="particleId">id of particle</param>
-	/// <param name="bloodCells">device data of bloodcells</param>
-	/// <param name="velocity">calculated particle velocity</param>
-	/// <param name="initialVelocity">initial particle velocity</param>
-	/// <returns></returns>
-	__device__ inline void propagateForcesInParticles(unsigned int particleId, BloodCells& bloodCells, float3 velocity, float3 initialVelocity)
-	{
-
-		float3 F = bloodCells.particles.forces.get(particleId);
-		// propagate particle forces into velocities
-		velocity = velocity + dt * F;
-		bloodCells.particles.velocities.set(particleId, velocity);
-
-		// propagate velocities into positions
-#ifdef USE_RUNGE_KUTTA_FOR_PARTICLE
-		float3 k1_x = dt * velocity;
-		float3 k2_x = dt * (velocity + k1_x / 2);
-		float3 k3_x = dt * (velocity + k2_x / 2);
-		float3 k4_x = dt * (velocity + k3_x);
-		bloodCells.particles.positions.add(particleId, (k1_x + 2 * k2_x + 2 * k3_x + k4_x) / 6.0f);
-#else
-		// using Heun's method
-		bloodCells.particles.positions.add(particleId, 0.5f * dt * (velocity + initialVelocity));
-#endif
+		forces.add(particleId, intensityCoefficient * (springForce + dampingForce + shearForce));
 	}
 }

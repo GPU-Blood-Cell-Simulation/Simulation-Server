@@ -16,16 +16,7 @@ public:
 	/// </summary>
 	/// <param name="particles">simulation particles</param>
 	/// <param name="objectCount">number of particles</param>
-	inline void calculateGrid(const Particles& particles, int objectCount) {}
-
-	/// <summary>
-	/// Recalculate grid basing on objects positions
-	/// </summary>
-	/// <param name="positionX">device buffer of X's of positions</param>
-	/// <param name="positionY">device buffer of Y's of positions</param>
-	/// <param name="positionZ">device buffer of Z's of positions</param>
-	/// <param name="objectCount">number of objects</param>
-	inline void calculateGrid(const float* positionX, const float* positionY, const float* positionZ, int objectCount) {}
+	inline void calculateGrid(const cudaVec3& particles, int objectCount) {}
 
 	/// <summary>
 	/// Calculate grid cell id from object position

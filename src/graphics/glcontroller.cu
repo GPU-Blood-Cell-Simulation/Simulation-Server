@@ -20,19 +20,6 @@
 
 namespace graphics
 {
-	// __global__ void calculateOffsetsKernel(float* devCudaOffsetBuffer, cudaVec3 positions)
-	// {
-	// 	int id = blockIdx.x * blockDim.x + threadIdx.x;
-	// 	if (id >= particleCount)
-	// 		return;
-		
-	// 	//printf("[%d] x=%.5f, y=%.5f, z=%.5f\n", id, positions.x[id], positions.y[id], positions.z[id]);
-	// 	devCudaOffsetBuffer[3 * id] = positions.x[id];
-	// 	devCudaOffsetBuffer[3 * id + 1] = positions.y[id];
-	// 	devCudaOffsetBuffer[3 * id + 2] = positions.z[id];
-
-	// }
-
 	template<int bloodCellCount, int particlesInBloodCell, int particlesStart, int bloodCellTypeStart>
 	__global__ void calculatePositionsKernel(float* devCudaPositionsVertices, float* devCudaPositionsOffsets, cudaVec3 positions)
 	{
@@ -68,8 +55,8 @@ namespace graphics
 		void* resourceBuffer = 0;
 		size_t numBytes;
 
-		HANDLE_ERROR(cudaGraphicsMapResources(1, &resource, 0));
-		HANDLE_ERROR(cudaGraphicsResourceGetMappedPointer((void**)&resourceBuffer, &numBytes, resource));
+		CUDACHECK(cudaGraphicsMapResources(1, &resource, 0));
+		CUDACHECK(cudaGraphicsResourceGetMappedPointer((void**)&resourceBuffer, &numBytes, resource));
 		return resourceBuffer;
 	}
 
@@ -77,8 +64,8 @@ namespace graphics
 	GLController::GLController(SingleObjectMesh& veinMesh, InstancedObjectMesh& sphereMesh, sim::SimulationController& simulationController): veinModel(veinMesh), cellSphereModel(sphereMesh, particleCount)
 	{
 		// Register OpenGL buffer in CUDA for vein
-		HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaVeinVBOResource, veinModel.getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
-		HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&cudaOffsetResource, cellSphereModel.getCudaOffsetBuffer(), cudaGraphicsRegisterFlagsNone));
+		CUDACHECK(cudaGraphicsGLRegisterBuffer(&cudaVeinVBOResource, veinModel.getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
+		CUDACHECK(cudaGraphicsGLRegisterBuffer(&cudaOffsetResource, cellSphereModel.getCudaOffsetBuffer(), cudaGraphicsRegisterFlagsNone));
 
 		using TypeList = mp_iota_c<bloodCellTypeCount>;
 		std::array<unsigned int, bloodCellTypeCount> VBOs;
@@ -126,8 +113,8 @@ namespace graphics
 				bloodCellmodel[typeIndex] = MultipleObjectModel(std::move(vertices), std::move(indices), bloodCellInitials, BloodCellDefinition::count);
 				VBOs[typeIndex] = bloodCellmodel[typeIndex].getVboBuffer(0);
 				// Register OpenGL buffer in CUDA for blood cell
-				HANDLE_ERROR(cudaGraphicsGLRegisterBuffer(&(cudaPositionsResource[typeIndex]), bloodCellmodel[typeIndex].getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
-				HANDLE_ERROR(cudaPeekAtLastError());
+				CUDACHECK(cudaGraphicsGLRegisterBuffer(&(cudaPositionsResource[typeIndex]), bloodCellmodel[typeIndex].getVboBuffer(0), cudaGraphicsRegisterFlagsNone));
+				CUDACHECK(cudaPeekAtLastError());
 
 				// create diffuse color for blood cell type
 				vec3 color;
@@ -166,7 +153,7 @@ namespace graphics
 		for (int i = 0; i < bloodCellTypeCount; i++)
 		{
 			streams[i] = cudaStream_t();
-			HANDLE_ERROR(cudaStreamCreate(&streams[i]));
+			CUDACHECK(cudaStreamCreate(&streams[i]));
 		}
 	}
 
@@ -174,7 +161,7 @@ namespace graphics
 	{
 		for (int i = 0; i < bloodCellTypeCount; i++)
 		{
-			HANDLE_ERROR(cudaStreamDestroy(streams[i]));
+			CUDACHECK(cudaStreamDestroy(streams[i]));
 		}
 	}
 
@@ -194,11 +181,11 @@ namespace graphics
 				// translate our CUDA positions into Vertex offsets
 				calculatePositionsKernel<BloodCellDefinition::count, BloodCellDefinition::particlesInCell, particlesStart, bloodCellTypeStart>
 					<< <threads.blocks, threads.threadsPerBlock, 0, streams[typeIndex] >> > (devCudaPositionVertices, devCudaPositionOffsets, positions);
-				HANDLE_ERROR(cudaPeekAtLastError());
-				HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaPositionsResource[typeIndex], 0));
-				HANDLE_ERROR(cudaPeekAtLastError());
+				CUDACHECK(cudaPeekAtLastError());
+				CUDACHECK(cudaGraphicsUnmapResources(1, &cudaPositionsResource[typeIndex], 0));
+				CUDACHECK(cudaPeekAtLastError());
 			});
-			HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaOffsetResource, 0));
+			CUDACHECK(cudaGraphicsUnmapResources(1, &cudaOffsetResource, 0));
 	}
 
 	void GLController::calculateTriangles(VeinTriangles triangles)
@@ -207,11 +194,11 @@ namespace graphics
 		float* vboPtr = (float*)mapResourceAndGetPointer(cudaVeinVBOResource);
 		int threadsPerBlock = triangles.vertexCount > 1024 ? 1024 : triangles.vertexCount;
 		int blocks = (triangles.vertexCount + threadsPerBlock - 1) / threadsPerBlock;
-		calculateTriangleVerticesKernel << <blocks, threadsPerBlock >> > (vboPtr, triangles.positions, triangles.vertexCount);
-		HANDLE_ERROR(cudaPeekAtLastError());
+		calculateTriangleVerticesKernel << <blocks, threadsPerBlock >> > (vboPtr, triangles.positions[0], triangles.vertexCount);
+		CUDACHECK(cudaPeekAtLastError());
 		cudaDeviceSynchronize();
-		HANDLE_ERROR(cudaGraphicsUnmapResources(1, &cudaVeinVBOResource, 0));
-		HANDLE_ERROR(cudaPeekAtLastError());
+		CUDACHECK(cudaGraphicsUnmapResources(1, &cudaVeinVBOResource, 0));
+		CUDACHECK(cudaPeekAtLastError());
 	}
 
 	void GLController::draw(Camera& camera)

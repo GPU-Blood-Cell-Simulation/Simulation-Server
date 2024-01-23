@@ -48,5 +48,5 @@ From: nvcr.io/nvidia/cuda:12.3.1-devel-ubuntu22.04
     Version v1.0.0
 
 %help
-    This container is ment build and run blood simulation server, which is stored
+    This container is meant to build and run blood simulation server, which is stored
     in this repository: https://github.com/GPU-Blood-Cell-Simulation/Simulation-Server
