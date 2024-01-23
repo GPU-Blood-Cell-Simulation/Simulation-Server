@@ -134,7 +134,7 @@ programLoopFunction
     // Create grids
     UniformGrid particleGrid(particleGridGpu, particleCount, cellWidth, cellHeight, cellDepth);
 #ifdef UNIFORM_TRIANGLES_GRID
-    UniformGrid triangleCentersGrid(veinGridGpu, triangleCount, cellWidth, cellHeight, cellDepth);
+    UniformGrid triangleCentersGrid(veinGridGpu, triangleCount, cellWidthTriangles, cellHeightTriangles, cellDepthTriangles);
 #else
     NoGrid triangleCentersGrid;
 #endif
