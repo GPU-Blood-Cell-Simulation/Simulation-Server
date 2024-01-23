@@ -32,7 +32,7 @@ namespace sim
 		/// </summary>
 		void calculateNextFrame();
 		void propagateAll();
-		std::array<glm::vec3, bloodCellCount> initialCellPositions;
+		std::vector<glm::vec3> initialCellPositions { bloodCellCount };
 		std::array<float, bloodCellTypeCount> smallestRadiusInType;
 		HostDeviceArray<float*, gpuCount> cellModelsBoundingSpheres;
 
