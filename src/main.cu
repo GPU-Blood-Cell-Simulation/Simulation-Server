@@ -68,7 +68,7 @@ int main()
     OffscreenController offscreenController;
     
     VideoController streamingController;
-    streamingController.SetUpStreaming(4321, "127.0.0.1");
+    streamingController.SetUpStreaming(4321, "pascal");
 
     if (saveVideoToFile)
         streamingController.SetUpRecording(videoFileName);
