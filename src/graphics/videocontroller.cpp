@@ -148,6 +148,8 @@ void VideoController::SetUpStreaming(int port, const std::string &host)
 		NULL
 	);
 
+	g_object_set(G_OBJECT(queueStream), "flush-on-eos", TRUE, NULL);
+
 	gst_bin_add_many(GST_BIN(pipeline), queueStream, x264encStream, rtph264pay, udpsink, NULL);
 
 	if (gst_element_link_many(queueStream, x264encStream, rtph264pay, udpsink, NULL) != TRUE) {
@@ -185,6 +187,8 @@ void VideoController::SetUpRecording(const std::string &file_name)
 
 	// rotate image horizontally
 	g_object_set(G_OBJECT(videoFlip), "video-direction", 5, NULL);
+
+	g_object_set(G_OBJECT(queueFile), "flush-on-eos", TRUE, NULL);
 
 	gst_bin_add_many(GST_BIN(pipeline), queueFile, videoFlip, jpegencFile, muxer, filesink, NULL);
 
