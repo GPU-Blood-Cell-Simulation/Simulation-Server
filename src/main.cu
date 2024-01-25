@@ -14,7 +14,8 @@
 #include "objects/sphere_generator.hpp"
 #include <curand.h>
 #include <curand_kernel.h>
-#include <iostream> // for debugging purposes
+#include <chrono>
+#include <iostream>
 #include <sstream>
 #include <thread>
 
@@ -155,6 +156,7 @@ programLoopFunction
 #endif
 
     std::cout << "started rendering...\n";
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     // MAIN LOOP HERE - dictated by glfw
     while (shouldBeRunning)
     {
@@ -247,7 +249,11 @@ programLoopFunction
         }
     }
     
-    std::cout << "finished rendering\n";
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    double seconds = (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()) / 1000000.0;
+    std::cout << "finished rendering in " << seconds << " seconds\n";
+    std::cout << "Average framerate: " << (frameCount - 1) / seconds << " fps\n";
+    std::cout << "Average single frame render time: " << seconds / (frameCount - 1) << " fps\n";
 #ifndef WINDOW_RENDER
     msgController.successfulStreamEndInform();
 #endif
