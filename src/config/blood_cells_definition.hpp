@@ -17,7 +17,7 @@ namespace
 		preset::White_blood_cell_One_Indices,
 		preset::White_blood_cell_One_Normals>,
 
-	BloodCellDef<1000, 20, 108, 14352898,
+	BloodCellDef<500, 20, 108, 14352898,
 		preset::Blood_dust_One_Springs,
 		preset::Blood_dust_One_Vertices,
 		preset::Blood_dust_One_Indices,
