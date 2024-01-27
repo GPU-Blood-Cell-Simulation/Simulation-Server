@@ -1,7 +1,6 @@
 #include "model.hpp"
 
 #include "../meta_factory/blood_cell_factory.hpp"
-#include "textures/texture_loading.hpp"
 
 #include <glad/glad.h>
 #include <iostream>
