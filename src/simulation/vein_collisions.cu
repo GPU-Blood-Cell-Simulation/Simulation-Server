@@ -259,7 +259,7 @@ namespace sim
 				bloodCells.particles.velocities[gpuId].add(particleId, dv);
 
 				// handle vein on collision
-				float3 ds = vein_collision_force_intensity * velocityDir;
+				float3 ds = vein_collision_force_intensity * velocity;
 				unsigned int vertexIndex0 = triangles.getIndex(gpuId, r.objectIndex, vertex0);
 				unsigned int vertexIndex1 = triangles.getIndex(gpuId, r.objectIndex, vertex1);
 				unsigned int vertexIndex2 = triangles.getIndex(gpuId, r.objectIndex, vertex2);
@@ -270,10 +270,6 @@ namespace sim
 
 				float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
 
-				// TODO:
-				// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
-				// Here we probably should use atomicAdd. - Hubert
-				// move triangle a bit
 				triangles.forces[gpuId].add(vertexIndex0, baricentric.x * ds);
 				triangles.forces[gpuId].add(vertexIndex1, baricentric.y * ds);
 				triangles.forces[gpuId].add(vertexIndex2, baricentric.z * ds);

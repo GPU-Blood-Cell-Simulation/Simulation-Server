@@ -9,12 +9,12 @@
 #include "cuda_runtime.h"
 
 
-constexpr float upperBoundTreshold = maxY - gridYMargin / 2;
-constexpr float lowerBoundTreshold = minY + gridYMargin / 2;
-constexpr float rightBoundTreshold = maxX - gridXZMargin / 2;
-constexpr float leftBoundTreshold = minX + gridXZMargin / 2;
-constexpr float frontBoundTreshold = maxZ - gridXZMargin / 2;
-constexpr float backBoundTreshold = minZ + gridXZMargin / 2;
+constexpr float upperBoundThreshold = maxY - 3 * gridYMargin / 4;
+constexpr float lowerBoundThreshold = minY + gridYMargin / 2;
+constexpr float rightBoundThreshold = maxX - gridXZMargin / 2;
+constexpr float leftBoundThreshold = minX + gridXZMargin / 2;
+constexpr float frontBoundThreshold = maxZ - gridXZMargin / 2;
+constexpr float backBoundThreshold = minZ + gridXZMargin / 2;
 constexpr float targetTeleportHeight = minSpawnY;
 
 enum SynchronizationType { warpSync, blockSync };
@@ -69,10 +69,6 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells, curandState* stat
 	float posY = bloodCells.particles.positions[0].y[realIndex]; 
 	float posZ = bloodCells.particles.positions[0].z[realIndex];
 
-	if (posY >= upperBoundTreshold) {
-		// Bounce particle off upper bound
-		bloodCells.particles.velocities[0].y[realIndex] -= 5;
-	}
 
 	// Check if teleportiation should occur
 	bool teleport = false;
@@ -87,7 +83,7 @@ __global__ void handleVeinEndsBlockSync(BloodCells bloodCells, curandState* stat
 	
 
 	// Check additional constraints to make sure particles don't leave the grid
-	teleport = teleport || posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold;
+	teleport = teleport || posY <= lowerBoundThreshold || posY >= upperBoundThreshold|| posX <= leftBoundThreshold || posX >= rightBoundThreshold || posZ <= backBoundThreshold || posZ >= frontBoundThreshold;
 	belowVein[threadIdx.x] = teleport;
 
 	__syncthreads();
@@ -127,18 +123,13 @@ __global__ void handleVeinEndsWarpSync(BloodCells bloodCells, curandState* state
 	float posY = bloodCells.particles.positions[0].y[realIndex]; 
 	float posZ = bloodCells.particles.positions[0].z[realIndex]; 
 
-	if (posY >= upperBoundTreshold) {
-		// Bounce particle off upper bound
-		bloodCells.particles.velocities[0].y[realIndex] -= 5;
-	}
-
 	static constexpr int initSyncBitMask = (particlesInBloodCell == 32) ? 0xffffffff : (1 << (particlesInBloodCell)) - 1;
 	int syncBitMask = initSyncBitMask << static_cast<int>(std::floor(static_cast<float>(threadInWarpID) / particlesInBloodCell)) * particlesInBloodCell;
 
-	// Bit mask of particles, which are below treshold
-	int particlesBelowTreshold = __any_sync(syncBitMask, posY <= lowerBoundTreshold || posX <= leftBoundTreshold || posX >= rightBoundTreshold || posZ <= backBoundTreshold || posZ >= frontBoundTreshold);
+	// Bit mask of particles, which are below Threshold
+	int particlesBelowThreshold = __any_sync(syncBitMask, posY <= lowerBoundThreshold || posY >= upperBoundThreshold || posX <= leftBoundThreshold || posX >= rightBoundThreshold || posZ <= backBoundThreshold || posZ >= frontBoundThreshold);
 
-	if (particlesBelowTreshold != 0) {
+	if (particlesBelowThreshold != 0) {
 		bloodCells.particles.positions[0].x[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.x[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.x[bloodCellmodelStart];
 		bloodCells.particles.positions[0].y[realIndex] = targetTeleportHeight + bloodCellModels.y[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.y[bloodCellmodelStart];
 		bloodCells.particles.positions[0].z[realIndex] = (curand_uniform(&states[realIndex/particlesInBloodCell]) - 0.5f) * 1.2f * cylinderRadius + bloodCellModels.z[bloodCellmodelStart + indexInType % particlesInBloodCell] - bloodCellModels.z[bloodCellmodelStart];
