@@ -131,6 +131,10 @@ void MsgController::handleSingleMsgs(Event event)
         case EventType::toggleSpringsRendering:
             BLOOD_CELL_SPRINGS_RENDER = !BLOOD_CELL_SPRINGS_RENDER;
             break;
+        
+        case EventType::toggleSpheresRendering:
+            BLOOD_CELL_SPHERE_RENDER = !BLOOD_CELL_SPHERE_RENDER;
+            break;
 
         case EventType::stopRendering:
             std::cout << "Client requested simulation abort\n";
