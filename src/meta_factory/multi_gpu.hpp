@@ -14,6 +14,11 @@
 #endif
 
 // Multi gpu split lambdas
+
+/// <summary>
+/// Calculate starts of an array range for every gpu
+/// </summary>
+/// <param name="size">Total size of elements to be split across multiple gpus</param>
 inline constexpr auto gpuSplitStartGenerator = [](int size)
 {
 	std::array<int, gpuCount> ret;
@@ -28,6 +33,10 @@ inline constexpr auto gpuSplitStartGenerator = [](int size)
     return ret;
 };
 
+/// <summary>
+/// Calculate ends of an array range for every gpu
+/// </summary>
+/// <param name="size">Total size of elements to be split across multiple gpus</param>
 inline constexpr auto gpuSplitEndGenerator = [](int size)
 {
 	std::array<int, gpuCount> ret;

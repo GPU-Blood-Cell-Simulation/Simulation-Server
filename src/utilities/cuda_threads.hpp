@@ -22,9 +22,5 @@ public:
 
 	CudaThreads(unsigned int threadsPerBlock, unsigned int blocks) :
 		threadsPerBlock(threadsPerBlock), blocks(blocks)
-	{
-		// TODO: when vein definition is constexpr, change this class to be based entirely constexpr, based on templates
-		/*if (threadsPerBlock > maxThreadsInBlock)
-			throw std::invalid_argument("Too many threads per block");*/
-	}
+	{}
 };

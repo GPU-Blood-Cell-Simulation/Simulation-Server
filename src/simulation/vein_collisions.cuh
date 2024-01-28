@@ -99,6 +99,9 @@ namespace sim
 	/// <summary>
 	/// Main kernel to detect collisions with triangles
 	/// </summary>
+	/// <param name="gpuId">the gpu on which the kernel is launched</param>
+	/// <param name="gpuStart">start of the vein vertex array range for this gpu</param>
+	/// <param name="gpuEnd">end of the vein vertex array range for this gpu</param>
 	/// <param name="bloodCells">blood cell device data</param>
 	/// <param name="triangles">triangles device data</param>
 	/// <param name="triangleGrid">triangle grid</param>
@@ -111,17 +114,20 @@ namespace sim
 	__global__ void detectVeinCollisions<NoGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, NoGrid triangleGrid, float* boundingSpheresModel,
 		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);
 
-	 /// <summary>
-	 /// Main kernel to detect collisions with triangles
-	 /// </summary>
-	 /// <param name="bloodCells">blood cell device data</param>
-	 /// <param name="triangles">triangles device data</param>
-	 /// <param name="triangleGrid">triangle grid</param>
-	 /// <param name="boundingSpheresModel">data of bounding sphere in blood cell model</param>
-	 /// <param name="particlesInBloodCell">Number of particles in blood cell model</param>
-	 /// <param name="bloodCellmodelStart">index shift for blood cell model</param>
-	 /// <param name="particlesStart">index shift for particle data</param>
-	 /// <returns></returns>
+	/// <summary>
+	/// Main kernel to detect collisions with triangles
+	/// </summary>
+	/// <param name="gpuId">the gpu on which the kernel is launched</param>
+	/// <param name="gpuStart">start of the vein vertex array range for this gpu</param>
+	/// <param name="gpuEnd">end of the vein vertex array range for this gpu</param>
+	/// <param name="bloodCells">blood cell device data</param>
+	/// <param name="triangles">triangles device data</param>
+	/// <param name="triangleGrid">triangle grid</param>
+	/// <param name="boundingSpheresModel">data of bounding sphere in blood cell model</param>
+	/// <param name="particlesInBloodCell">Number of particles in blood cell model</param>
+	/// <param name="bloodCellmodelStart">index shift for blood cell model</param>
+	/// <param name="particlesStart">index shift for particle data</param>
+	/// <returns></returns>
 	template<>
 	__global__ void detectVeinCollisions<UniformGrid>(int gpuId, int gpuStart, int gpuEnd, BloodCells bloodCells, VeinTriangles triangles, UniformGrid triangleGrid, float* boundingSpheresModel,
 		int bloodCellsOfType, int particlesInBloodCell, int bloodCellmodelStart, int particlesStart);

@@ -6,8 +6,6 @@
 #include <memory>
 #include <algorithm>
 
-// TODO: remove
-#include <iostream>
 
 Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<unsigned int>&& indices) :
 	vertices(vertices), indices(indices) {}

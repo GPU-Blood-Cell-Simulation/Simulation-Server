@@ -67,20 +67,54 @@ public:
 	~VeinTriangles();
 
 	/// <summary>
-	/// device funtion to get triangle vertex absolute index
+	/// Device funtion to get triangle vertex absolute index
 	/// </summary>
+	/// <param name="gpuId">The gpu on which the function is called</param>
+	/// <param name="triangleIndex">Index of the triangle</param>
+	/// <param name="vertexIndex">Index of the vertex in the triangle (0,1,2)</param>
+	/// <returns>The real index of the vertex in the vertex array</returns>
 	__device__ inline unsigned int getIndex(int gpuId, int triangleIndex, VertexIndex vertexIndex) const
 	{
 		return indices[gpuId][3 * triangleIndex + vertexIndex];
 	}
 
+	/// <summary>
+	/// Adjust the force acting on particles based on the neighbors attached to them by springs
+	/// </summary>
+	/// <param name="gpuId">The gpu on which the kernel is launched</param>
+	/// <param name="gpuStart">Start of the vein vertex array for this gpu</param>
+	/// <param name="gpuEnd">End of the vein vertex  for this gpu</param>
+	/// <param name="blocks">CUDA block count</param>
+	/// <param name="threadsPerBlock">CUDA threads in a single block</param>
 	void gatherForcesFromNeighbors(int gpuId, int gpuStart, int gpuEnd, int blocks, int threadsPerBlock);
+
+	/// <summary>
+	/// Propagate forces into velocities and velocities into positions
+	/// </summary>
+	/// <param name="blocks">CUDA block count</param>
+	/// <param name="threadsPerBlock">CUDA threads in a single block</param>
 	void propagateForcesIntoPositions(int blocks, int threadsPerBlock);
 
+	/// <summary>
+	/// Calculate the centers of each triangle (necessary for calculating the grid)
+	/// </summary>
+	/// <param name="blocks">CUDA block count</param>
+	/// <param name="threadsPerBlock">CUDA threads in a single block</param>
 	void calculateCenters(int blocks, int threadsPerBlock);
 
 #ifdef MULTI_GPU
+	/// <summary>
+	/// Broadcast vein data from the root gpu to all others
+	/// </summary>
+	/// <param name="blocks">NCCL comm array</param>
+	/// <param name="blocks">NCCL synchronization stream array</param>
 	void broadcastPositionsAndVelocities(ncclComm_t* comms, cudaStream_t* streams);
+
+	/// <summary>
+	/// Reduce vein forces from all gpus to the root node
+	/// </summary>
+	/// <param name="blocks">NCCL comm array</param>
+	/// <param name="blocks">NCCL synchronization stream array</param>
 	void reduceForces(ncclComm_t* comms, cudaStream_t* streams);
 #endif
 

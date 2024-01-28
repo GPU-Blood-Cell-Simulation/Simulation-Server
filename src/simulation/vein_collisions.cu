@@ -76,7 +76,6 @@ namespace sim
 		ray r(pos, velocityDir);
 		float3 reflectedVelociy = make_float3(0, 0, 0);
 		
-		// TODO: fix this
 		bool collisionDetected = false;
 		unsigned int cellId = triangleGrid.calculateCellId(pos);
 
@@ -359,10 +358,6 @@ namespace sim
 
 	 			float3 baricentric = calculateBaricentric(pos + r.t * r.direction, v0, v1, v2);
 
-	 			// TODO:
-	 			// Can these lines generate concurrent write conflicts? Unlikely but not impossible. Think about it. - Filip
-	 			// Here we probably should use atomicAdd. - Hubert
-	 			// move triangle a bit
 	 			triangles.forces[gpuId].add(vertexIndex0, baricentric.x * ds);
 	 			triangles.forces[gpuId].add(vertexIndex1, baricentric.y * ds);
 	 			triangles.forces[gpuId].add(vertexIndex2, baricentric.z * ds);

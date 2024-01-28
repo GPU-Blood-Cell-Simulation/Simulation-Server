@@ -14,6 +14,7 @@ namespace sim
 	/// <summary>
 	/// Device method to detect and react on particle collisions
 	/// </summary>
+	/// <param name="gpuId">the gpu on which the kernel is launched</param>
 	/// <param name="bloodCells">data of blood cells</param>
 	/// <param name="position1">first particle position</param>
 	/// <param name="velocity1">first particle velocity</param>
@@ -39,6 +40,7 @@ namespace sim
 	/// <summary>
 	/// Detect Colllisions in all 27 cells unless some corner cases are present - specified by template parameters.
 	/// </summary>
+	/// <param name="gpuId">the gpu on which the calling kernel was launched</param>
 	/// <param name="bloodCells">data of blood cells</param>
 	/// <param name="grid">particle uniform grid</param>
 	/// <param name="p1">first particle position</param>
@@ -89,6 +91,9 @@ namespace sim
 	/// <summary>
 	/// Calculate collisions between particles using UniformGrid
 	/// </summary>
+	/// <param name="gpuId">the gpu on which the kernel is launched</param>
+	/// <param name="gpuStart">start of the particle array range for this gpu</param>
+	/// <param name="gpuEnd">end of the particle array range for this gpu</param>
 	/// <param name="bloodCells">data of blood cells</param>
 	/// <param name="grid">particle uniform grid</param>
 	/// <param name="boundingSpheresModel">data of bounding sphere in blood cell model</param>
@@ -267,6 +272,9 @@ namespace sim
 	/// <summary>
 	/// Calculate collisions between particles without any grid (naive implementation)
 	/// </summary>
+	/// <param name="gpuId">the gpu on which the kernel is launched</param>
+	/// <param name="gpuStart">start of the particle array range for this gpu</param>
+	/// <param name="gpuEnd">end of the particle array range for this gpu</param>
 	/// <param name="bloodCells">data of blood cells</param>
 	/// <param name="grid">particle uniform grid</param>
 	/// <param name="boundingSpheresModel">data of bounding sphere in blood cell model</param>

@@ -40,13 +40,35 @@ public:
 	/// <summary>
 	/// Perform gathering forces contribution from neighbour particles for every particle
 	/// </summary>
+	/// <param name="gpuId">The gpu calculating the kernels</param>
+	/// <param name="bloodCellGpuStart">Start of the blood cell array range for this gpu</param>
+	/// <param name="bloodCellGpuEnd">End of the blood cell array range for this gpu</param>
+	/// <param name="particleGpuStart">Start of the particle array range for this gpu</param>
+	/// <param name="particleGpuEnd">End of the particle array range for this gpu</param>
+	/// <param name="streams">CUDA streams to be used for different blood cell types</param>
 	void gatherForcesFromNeighbors(int gpuId, int bloodCellGpuStart, int bloodCellGpuEnd,
 		int particleGpuStart, int particleGpuEnd, const std::array<cudaStream_t, bloodCellTypeCount>& streams);
 
+	/// <summary>
+	/// Transform forces into velocities and velocities into positions
+	/// </summary>
+	/// <param name="blocks">CUDA block count</param>
+	/// <param name="blocks">CUDA threads per one block</param>
 	void propagateForcesIntoPositions(int blocks, int threadsPerBlock);
 
 	#ifdef MULTI_GPU
+	/// <summary>
+	/// Broadcast particle data from the root gpu to all others
+	/// </summary>
+	/// <param name="blocks">NCCL comm array</param>
+	/// <param name="blocks">NCCL synchronization stream array</param>
 	void broadcastParticles(ncclComm_t* comms, cudaStream_t* streams);
+
+	/// <summary>
+	/// Reduce particle forces from all gpus to the root node
+	/// </summary>
+	/// <param name="blocks">NCCL comm array</param>
+	/// <param name="blocks">NCCL synchronization stream array</param>
 	void reduceForces(ncclComm_t* comms, cudaStream_t* streams);
 	#endif
 };
