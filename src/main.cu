@@ -43,12 +43,6 @@
 
 #define UNIFORM_TRIANGLES_GRID
 
-//#pragma float_control( except, on )
-//// NVIDIA GPU selector for devices with multiple GPUs (e.g. laptops)
-//extern "C"
-//{
-//    __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
-//}
 
 #ifdef WINDOW_RENDER
 #define programLoopFunction void programLoop(WindowController& windowController)
@@ -245,11 +239,11 @@ programLoopFunction
         // Send data to client
         streamingController.SendFrame();
         msgController.handleMsgs();
-#endif
-        //std::cout << frameCount << "\n";
-        if (++frameCount > maxFrames) {
+
+        std::cout << frameCount << "\n";
+        if (++frameCount > maxFrames)
             shouldBeRunning = false;
-        }
+#endif     
     }
 #ifndef WINDOW_RENDER
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
