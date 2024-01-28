@@ -100,7 +100,7 @@ __global__ void propagateForcesIntoPositionsKernel(VeinTriangles triangles)
 }
 
 /// <summary>
-/// Propagate forces -> velocities and velocities->positions
+/// Propagate forces -> velocities and velocities -> positions
 /// </summary>
 void VeinTriangles::propagateForcesIntoPositions(int blocks, int threadsPerBlock)
 {

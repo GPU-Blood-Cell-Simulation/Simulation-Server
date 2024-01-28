@@ -2,6 +2,9 @@
 
 #include <glm/vec3.hpp>
 
+/// <summary>
+/// A vec3 alternative with a constexpr constructor
+/// </summary>
 struct cvec
 {
 	float x;

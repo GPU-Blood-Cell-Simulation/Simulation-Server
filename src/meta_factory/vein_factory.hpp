@@ -85,7 +85,6 @@ inline constexpr float height = maxY - minY;
 /// </summary>
 inline constexpr float depth = maxZ - minZ;
 
-// TODO: read hLayers
 inline constexpr float cylinderRadius = 50;
 
 namespace internal

@@ -31,7 +31,12 @@ namespace sim
 		/// Executes main simulation loop
 		/// </summary>
 		void calculateNextFrame();
+
+		/// <summary>
+		/// Calls the propagations functions for both particles and vein vertices
+		/// </summary>
 		void propagateAll();
+
 		std::vector<glm::vec3> initialCellPositions { bloodCellCount };
 		std::array<float, bloodCellTypeCount> smallestRadiusInType;
 		HostDeviceArray<float*, gpuCount> cellModelsBoundingSpheres;
@@ -50,7 +55,14 @@ namespace sim
 		curandState* devStates = 0;
 		cudaVec3 bloodCellModels{ particleDistinctCellsCount };
 
+		/// <summary>
+		/// Generate bounding spheres for blood cells
+		/// </summary>
 		void generateBoundingSpheres();
+
+		/// <summary>
+		/// Generate random positions for blood cells
+		/// </summary>
 		void generateRandomPositions();
 	};
 }

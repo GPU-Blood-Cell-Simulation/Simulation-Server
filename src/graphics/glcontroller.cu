@@ -242,7 +242,7 @@ namespace graphics
 				phongForwardSphereShader->setFloat("Shininess", 32);
 				phongForwardSphereShader->setLighting(directionalLight);
 				phongForwardSphereShader->setFloat("sphereRadius", minimalRadius*float(boundingSpheresCoeff)/2);
-				phongForwardSphereShader->setVector("Diffuse", bloodCellTypeDiffuse[0]); /// TODO
+				phongForwardSphereShader->setVector("Diffuse", bloodCellTypeDiffuse[0]);
 				cellSphereModel.draw(phongForwardSphereShader.get());
 			}
 			else

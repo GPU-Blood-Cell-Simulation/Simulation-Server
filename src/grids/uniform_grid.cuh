@@ -34,6 +34,13 @@ public:
 	HostDeviceArray<int*, gpuCount> gridCellStarts;
 	HostDeviceArray<int*, gpuCount> gridCellEnds;
 
+	/// <summary>
+	/// Basic constructor
+	/// </summary>
+	/// <param name="gpuId">The gpu where the grid should be calculated</param>
+	/// <param name="cellWidth">Width (x) of a single grid cell</param>
+	/// <param name="cellHeight">Height(y) of a single grid cell</param>
+	/// <param name="cellDepth">Depth (z) of a single grid cell</param>
 	UniformGrid(int gpuId, int objectCount, int cellWidth, int cellHeight, int cellDepth);
 	UniformGrid(const UniformGrid& other);
 	~UniformGrid();

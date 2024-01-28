@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.10.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Simulation-Server: C:/Users/hlaw/Documents/repo/Simulation-Server/src/graphics/videocontroller.hpp Source File</title>
+<title>Simulation Server: src/graphics/videocontroller.hpp Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Simulation-Server
+   <div id="projectname">Simulation Server<span id="projectnumber">&#160;1.0</span>
    </div>
-   <div id="projectbrief">Module of Blood Cell Simulation on CUDA GPU</div>
+   <div id="projectbrief">The server module for the blood cell simulation project</div>
   </td>
  </tr>
  </tbody>
@@ -150,7 +150,7 @@ $(function(){initNavTree('videocontroller_8hpp_source.html',''); initResizable()
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="comment">/* Recording elements */</span></div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    GstElement *queueFile;</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    GstElement *videoFlip;</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    GstElement *x264encFile;</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    GstElement *jpegencFile;</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    GstElement *muxer;</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    GstElement *filesink;</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
@@ -158,9 +158,11 @@ $(function(){initNavTree('videocontroller_8hpp_source.html',''); initResizable()
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    GstPad *mp4muxRequestPad = NULL;</div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keyword">static</span> GstElement *createPipelineElement(<span class="keyword">const</span> std::string&amp; factoryName, <span class="keyword">const</span> std::string&amp; name);</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>};</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keyword">static</span> <span class="keywordtype">void</span> bus_error_handler(GstBus *bus, GstMessage *msg, gpointer data);</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>};</div>
 </div>
-<div class="ttc" id="aclass_video_controller_html"><div class="ttname"><a href="class_video_controller.html">VideoController</a></div><div class="ttdoc">Controlls visualization's streaming and recording.</div><div class="ttdef"><b>Definition</b> videocontroller.hpp:14</div></div>
+<div class="ttc" id="aclass_video_controller_html"><div class="ttname"><a href="class_video_controller.html">VideoController</a></div><div class="ttdoc">Controls visualization's streaming and recording.</div><div class="ttdef"><b>Definition</b> videocontroller.hpp:14</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

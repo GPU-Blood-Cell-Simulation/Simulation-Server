@@ -1,7 +1,6 @@
 var class_model =
 [
-    [ "addMesh", "class_model.html#ab7c4d35069f17fc39704d6993f2ae5e5", null ],
-    [ "draw", "class_model.html#a344465b12eb9b8ef4fc2d5054da0df91", null ],
-    [ "getEboBuffer", "class_model.html#a7bcdd78cd317c71b039dd22bae1d0623", null ],
-    [ "getVboBuffer", "class_model.html#a7cd48b116b66785ba874fa6f9588e713", null ]
+    [ "draw", "class_model.html#a64a3dfafc60a721ab4c890168cab22e8", null ],
+    [ "getEboBuffer", "class_model.html#ac757143e04a74dc4fdb1d976894050e1", null ],
+    [ "getVboBuffer", "class_model.html#ae8faa595f5870d99081ece5136f89a74", null ]
 ];

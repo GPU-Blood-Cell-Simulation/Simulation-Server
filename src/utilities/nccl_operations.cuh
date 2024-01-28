@@ -13,6 +13,10 @@
 
 namespace nccl
 {
+    /// <summary>
+	/// Synchronize all devices
+	/// </summary>
+	/// <param name="streams">NCCL synchronization stream array</param>
     inline void sync(cudaStream_t* streams)
     {
         for (int i = 0; i < gpuCount; i++)
@@ -23,6 +27,15 @@ namespace nccl
         CUDACHECK(cudaSetDevice(0));
     }
 
+    /// <summary>
+	/// Broadcast the provided data from the root node to all gpus
+	/// </summary>
+	/// <param name="data">data to broadcast</param>
+	/// <param name="size">size of the data</param>
+    /// <param name="type">NCCL data type</param>
+    /// <param name="blocks">NCCL comm array</param>
+	/// <param name="blocks">NCCL synchronization stream array</param>
+    /// <param name="root">root gpu id</param>
     template<typename T>
     inline void broadcast(T& data, int size, ncclDataType_t type, ncclComm_t* comms, cudaStream_t* streams, int root = 0)
     {
@@ -41,6 +54,14 @@ namespace nccl
         }   
     }
 
+    /// <summary>
+	/// Reduce provided data from all gpus into the root node
+	/// </summary>
+	/// <param name="data">data to reduce</param>
+	/// <param name="size">size of the data</param>
+    /// <param name="type">NCCL data type</param>
+    /// <param name="blocks">NCCL comm array</param>
+	/// <param name="blocks">NCCL synchronization stream array</param>
     template<typename T>
     inline void reduce(T& data, int size, ncclDataType_t type, ncclComm_t* comms, cudaStream_t* streams)
     {

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.10.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Simulation-Server: MsgController Class Reference</title>
+<title>Simulation Server: MsgController Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Simulation-Server
+   <div id="projectname">Simulation Server<span id="projectnumber">&#160;1.0</span>
    </div>
-   <div id="projectbrief">Module of Blood Cell Simulation on CUDA GPU</div>
+   <div id="projectbrief">The server module for the blood cell simulation project</div>
   </td>
  </tr>
  </tbody>
@@ -99,7 +99,7 @@ $(function(){initNavTree('class_msg_controller.html',''); initResizable(); });
 </div><!--header-->
 <div class="contents">
 
-<p>Controller for message in visualisation streaming.  
+<p>Controller for message in visualization streaming.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="msg__controller_8hpp_source.html">msg_controller.hpp</a>&gt;</code></p>
@@ -109,19 +109,51 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a901c959cd4f8012e09e62fcdd65e7900" id="r_a901c959cd4f8012e09e62fcdd65e7900"><td class="memItemLeft" align="right" valign="top"><a id="a901c959cd4f8012e09e62fcdd65e7900" name="a901c959cd4f8012e09e62fcdd65e7900"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>MsgController</b> (int server_port, const std::string &amp;server_address=&quot;localhost&quot;)</td></tr>
 <tr class="separator:a901c959cd4f8012e09e62fcdd65e7900"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4dba13e84ad11d27eb086741e1196158" id="r_a4dba13e84ad11d27eb086741e1196158"><td class="memItemLeft" align="right" valign="top"><a id="a4dba13e84ad11d27eb086741e1196158" name="a4dba13e84ad11d27eb086741e1196158"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setCamera</b> (<a class="el" href="classgraphics_1_1_camera.html">graphics::Camera</a> *camera)</td></tr>
+<tr class="memitem:a4dba13e84ad11d27eb086741e1196158" id="r_a4dba13e84ad11d27eb086741e1196158"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4dba13e84ad11d27eb086741e1196158">setCamera</a> (<a class="el" href="classgraphics_1_1_camera.html">graphics::Camera</a> *camera)</td></tr>
+<tr class="memdesc:a4dba13e84ad11d27eb086741e1196158"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets camera, which is needed to react to client messages.  <br /></td></tr>
 <tr class="separator:a4dba13e84ad11d27eb086741e1196158"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade2458b15b888f77b2f7fc3982348a99" id="r_ade2458b15b888f77b2f7fc3982348a99"><td class="memItemLeft" align="right" valign="top"><a id="ade2458b15b888f77b2f7fc3982348a99" name="ade2458b15b888f77b2f7fc3982348a99"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setStreamEndCallback</b> (const std::function&lt; void()&gt; &amp;callback)</td></tr>
+<tr class="separator:ade2458b15b888f77b2f7fc3982348a99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad68f8268703641b670fc8263beb63e8b" id="r_ad68f8268703641b670fc8263beb63e8b"><td class="memItemLeft" align="right" valign="top"><a id="ad68f8268703641b670fc8263beb63e8b" name="ad68f8268703641b670fc8263beb63e8b"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>handleMsgs</b> ()</td></tr>
 <tr class="memdesc:ad68f8268703641b670fc8263beb63e8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Detects message type and execute specific action. <br /></td></tr>
 <tr class="separator:ad68f8268703641b670fc8263beb63e8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37bc8d378d05583f2b41a43ca3e14e2b" id="r_a37bc8d378d05583f2b41a43ca3e14e2b"><td class="memItemLeft" align="right" valign="top"><a id="a37bc8d378d05583f2b41a43ca3e14e2b" name="a37bc8d378d05583f2b41a43ca3e14e2b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>successfulStreamEndInform</b> ()</td></tr>
+<tr class="separator:a37bc8d378d05583f2b41a43ca3e14e2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Controller for message in visualisation streaming. </p>
-</div><hr/>The documentation for this class was generated from the following files:<ul>
-<li>C:/Users/hlaw/Documents/repo/Simulation-Server/src/communication/<a class="el" href="msg__controller_8hpp_source.html">msg_controller.hpp</a></li>
-<li>C:/Users/hlaw/Documents/repo/Simulation-Server/src/communication/<b>msg_controller.cpp</b></li>
+<div class="textblock"><p>Controller for message in visualization streaming. </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a4dba13e84ad11d27eb086741e1196158" name="a4dba13e84ad11d27eb086741e1196158"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4dba13e84ad11d27eb086741e1196158">&#9670;&#160;</a></span>setCamera()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void MsgController::setCamera </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classgraphics_1_1_camera.html">graphics::Camera</a> *</td>          <td class="paramname"><span class="paramname"><em>camera</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets camera, which is needed to react to client messages. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">camera</td><td>Pointer to the camera used during rendering</td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
+<li>src/communication/<a class="el" href="msg__controller_8hpp_source.html">msg_controller.hpp</a></li>
+<li>src/communication/<b>msg_controller.cpp</b></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

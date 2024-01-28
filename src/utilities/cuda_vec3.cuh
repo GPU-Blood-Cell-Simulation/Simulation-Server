@@ -20,7 +20,14 @@ public:
 
 	// allocated on host
 	cudaVec3() = default;
+
+	/// <summary>
+	/// Basic constructor
+	/// </summary>
+	/// <param name="n">vector size</param>
+	/// <param name="gpuId">the gpu where the vector memory should be allocated</param>
 	cudaVec3(int n, int gpuId = 0);
+
 	cudaVec3(std::pair<int, int> pair);
 
 	cudaVec3(const cudaVec3& other);
