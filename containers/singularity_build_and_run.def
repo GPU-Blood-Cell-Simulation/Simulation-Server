@@ -43,10 +43,30 @@ From: nvcr.io/nvidia/cuda:12.3.1-devel-ubuntu22.04
     gcc --version
     git --version
 
+%runscript
+    if [ $# -eq 0 ]
+    then
+        SERVER_PATH="${PWD}"
+    elif [ $# -eq 1 ]
+    then
+        SERVER_PATH="$1"
+    else
+        echo "Too many arguments"
+        exit -1
+    fi
+
+    mkdir "${SERVER_PATH}/build"
+    cmake -S "${SERVER_PATH}" -B "${SERVER_PATH}/build" -DWINDOW_RENDERING=OFF -DCMAKE_BUILD_TYPE=Debug
+    cmake --build "${SERVER_PATH}/build" --parallel 3 --target Simulation_server
+    (cd "${SERVER_PATH}/build/" && ./Simulation_server)
+
 %labels
     Author Piotr Nieciecki piotr.nieciecki01@gmail.com
-    Version v1.0.0
+    Version v1.1.0
 
 %help
     This container is meant to build and run blood simulation server, which is stored
     in this repository: https://github.com/GPU-Blood-Cell-Simulation/Simulation-Server
+
+    Default script takes path to simulation server main directory, builds it and run
+    configured simulation.
