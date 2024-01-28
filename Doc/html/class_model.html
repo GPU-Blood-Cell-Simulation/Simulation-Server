@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.10.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Simulation-Server: Model Class Reference</title>
+<title>Simulation Server: Model Class Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -27,9 +27,9 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">Simulation-Server
+   <div id="projectname">Simulation Server<span id="projectnumber">&#160;1.0</span>
    </div>
-   <div id="projectbrief">Module of Blood Cell Simulation on CUDA GPU</div>
+   <div id="projectbrief">The server module for the blood cell simulation project</div>
   </td>
  </tr>
  </tbody>
@@ -94,84 +94,63 @@ $(function(){initNavTree('class_model.html',''); initResizable(); });
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="class_model-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">Model Class Reference</div></div>
+  <div class="headertitle"><div class="title">Model Class Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>General model class containing basic model properties.  
+<p>Abstract model class.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="model_8hpp_source.html">model.hpp</a>&gt;</code></p>
-
-<p>Inherited by <a class="el" href="class_instanced_model.html">InstancedModel</a>, and <a class="el" href="class_multiple_object_model.html">MultipleObjectModel</a>.</p>
+<div class="dynheader">
+Inheritance diagram for Model:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="class_model.png" usemap="#Model_map" alt=""/>
+  <map id="Model_map" name="Model_map">
+<area href="class_instanced_model.html" title="A model dedicated to objects in simulation which are managed in Instancing mechanism." alt="InstancedModel" shape="rect" coords="0,56,128,80"/>
+<area href="class_multiple_object_model.html" title="A model dedicated to objects in simulation which exists in multiple units." alt="MultipleObjectModel" shape="rect" coords="138,56,266,80"/>
+<area href="class_single_object_model.html" alt="SingleObjectModel" shape="rect" coords="276,56,404,80"/>
+  </map>
+</div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a344465b12eb9b8ef4fc2d5054da0df91" id="r_a344465b12eb9b8ef4fc2d5054da0df91"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a344465b12eb9b8ef4fc2d5054da0df91">draw</a> (const <a class="el" href="class_shader.html">Shader</a> *shader) const</td></tr>
-<tr class="memdesc:a344465b12eb9b8ef4fc2d5054da0df91"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls OpenGL render pipeline for underlying meshes.  <br /></td></tr>
-<tr class="separator:a344465b12eb9b8ef4fc2d5054da0df91"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7cd48b116b66785ba874fa6f9588e713" id="r_a7cd48b116b66785ba874fa6f9588e713"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7cd48b116b66785ba874fa6f9588e713">getVboBuffer</a> (unsigned int index)</td></tr>
-<tr class="memdesc:a7cd48b116b66785ba874fa6f9588e713"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets <a class="el" href="struct_vertex.html" title="Represents visualization vertex.">Vertex</a> Buffer Object of certain mesh from model.  <br /></td></tr>
-<tr class="separator:a7cd48b116b66785ba874fa6f9588e713"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bcdd78cd317c71b039dd22bae1d0623" id="r_a7bcdd78cd317c71b039dd22bae1d0623"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7bcdd78cd317c71b039dd22bae1d0623">getEboBuffer</a> (unsigned int index)</td></tr>
-<tr class="memdesc:a7bcdd78cd317c71b039dd22bae1d0623"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets Element Buffer Array of certain mesh from model.  <br /></td></tr>
-<tr class="separator:a7bcdd78cd317c71b039dd22bae1d0623"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab7c4d35069f17fc39704d6993f2ae5e5" id="r_ab7c4d35069f17fc39704d6993f2ae5e5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab7c4d35069f17fc39704d6993f2ae5e5">addMesh</a> (<a class="el" href="class_mesh.html">Mesh</a> &amp;mesh)</td></tr>
-<tr class="memdesc:ab7c4d35069f17fc39704d6993f2ae5e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds external mesh to model.  <br /></td></tr>
-<tr class="separator:ab7c4d35069f17fc39704d6993f2ae5e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
-Protected Attributes</h2></td></tr>
-<tr class="memitem:a5ea3aa111c7a7d179e93dcc0bb567701" id="r_a5ea3aa111c7a7d179e93dcc0bb567701"><td class="memItemLeft" align="right" valign="top"><a id="a5ea3aa111c7a7d179e93dcc0bb567701" name="a5ea3aa111c7a7d179e93dcc0bb567701"></a>
-std::string&#160;</td><td class="memItemRight" valign="bottom"><b>directory</b></td></tr>
-<tr class="separator:a5ea3aa111c7a7d179e93dcc0bb567701"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a538e42901dcfba59471072a48a162163" id="r_a538e42901dcfba59471072a48a162163"><td class="memItemLeft" align="right" valign="top"><a id="a538e42901dcfba59471072a48a162163" name="a538e42901dcfba59471072a48a162163"></a>
-std::vector&lt; <a class="el" href="class_mesh.html">Mesh</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>meshes</b></td></tr>
-<tr class="separator:a538e42901dcfba59471072a48a162163"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64a3dfafc60a721ab4c890168cab22e8" id="r_a64a3dfafc60a721ab4c890168cab22e8"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a64a3dfafc60a721ab4c890168cab22e8">draw</a> (const <a class="el" href="class_shader.html">Shader</a> *shader) const =0</td></tr>
+<tr class="memdesc:a64a3dfafc60a721ab4c890168cab22e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calls OpenGL render pipeline for underlying meshes.  <br /></td></tr>
+<tr class="separator:a64a3dfafc60a721ab4c890168cab22e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8faa595f5870d99081ece5136f89a74" id="r_ae8faa595f5870d99081ece5136f89a74"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae8faa595f5870d99081ece5136f89a74">getVboBuffer</a> (unsigned int index)=0</td></tr>
+<tr class="memdesc:ae8faa595f5870d99081ece5136f89a74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets <a class="el" href="struct_vertex.html" title="Represents visualization vertex.">Vertex</a> Buffer Object of certain mesh from model.  <br /></td></tr>
+<tr class="separator:ae8faa595f5870d99081ece5136f89a74"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac757143e04a74dc4fdb1d976894050e1" id="r_ac757143e04a74dc4fdb1d976894050e1"><td class="memItemLeft" align="right" valign="top">virtual unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac757143e04a74dc4fdb1d976894050e1">getEboBuffer</a> (unsigned int index)=0</td></tr>
+<tr class="memdesc:ac757143e04a74dc4fdb1d976894050e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets Element Buffer Array of certain mesh from model.  <br /></td></tr>
+<tr class="separator:ac757143e04a74dc4fdb1d976894050e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>General model class containing basic model properties. </p>
+<div class="textblock"><p>Abstract model class. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a id="ab7c4d35069f17fc39704d6993f2ae5e5" name="ab7c4d35069f17fc39704d6993f2ae5e5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab7c4d35069f17fc39704d6993f2ae5e5">&#9670;&#160;</a></span>addMesh()</h2>
+<a id="a64a3dfafc60a721ab4c890168cab22e8" name="a64a3dfafc60a721ab4c890168cab22e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64a3dfafc60a721ab4c890168cab22e8">&#9670;&#160;</a></span>draw()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void Model::addMesh </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="class_mesh.html">Mesh</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>mesh</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Adds external mesh to model. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">mesh</td><td>new mesh</td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a344465b12eb9b8ef4fc2d5054da0df91" name="a344465b12eb9b8ef4fc2d5054da0df91"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a344465b12eb9b8ef4fc2d5054da0df91">&#9670;&#160;</a></span>draw()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void Model::draw </td>
+          <td class="memname">virtual void Model::draw </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="class_shader.html">Shader</a> *</td>          <td class="paramname"><span class="paramname"><em>shader</em></span></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Calls OpenGL render pipeline for underlying meshes. </p>
@@ -182,21 +161,31 @@ std::vector&lt; <a class="el" href="class_mesh.html">Mesh</a> &gt;&#160;</td><td
   </dd>
 </dl>
 
+<p>Implemented in <a class="el" href="class_instanced_model.html#a672f441f369e71d25eaa6260ef8feb67">InstancedModel</a>, <a class="el" href="class_single_object_model.html#ac99eff9c1432a1ce3bdf1c501ecbfa7d">SingleObjectModel</a>, and <a class="el" href="class_multiple_object_model.html#a95d89beeebf9781927f4b4dce50d66c3">MultipleObjectModel</a>.</p>
+
 </div>
 </div>
-<a id="a7bcdd78cd317c71b039dd22bae1d0623" name="a7bcdd78cd317c71b039dd22bae1d0623"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7bcdd78cd317c71b039dd22bae1d0623">&#9670;&#160;</a></span>getEboBuffer()</h2>
+<a id="ac757143e04a74dc4fdb1d976894050e1" name="ac757143e04a74dc4fdb1d976894050e1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac757143e04a74dc4fdb1d976894050e1">&#9670;&#160;</a></span>getEboBuffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned int Model::getEboBuffer </td>
+          <td class="memname">virtual unsigned int Model::getEboBuffer </td>
           <td>(</td>
           <td class="paramtype">unsigned int</td>          <td class="paramname"><span class="paramname"><em>index</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Gets Element Buffer Array of certain mesh from model. </p>
@@ -208,21 +197,31 @@ std::vector&lt; <a class="el" href="class_mesh.html">Mesh</a> &gt;&#160;</td><td
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Element Buffer Array</dd></dl>
 
+<p>Implemented in <a class="el" href="class_instanced_model.html#aa52a71c307dce9839f3c48f4ff39647c">InstancedModel</a>, <a class="el" href="class_single_object_model.html#a3dff98defedfab690f0418ab7827fe41">SingleObjectModel</a>, and <a class="el" href="class_multiple_object_model.html#ae18bde2cd2375162cf1984b301055e30">MultipleObjectModel</a>.</p>
+
 </div>
 </div>
-<a id="a7cd48b116b66785ba874fa6f9588e713" name="a7cd48b116b66785ba874fa6f9588e713"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7cd48b116b66785ba874fa6f9588e713">&#9670;&#160;</a></span>getVboBuffer()</h2>
+<a id="ae8faa595f5870d99081ece5136f89a74" name="ae8faa595f5870d99081ece5136f89a74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8faa595f5870d99081ece5136f89a74">&#9670;&#160;</a></span>getVboBuffer()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">unsigned int Model::getVboBuffer </td>
+          <td class="memname">virtual unsigned int Model::getVboBuffer </td>
           <td>(</td>
           <td class="paramtype">unsigned int</td>          <td class="paramname"><span class="paramname"><em>index</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Gets <a class="el" href="struct_vertex.html" title="Represents visualization vertex.">Vertex</a> Buffer Object of certain mesh from model. </p>
@@ -234,11 +233,12 @@ std::vector&lt; <a class="el" href="class_mesh.html">Mesh</a> &gt;&#160;</td><td
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="struct_vertex.html" title="Represents visualization vertex.">Vertex</a> Buffer Object</dd></dl>
 
+<p>Implemented in <a class="el" href="class_instanced_model.html#af1fc77b2c787928cc89e5383c10f6d3c">InstancedModel</a>, <a class="el" href="class_single_object_model.html#ada56f5311158b3febf537cd17614297c">SingleObjectModel</a>, and <a class="el" href="class_multiple_object_model.html#a63a64da51505c5e4a0ace7848d3cf689">MultipleObjectModel</a>.</p>
+
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following files:<ul>
-<li>C:/Users/hlaw/Documents/repo/Simulation-Server/src/graphics/<a class="el" href="model_8hpp_source.html">model.hpp</a></li>
-<li>C:/Users/hlaw/Documents/repo/Simulation-Server/src/graphics/<b>model.cpp</b></li>
+<hr/>The documentation for this class was generated from the following file:<ul>
+<li>src/graphics/<a class="el" href="model_8hpp_source.html">model.hpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->
