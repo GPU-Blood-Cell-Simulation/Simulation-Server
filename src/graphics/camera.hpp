@@ -43,7 +43,7 @@ namespace graphics
 	private:
 		glm::mat4 view;
 
-		glm::vec3 position {(minX + maxX) / 2, (minY + maxY) / 2, 20 * maxZ};
+		glm::vec3 position {0, -300, 1500};
 		glm::vec3 front {0, 0, -1};
 		glm::vec3 up {0, 1, 0};
 		glm::vec3 right = glm::cross(front, up);
